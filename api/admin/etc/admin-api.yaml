@@ -1,0 +1,10 @@
+Name: admin-api
+Host: 0.0.0.0
+Port: 8888
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: common.rpc
+Auth:
+  AccessSecret: HDwpV1wWkGYJLGYs
+  AccessExpire: 86400

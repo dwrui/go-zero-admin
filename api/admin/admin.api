@@ -1,0 +1,58 @@
+syntax = "v1"
+
+info (
+	title:   "go-zero-admin 后台统一接口"
+	desc:    "后台接口统一管理"
+	author:  "德瑞"
+	date:    "2025 年 12 月 04 日"
+	version: "v1"
+)
+
+type GetCaptchaReq {
+	phone string `json:"phone"`
+	captchaType string `json:"type"`
+
+}
+
+@server (
+	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
+	group:   common // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
+	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+)
+service admin-api {
+	// 定义只有请求体的接口，如更新信息
+	@handler getCaptcha
+	get /common/getCaptcha (GetCaptchaReq)
+}
+
+type LoginReq {
+	username string `json:"username"`
+	password string `json:"password"`
+	codeid   string `json:"codeid"`
+	captcha  string `json:"captcha"`
+}
+
+@server (
+	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
+	group:   user // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
+	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+)
+service admin-api {
+	// 定义只有请求体的接口，如更新信息
+	@handler login
+	post /user/login (LoginReq)
+}
+//需要验证的接口
+@server (
+	jwt:     Auth // 对当前 Foo 语法块下的所有路由，开启 jwt 认证，不需要则请删除此行
+	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
+	group:   user // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
+	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+)
+
+service admin-api {
+	// 获取用户信息
+	@handler getUserInfo
+	get /user/getUserInfo
+}
+
