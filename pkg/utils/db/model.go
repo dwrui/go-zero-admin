@@ -1,0 +1,1401 @@
+package db
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// Model 链式查询构建器
+type Model struct {
+	db          *DBManager
+	table       string
+	alias       string
+	joins       []joinClause
+	where       []whereClause
+	groupBy     []string
+	having      []whereClause
+	orderBy     []orderClause
+	limit       int
+	offset      int
+	page        int
+	pageSize    int
+	lockMode    string
+	distinct    bool
+	fields      []string
+	sqlFetch    bool                   // 是否只输出SQL不执行查询
+	data        map[string]interface{} // 数据操作字段
+	withTrashed bool                   // 是否包含软删除数据
+	updateData  map[string]interface{} // 更新数据
+	incData     map[string]interface{} // 自增数据
+	decData     map[string]interface{} // 自减数据
+}
+
+// joinClause 关联查询结构
+type joinClause struct {
+	joinType string // LEFT, RIGHT, INNER
+	table    string
+	alias    string
+	on       string
+	args     []interface{}
+}
+
+// whereClause 条件结构
+type whereClause struct {
+	operator string // AND, OR
+	field    string
+	cond     string
+	args     []interface{}
+}
+
+// orderClause 排序结构
+type orderClause struct {
+	field string
+	dir   string // ASC, DESC
+}
+
+// QueryResult 查询结果包装器
+type QueryResult struct {
+	data  interface{}
+	err   error
+	query string
+	args  []interface{}
+}
+
+// IsEmpty 判断查询结果是否为空
+func (r *QueryResult) IsEmpty() bool {
+	if r.err != nil {
+		return true
+	}
+
+	switch v := r.data.(type) {
+	case []interface{}:
+		return len(v) == 0
+	case nil:
+		return true
+	default:
+		// 使用反射检查是否为空切片
+		return r.isSliceEmpty(v)
+	}
+}
+
+// IsNotEmpty 判断查询结果是否不为空
+func (r *QueryResult) IsNotEmpty() bool {
+	return !r.IsEmpty()
+}
+
+// GetError 获取错误信息
+func (r *QueryResult) GetError() error {
+	return r.err
+}
+
+// GetSQL 获取执行的SQL语句（调试用）
+func (r *QueryResult) GetSQL() string {
+	return r.query
+}
+
+// GetArgs 获取SQL参数（调试用）
+func (r *QueryResult) GetArgs() []interface{} {
+	return r.args
+}
+
+// SQLFetch 设置是否只输出SQL不执行查询
+func (qb *Model) SQLFetch(fetch bool) *Model {
+	qb.sqlFetch = fetch
+	return qb
+}
+
+// Alias 设置表别名
+func (qb *Model) Alias(alias string) *Model {
+	qb.alias = alias
+	return qb
+}
+
+// Fields 设置查询字段
+func (qb *Model) Fields(fields ...string) *Model {
+	if len(fields) == 0 {
+		return qb
+	}
+
+	// 如果只传了一个参数且包含逗号，则按逗号分割
+	if len(fields) == 1 && strings.Contains(fields[0], ",") {
+		// 按逗号分割并去除空格
+		fieldList := strings.Split(fields[0], ",")
+		for i, field := range fieldList {
+			fieldList[i] = strings.TrimSpace(field)
+		}
+		qb.fields = fieldList
+	} else {
+		// 多个参数形式，直接使用
+		qb.fields = fields
+	}
+	return qb
+}
+
+// Distinct 设置DISTINCT
+func (qb *Model) Distinct() *Model {
+	qb.distinct = true
+	return qb
+}
+
+// LeftJoin 左关联
+func (qb *Model) LeftJoin(table, alias, on string, args ...interface{}) *Model {
+	qb.joins = append(qb.joins, joinClause{
+		joinType: "LEFT",
+		table:    qb.db.formatTableName(table), // 格式化关联表名
+		alias:    alias,
+		on:       on,
+		args:     args,
+	})
+	return qb
+}
+
+// RightJoin 右关联
+func (qb *Model) RightJoin(table, alias, on string, args ...interface{}) *Model {
+	qb.joins = append(qb.joins, joinClause{
+		joinType: "RIGHT",
+		table:    qb.db.formatTableName(table), // 格式化关联表名
+		alias:    alias,
+		on:       on,
+		args:     args,
+	})
+	return qb
+}
+
+// Join 内关联
+func (qb *Model) Join(table, alias, on string, args ...interface{}) *Model {
+	qb.joins = append(qb.joins, joinClause{
+		joinType: "INNER",
+		table:    qb.db.formatTableName(table), // 格式化关联表名
+		alias:    alias,
+		on:       on,
+		args:     args,
+	})
+	return qb
+}
+
+// Where 设置条件 (支持map和map切片)
+func (qb *Model) Where(conditions interface{}, args ...interface{}) *Model {
+	switch cond := conditions.(type) {
+	case map[string]interface{}:
+		// 处理map类型条件
+		for field, value := range cond {
+			qb.where = append(qb.where, whereClause{
+				operator: "AND",
+				field:    field,
+				cond:     "= ?",
+				args:     []interface{}{value},
+			})
+		}
+	case []map[string]interface{}:
+		// 处理map切片类型条件
+		for i, condition := range cond {
+			for field, value := range condition {
+				operator := "AND"
+				if i == 0 && len(qb.where) == 0 {
+					operator = "" // 第一个条件不加AND
+				}
+				qb.where = append(qb.where, whereClause{
+					operator: operator,
+					field:    field,
+					cond:     "= ?",
+					args:     []interface{}{value},
+				})
+			}
+		}
+	case string:
+		// 处理字符串条件 - 对于完整SQL条件，field留空，只使用cond
+		operator := "AND"
+		if len(qb.where) == 0 {
+			operator = ""
+		}
+		qb.where = append(qb.where, whereClause{
+			operator: operator,
+			field:    "",   // 字段名留空，表示这是完整条件
+			cond:     cond, // 条件语句直接存储
+			args:     args,
+		})
+	}
+	return qb
+}
+
+// WhereOr 设置OR条件
+func (qb *Model) WhereOr(field string, args ...interface{}) *Model {
+	operator := "OR"
+	if len(qb.where) == 0 {
+		operator = ""
+	}
+	qb.where = append(qb.where, whereClause{
+		operator: operator,
+		field:    field,
+		cond:     fmt.Sprintf("%s = ?", field),
+		args:     args,
+	})
+	return qb
+}
+
+// WhereIn 设置IN条件
+func (qb *Model) WhereIn(field string, values []interface{}) *Model {
+	if len(values) == 0 {
+		return qb
+	}
+
+	placeholders := make([]string, len(values))
+	for i := range values {
+		placeholders[i] = "?"
+	}
+
+	operator := "AND"
+	if len(qb.where) == 0 {
+		operator = ""
+	}
+
+	qb.where = append(qb.where, whereClause{
+		operator: operator,
+		field:    field,
+		cond:     fmt.Sprintf("IN (%s)", strings.Join(placeholders, ",")),
+		args:     values,
+	})
+	return qb
+}
+
+// WhereNotIn 设置NOT IN条件
+func (qb *Model) WhereNotIn(field string, values []interface{}) *Model {
+	if len(values) == 0 {
+		return qb
+	}
+
+	placeholders := make([]string, len(values))
+	for i := range values {
+		placeholders[i] = "?"
+	}
+
+	operator := "AND"
+	if len(qb.where) == 0 {
+		operator = ""
+	}
+
+	qb.where = append(qb.where, whereClause{
+		operator: operator,
+		field:    field,
+		cond:     fmt.Sprintf("NOT IN (%s)", strings.Join(placeholders, ",")),
+		args:     values,
+	})
+	return qb
+}
+
+// WhereBetween 设置BETWEEN条件
+func (qb *Model) WhereBetween(field string, start, end interface{}) *Model {
+	operator := "AND"
+	if len(qb.where) == 0 {
+		operator = ""
+	}
+
+	qb.where = append(qb.where, whereClause{
+		operator: operator,
+		field:    field,
+		cond:     "BETWEEN ? AND ?",
+		args:     []interface{}{start, end},
+	})
+	return qb
+}
+
+// WhereNull 设置IS NULL条件
+func (qb *Model) WhereNull(field string) *Model {
+	operator := "AND"
+	if len(qb.where) == 0 {
+		operator = ""
+	}
+
+	qb.where = append(qb.where, whereClause{
+		operator: operator,
+		field:    field,
+		cond:     "IS NULL",
+		args:     []interface{}{},
+	})
+	return qb
+}
+
+// WhereNotNull 设置IS NOT NULL条件
+func (qb *Model) WhereNotNull(field string) *Model {
+	operator := "AND"
+	if len(qb.where) == 0 {
+		operator = ""
+	}
+
+	qb.where = append(qb.where, whereClause{
+		operator: operator,
+		field:    field,
+		cond:     "IS NOT NULL",
+		args:     []interface{}{},
+	})
+	return qb
+}
+
+// GroupBy 设置分组
+func (qb *Model) Group(fields ...string) *Model {
+	qb.groupBy = append(qb.groupBy, fields...)
+	return qb
+}
+
+// Having 设置HAVING条件
+func (qb *Model) Having(condition string, args ...interface{}) *Model {
+	qb.having = append(qb.having, whereClause{
+		operator: "AND",
+		field:    condition,
+		cond:     condition,
+		args:     args,
+	})
+	return qb
+}
+
+// Order 设置排序
+func (qb *Model) Order(field, direction string) *Model {
+	qb.orderBy = append(qb.orderBy, orderClause{
+		field: field,
+		dir:   strings.ToUpper(direction),
+	})
+	return qb
+}
+
+// OrderBy 设置排序（升序）
+func (qb *Model) OrderBy(field string) *Model {
+	return qb.Order(field, "ASC")
+}
+
+// OrderByDesc 设置排序（降序）
+func (qb *Model) OrderByDesc(field string) *Model {
+	return qb.Order(field, "DESC")
+}
+
+// Limit 设置限制条数
+func (qb *Model) Limit(limit int) *Model {
+	qb.limit = limit
+	return qb
+}
+
+// Offset 设置偏移量
+func (qb *Model) Offset(offset int) *Model {
+	qb.offset = offset
+	return qb
+}
+
+// Page 设置分页
+func (qb *Model) Page(page, pageSize int) *Model {
+	qb.page = page
+	qb.pageSize = pageSize
+	if page > 0 && pageSize > 0 {
+		qb.offset = (page - 1) * pageSize
+		qb.limit = pageSize
+	}
+	return qb
+}
+
+// ForUpdate 设置FOR UPDATE锁
+func (qb *Model) ForUpdate() *Model {
+	qb.lockMode = "FOR UPDATE"
+	return qb
+}
+
+// LockInShareMode 设置LOCK IN SHARE MODE锁
+func (qb *Model) LockInShareMode() *Model {
+	qb.lockMode = "LOCK IN SHARE MODE"
+	return qb
+}
+
+// Find 查询单条记录
+func (qb *Model) Find(ctx context.Context, dest interface{}) *QueryResult {
+	qb.Limit(1)
+	query, args := qb.buildQuery()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  dest,
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	err := qb.db.QueryRow(ctx, dest, query, args...)
+	return &QueryResult{
+		data:  dest,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Select 查询多条记录
+func (qb *Model) Select(ctx context.Context, dest interface{}) *QueryResult {
+	query, args := qb.buildQuery()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  dest,
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	err := qb.db.Query(ctx, dest, query, args...)
+	return &QueryResult{
+		data:  dest,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Get 查询单条记录（与Find相同）
+func (qb *Model) Get(ctx context.Context, dest interface{}) *QueryResult {
+	return qb.Find(ctx, dest)
+}
+
+// All 查询多条记录（与Select相同）
+func (qb *Model) All(ctx context.Context, dest interface{}) *QueryResult {
+	return qb.Select(ctx, dest)
+}
+
+// Count 统计数量
+func (qb *Model) Count(ctx context.Context) *QueryResult {
+	qb.fields = []string{"COUNT(*)"}
+	query, args := qb.buildQuery()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	var count int64
+	err := qb.db.QueryRow(ctx, &count, query, args...)
+	return &QueryResult{
+		data:  count,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Exists 检查是否存在
+func (qb *Model) Exists(ctx context.Context) *QueryResult {
+	result := qb.Count(ctx)
+	if result.err != nil {
+		return result
+	}
+
+	// 如果设置了SQLFetch，直接返回结果
+	if qb.sqlFetch {
+		return result
+	}
+
+	count, ok := result.data.(int64)
+	if !ok {
+		return &QueryResult{
+			data:  false,
+			err:   fmt.Errorf("count result type error"),
+			query: result.query,
+			args:  result.args,
+		}
+	}
+
+	return &QueryResult{
+		data:  count > 0,
+		err:   nil,
+		query: result.query,
+		args:  result.args,
+	}
+}
+
+// Sum 查询指定字段的合计数
+func (qb *Model) Sum(ctx context.Context, field string) *QueryResult {
+	qb.fields = []string{fmt.Sprintf("SUM(%s)", field)}
+	query, args := qb.buildQuery()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	var sum sql.NullFloat64
+	err := qb.db.QueryRow(ctx, &sum, query, args...)
+
+	var result float64
+	if err == nil && sum.Valid {
+		result = sum.Float64
+	}
+
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Value 获取指定字段的值（单条记录）
+func (qb *Model) Value(ctx context.Context, field string) *QueryResult {
+	qb.fields = []string{field}
+	qb.Limit(1)
+	query, args := qb.buildQuery()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	var value interface{}
+	err := qb.db.QueryRow(ctx, &value, query, args...)
+	return &QueryResult{
+		data:  value,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Column 获取单一字段的所有值
+func (qb *Model) Column(ctx context.Context, field string) *QueryResult {
+	qb.fields = []string{field}
+	query, args := qb.buildQuery()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	var results []interface{}
+	err := qb.db.Query(ctx, &results, query, args...)
+	return &QueryResult{
+		data:  results,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Data 设置数据操作字段
+func (qb *Model) Data(data map[string]interface{}) *Model {
+	if qb.data == nil {
+		qb.data = make(map[string]interface{})
+	}
+	for k, v := range data {
+		qb.data[k] = v
+	}
+	return qb
+}
+
+// Insert 使用INSERT INTO语句进行数据库写入，如果写入的数据中存在主键或者唯一索引时，返回失败
+func (qb *Model) Insert(ctx context.Context, data ...map[string]interface{}) *QueryResult {
+	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
+		qb.data = data[0]
+	}
+	// 如果没有数据，返回错误
+	if len(qb.data) == 0 {
+		return &QueryResult{
+			data:  nil,
+			err:   fmt.Errorf("no data to insert"),
+			query: "",
+			args:  nil,
+		}
+	}
+
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("INSERT INTO ")
+	sql.WriteString(qb.table)
+	sql.WriteString(" (")
+
+	fields := make([]string, 0, len(qb.data))
+	placeholders := make([]string, 0, len(qb.data))
+
+	for field := range qb.data {
+		fields = append(fields, field)
+		placeholders = append(placeholders, "?")
+		args = append(args, qb.data[field])
+	}
+
+	sql.WriteString(strings.Join(fields, ", "))
+	sql.WriteString(") VALUES (")
+	sql.WriteString(strings.Join(placeholders, ", "))
+	sql.WriteString(")")
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Save 使用INSERT INTO语句进行数据库写入，如果写入的数据中存在主键或者唯一索引时，更新原有数据
+func (qb *Model) Save(ctx context.Context, data ...map[string]interface{}) *QueryResult {
+	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
+		qb.data = data[0]
+	}
+
+	// 如果没有数据，返回错误
+	if len(qb.data) == 0 {
+		return &QueryResult{
+			data:  nil,
+			err:   fmt.Errorf("no data to save"),
+			query: "",
+			args:  nil,
+		}
+	}
+
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("INSERT INTO ")
+	sql.WriteString(qb.table)
+	sql.WriteString(" (")
+
+	fields := make([]string, 0, len(qb.data))
+	placeholders := make([]string, 0, len(qb.data))
+
+	for field := range qb.data {
+		fields = append(fields, field)
+		placeholders = append(placeholders, "?")
+		args = append(args, qb.data[field])
+	}
+
+	sql.WriteString(strings.Join(fields, ", "))
+	sql.WriteString(") VALUES (")
+	sql.WriteString(strings.Join(placeholders, ", "))
+	sql.WriteString(") ON DUPLICATE KEY UPDATE ")
+
+	updates := make([]string, 0, len(qb.data))
+	for field := range qb.data {
+		updates = append(updates, fmt.Sprintf("%s = VALUES(%s)", field, field))
+	}
+
+	sql.WriteString(strings.Join(updates, ", "))
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// InsertAll 批量插入
+func (qb *Model) InsertAll(ctx context.Context, data []map[string]interface{}) *QueryResult {
+	if len(data) == 0 {
+		return &QueryResult{
+			data:  nil,
+			err:   fmt.Errorf("no data to insert"),
+			query: "",
+			args:  nil,
+		}
+	}
+
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("INSERT INTO ")
+	sql.WriteString(qb.table)
+	sql.WriteString(" (")
+
+	// 获取所有字段名
+	fields := make([]string, 0, len(data[0]))
+	for field := range data[0] {
+		fields = append(fields, field)
+	}
+
+	sql.WriteString(strings.Join(fields, ", "))
+	sql.WriteString(") VALUES ")
+
+	placeholders := make([]string, len(fields))
+	for i := range placeholders {
+		placeholders[i] = "?"
+	}
+
+	valuePlaceholders := make([]string, 0, len(data))
+	for i, row := range data {
+		if i > 0 {
+			valuePlaceholders = append(valuePlaceholders, ", ")
+		}
+		valuePlaceholders = append(valuePlaceholders, "("+strings.Join(placeholders, ", ")+")")
+
+		for _, field := range fields {
+			args = append(args, row[field])
+		}
+	}
+
+	sql.WriteString(strings.Join(valuePlaceholders, ""))
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Update 数据更新
+// Update 数据更新
+func (qb *Model) Update(ctx context.Context, data ...map[string]interface{}) *QueryResult {
+	// 如果Data没有设置数据，才使用Update参数中的数据
+	if len(qb.data) == 0 && len(data) > 0 {
+		qb.data = data[0]
+	}
+
+	// 如果没有数据，返回错误
+	if len(qb.data) == 0 {
+		return &QueryResult{
+			data:  nil,
+			err:   fmt.Errorf("no data to replace"),
+			query: "",
+			args:  nil,
+		}
+	}
+
+	// 合并所有更新数据
+	updateData := make(map[string]interface{})
+
+	// 添加普通更新数据
+	if len(qb.updateData) > 0 {
+		for k, v := range qb.updateData {
+			updateData[k] = v
+		}
+	} else if len(qb.data) > 0 {
+		for k, v := range qb.data {
+			updateData[k] = v
+		}
+	}
+
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("UPDATE ")
+	sql.WriteString(qb.table)
+	sql.WriteString(" SET ")
+
+	sets := make([]string, 0, len(updateData)+len(qb.incData)+len(qb.decData))
+
+	// 普通字段更新（支持表达式）
+	for field, value := range updateData {
+		if str, ok := value.(string); ok {
+			// 支持MySQL函数表达式和字段表达式
+			if str == "NOW()" || str == "CURRENT_TIMESTAMP" ||
+				strings.Contains(str, field+" +") || strings.Contains(str, field+" -") ||
+				strings.Contains(str, field+" *") || strings.Contains(str, field+" /") {
+				sets = append(sets, fmt.Sprintf("%s = %s", field, str))
+			} else {
+				sets = append(sets, fmt.Sprintf("%s = ?", field))
+				args = append(args, value)
+			}
+		} else {
+			sets = append(sets, fmt.Sprintf("%s = ?", field))
+			args = append(args, value)
+		}
+	}
+
+	sql.WriteString(strings.Join(sets, ", "))
+
+	// 添加WHERE条件
+	if len(qb.where) > 0 {
+		sql.WriteString(" WHERE ")
+		for i, where := range qb.where {
+			if i > 0 || where.operator != "" {
+				sql.WriteString(" ")
+				sql.WriteString(where.operator)
+				sql.WriteString(" ")
+			}
+			sql.WriteString(where.field)
+			sql.WriteString(" ")
+			sql.WriteString(where.cond)
+			args = append(args, where.args...)
+		}
+	}
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Replace 使用REPLACE INTO语句进行数据库写入
+func (qb *Model) Replace(ctx context.Context, data ...map[string]interface{}) *QueryResult {
+	// 如果Data没有设置数据，才使用Replace参数中的数据
+	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
+		qb.data = data[0]
+	}
+
+	// 如果没有数据，返回错误
+	if len(qb.data) == 0 {
+		return &QueryResult{
+			data:  nil,
+			err:   fmt.Errorf("no data to replace"),
+			query: "",
+			args:  nil,
+		}
+	}
+
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("REPLACE INTO ")
+	sql.WriteString(qb.table)
+	sql.WriteString(" (")
+
+	fields := make([]string, 0, len(qb.data))
+	placeholders := make([]string, 0, len(qb.data))
+
+	for field := range qb.data {
+		fields = append(fields, field)
+		placeholders = append(placeholders, "?")
+		args = append(args, qb.data[field])
+	}
+
+	sql.WriteString(strings.Join(fields, ", "))
+	sql.WriteString(") VALUES (")
+	sql.WriteString(strings.Join(placeholders, ", "))
+	sql.WriteString(")")
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Inc 指定字段的自增操作
+func (qb *Model) Inc(ctx context.Context, field string, value interface{}) *QueryResult {
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("UPDATE ")
+	sql.WriteString(qb.table)
+	sql.WriteString(" SET ")
+	sql.WriteString(field)
+	sql.WriteString(" = ")
+	sql.WriteString(field)
+	sql.WriteString(" + ?")
+	args = append(args, value)
+
+	// 添加WHERE条件
+	if len(qb.where) > 0 {
+		sql.WriteString(" WHERE ")
+		for i, where := range qb.where {
+			if i > 0 || where.operator != "" {
+				sql.WriteString(" ")
+				sql.WriteString(where.operator)
+				sql.WriteString(" ")
+			}
+			sql.WriteString(where.field)
+			sql.WriteString(" ")
+			sql.WriteString(where.cond)
+			args = append(args, where.args...)
+		}
+	}
+
+	// 默认添加软删除条件（只有调用WithTrashed时才不包含）
+	if !qb.withTrashed {
+		if len(qb.where) > 0 {
+			sql.WriteString(" AND delete_time IS NULL")
+		} else {
+			sql.WriteString(" WHERE delete_time IS NULL")
+		}
+	}
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// Dec 指定字段的自减操作（直接执行，不需要接Update）
+func (qb *Model) Dec(ctx context.Context, field string, value interface{}) *QueryResult {
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("UPDATE ")
+	sql.WriteString(qb.table)
+	sql.WriteString(" SET ")
+	sql.WriteString(field)
+	sql.WriteString(" = ")
+	sql.WriteString(field)
+	sql.WriteString(" - ?")
+	args = append(args, value)
+
+	// 添加WHERE条件
+	if len(qb.where) > 0 {
+		sql.WriteString(" WHERE ")
+		for i, where := range qb.where {
+			if i > 0 || where.operator != "" {
+				sql.WriteString(" ")
+				sql.WriteString(where.operator)
+				sql.WriteString(" ")
+			}
+			sql.WriteString(where.field)
+			sql.WriteString(" ")
+			sql.WriteString(where.cond)
+			args = append(args, where.args...)
+		}
+	}
+
+	// 默认添加软删除条件（只有调用WithTrashed时才不包含）
+	if !qb.withTrashed {
+		if len(qb.where) > 0 {
+			sql.WriteString(" AND delete_time IS NULL")
+		} else {
+			sql.WriteString(" WHERE delete_time IS NULL")
+		}
+	}
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// WithTrashed 包含软删除数据
+func (qb *Model) WithTrashed() *Model {
+	qb.withTrashed = true
+	return qb
+}
+
+// Delete 删除数据（支持软删除）
+// Delete 删除数据（自动判断是否有delete_time字段，有则软删除，没有则真实删除）
+func (qb *Model) Delete(ctx context.Context) *QueryResult {
+	// 首先检查表是否有delete_time字段
+	// 这里通过查询information_schema来判断字段是否存在
+	checkSQL := `SELECT COUNT(*) FROM information_schema.COLUMNS 
+				 WHERE TABLE_SCHEMA = DATABASE() 
+				 AND TABLE_NAME = ? 
+				 AND COLUMN_NAME = 'delete_time'`
+
+	var hasDeleteTime int
+	err := qb.db.QueryRow(ctx, &hasDeleteTime, checkSQL, qb.table)
+	if err != nil {
+		// 如果检查失败，默认使用真实删除
+		hasDeleteTime = 0
+	}
+
+	// 如果有delete_time字段，使用软删除
+	if hasDeleteTime > 0 {
+		// 更新delete_time字段
+		if qb.updateData == nil {
+			qb.updateData = make(map[string]interface{})
+		}
+		qb.updateData["delete_time"] = "NOW()"
+
+		// 使用Update方法进行软删除
+		return qb.Update(ctx)
+	}
+
+	// 否则进行真实删除
+	var sql strings.Builder
+	var args []interface{}
+
+	sql.WriteString("DELETE FROM ")
+	sql.WriteString(qb.table)
+
+	// 添加WHERE条件
+	if len(qb.where) > 0 {
+		sql.WriteString(" WHERE ")
+		for i, where := range qb.where {
+			if i > 0 || where.operator != "" {
+				sql.WriteString(" ")
+				sql.WriteString(where.operator)
+				sql.WriteString(" ")
+			}
+			sql.WriteString(where.field)
+			sql.WriteString(" ")
+			sql.WriteString(where.cond)
+			args = append(args, where.args...)
+		}
+	}
+
+	query := sql.String()
+
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  int64(0),
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	return &QueryResult{
+		data:  result,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// buildQuery 构建SQL查询（修改以支持软删除）
+// buildQuery 构建SQL查询（修改：默认不添加软删除过滤，只有WithTrashed时才查询软删除数据）
+func (qb *Model) buildQuery() (string, []interface{}) {
+	var sql strings.Builder
+	var args []interface{}
+
+	// SELECT 子句
+	sql.WriteString("SELECT ")
+	if qb.distinct {
+		sql.WriteString("DISTINCT ")
+	}
+	sql.WriteString(strings.Join(qb.fields, ", "))
+
+	// FROM 子句
+	sql.WriteString(" FROM ")
+	sql.WriteString(qb.table)
+	if qb.alias != "" {
+		sql.WriteString(" AS ")
+		sql.WriteString(qb.alias)
+	}
+
+	// JOIN 子句
+	for _, join := range qb.joins {
+		sql.WriteString(" ")
+		sql.WriteString(join.joinType)
+		sql.WriteString(" JOIN ")
+		sql.WriteString(join.table)
+		if join.alias != "" {
+			sql.WriteString(" AS ")
+			sql.WriteString(join.alias)
+		}
+		sql.WriteString(" ON ")
+		sql.WriteString(join.on)
+		args = append(args, join.args...)
+	}
+
+	// WHERE 子句
+	if len(qb.where) > 0 || qb.withTrashed {
+		sql.WriteString(" WHERE ")
+
+		// 只有调用WithTrashed时才包含软删除数据
+		conditions := make([]string, 0)
+		if qb.withTrashed {
+			// 查询包含软删除的数据，不需要添加delete_time条件
+			for i, where := range qb.where {
+				if i > 0 || where.operator != "" {
+					conditions = append(conditions, " "+where.operator+" ")
+				}
+				// 修改：如果field为空，表示这是完整条件，只使用cond
+				if where.field == "" {
+					conditions = append(conditions, where.cond)
+				} else {
+					conditions = append(conditions, where.field+" "+where.cond)
+				}
+				args = append(args, where.args...)
+			}
+		} else {
+			// 默认情况：只查询未删除的数据
+			deleteCondition := "delete_time IS NULL"
+			if len(qb.where) > 0 {
+				conditions = append(conditions, deleteCondition+" AND ")
+			} else if len(qb.where) == 0 {
+				conditions = append(conditions, deleteCondition)
+			}
+
+			for i, where := range qb.where {
+				if i > 0 || where.operator != "" {
+					conditions = append(conditions, " "+where.operator+" ")
+				}
+				// 修改：如果field为空，表示这是完整条件，只使用cond
+				if where.field == "" {
+					conditions = append(conditions, where.cond)
+				} else {
+					conditions = append(conditions, where.field+" "+where.cond)
+				}
+				args = append(args, where.args...)
+			}
+		}
+
+		sql.WriteString(strings.Join(conditions, ""))
+	}
+
+	// GROUP BY 子句
+	if len(qb.groupBy) > 0 {
+		sql.WriteString(" GROUP BY ")
+		sql.WriteString(strings.Join(qb.groupBy, ", "))
+	}
+
+	// HAVING 子句
+	if len(qb.having) > 0 {
+		sql.WriteString(" HAVING ")
+		for i, having := range qb.having {
+			if i > 0 {
+				sql.WriteString(" AND ")
+			}
+			sql.WriteString(having.cond)
+			args = append(args, having.args...)
+		}
+	}
+
+	// ORDER BY 子句
+	if len(qb.orderBy) > 0 {
+		sql.WriteString(" ORDER BY ")
+		for i, order := range qb.orderBy {
+			if i > 0 {
+				sql.WriteString(", ")
+			}
+			sql.WriteString(order.field)
+			sql.WriteString(" ")
+			sql.WriteString(order.dir)
+		}
+	}
+
+	// LIMIT 子句
+	if qb.limit > 0 {
+		sql.WriteString(" LIMIT ")
+		sql.WriteString(fmt.Sprintf("%d", qb.limit))
+	}
+
+	// OFFSET 子句
+	if qb.offset > 0 {
+		sql.WriteString(" OFFSET ")
+		sql.WriteString(fmt.Sprintf("%d", qb.offset))
+	}
+
+	// 锁
+	if qb.lockMode != "" {
+		sql.WriteString(" ")
+		sql.WriteString(qb.lockMode)
+	}
+
+	return sql.String(), args
+}
+
+// isSliceEmpty 辅助方法：判断切片是否为空
+func (r *QueryResult) isSliceEmpty(v interface{}) bool {
+	// 这里可以添加更多的反射逻辑来判断不同类型的空值
+	// 简化实现，主要处理常见的切片类型
+	return false
+}
+
+// formatSQLValue 格式化SQL参数值为可打印的字符串
+func formatSQLValue(arg interface{}) string {
+	if arg == nil {
+		return "NULL"
+	}
+
+	switch v := arg.(type) {
+	case string:
+		// 转义单引号
+		return fmt.Sprintf("'%s'", strings.ReplaceAll(v, "'", "''"))
+	case time.Time:
+		return fmt.Sprintf("'%s'", v.Format("2006-01-02 15:04:05"))
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return fmt.Sprintf("%v", v)
+	case float32, float64:
+		return fmt.Sprintf("%v", v)
+	case bool:
+		if v {
+			return "1"
+		}
+		return "0"
+	default:
+		// 对于其他类型，使用反射处理
+		rv := reflect.ValueOf(arg)
+		switch rv.Kind() {
+		case reflect.String:
+			return fmt.Sprintf("'%s'", strings.ReplaceAll(rv.String(), "'", "''"))
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return strconv.FormatInt(rv.Int(), 10)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			return strconv.FormatUint(rv.Uint(), 10)
+		case reflect.Float32, reflect.Float64:
+			return strconv.FormatFloat(rv.Float(), 'f', -1, 64)
+		case reflect.Bool:
+			if rv.Bool() {
+				return "1"
+			}
+			return "0"
+		default:
+			return fmt.Sprintf("'%s'", strings.ReplaceAll(fmt.Sprintf("%v", arg), "'", "''"))
+		}
+	}
+}
+
+// buildCompleteSQL 构建完整的SQL语句（将参数替换到占位符中）
+func buildCompleteSQL(query string, args []interface{}) string {
+	if len(args) == 0 {
+		return query
+	}
+
+	result := query
+	argIndex := 0
+
+	// 替换所有问号占位符
+	for argIndex < len(args) && strings.Contains(result, "?") {
+		// 找到第一个问号
+		index := strings.Index(result, "?")
+		if index == -1 {
+			break
+		}
+
+		// 替换问号
+		if argIndex < len(args) {
+			formattedValue := formatSQLValue(args[argIndex])
+			result = result[:index] + formattedValue + result[index+1:]
+			argIndex++
+		} else {
+			break
+		}
+	}
+
+	return result
+}

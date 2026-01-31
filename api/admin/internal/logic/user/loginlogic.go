@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"user/user"
 
 	"admin/internal/svc"
 	"admin/internal/types"
@@ -23,8 +25,25 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 	}
 }
 
-func (l *LoginLogic) Login(req *types.LoginReq) error {
+/**
+ * 登录
+ * @param req
+ * @return any
+ * @return error
+ */
+func (l *LoginLogic) Login(req *types.LoginReq, reqs ga.Map) (any, error) {
 	// todo: add your logic here and delete this line
-
-	return nil
+	// 调用user.rpc服务的Login方法
+	rpcResp, err := l.svcCtx.UserClient.Login(l.ctx, &user.LoginRequest{
+		Username:  req.Username,
+		Password:  req.Password,
+		Codeid:    req.Codeid,
+		Captcha:   req.Captcha,
+		ClientIp:  ga.String(reqs["ip"]),
+		UserAgent: ga.String(reqs["user_agent"]),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return rpcResp, nil
 }

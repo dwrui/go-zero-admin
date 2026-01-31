@@ -1,10 +1,19 @@
 Name: admin-api
 Host: 0.0.0.0
-Port: 8888
-Etcd:
+Port: 8881
+CommonEtcd:
   Hosts:
     - 127.0.0.1:2379
   Key: common.rpc
+UserEtcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: user.rpc
 Auth:
   AccessSecret: HDwpV1wWkGYJLGYs
   AccessExpire: 86400
+# 静态文件服务配置
+Static:
+  Dir: E:/phpproject/go-zero-admin/common/static  # 指向static目录
+  Prefix: /common/static/
+  Index: index.html

@@ -1,6 +1,8 @@
 package user
 
 import (
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"google.golang.org/grpc/status"
 	"net/http"
 
 	"admin/internal/logic/user"
@@ -10,12 +12,17 @@ import (
 
 func GetUserInfoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
 		l := user.NewGetUserInfoLogic(r.Context(), svcCtx)
-		err := l.GetUserInfo()
+		resp, err := l.GetUserInfo(token)
 		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
+			if st, ok := status.FromError(err); ok {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+			} else {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
+			}
 		} else {
-			httpx.Ok(w)
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Success().SetData(resp))
 		}
 	}
 }

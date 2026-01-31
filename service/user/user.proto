@@ -1,0 +1,46 @@
+// 声明 proto 使用的语法版本
+syntax = "proto3";
+
+// proto 包名
+package user;
+
+// golang 包名
+option go_package = "./user";
+// 获取登录请求
+message LoginRequest {
+  string username = 1;       // 用户名
+  string password = 2;       // 密码
+  string codeid = 3;       // 验证码ID
+  string captcha = 4;       // 验证码
+  string email = 5;       // 邮箱
+  string mobile = 6;       // 手机号
+  string client_ip = 7;   // 客户端IP
+  string user_agent = 8;   // 用户代理
+
+}
+// 获取登录响应
+// 登录数据
+message LoginResponse {
+  string data = 1;           // 登录成功后返回的token
+}
+message GetUserinfoRequest{
+  uint64 user_id = 1;
+}
+message GetUserinfoResponse{
+  uint64 id = 1;
+  string avatar = 2;
+  uint64 business_id = 3;
+  string createtime = 4;
+  string defrooturl = 5;
+  string email = 6;
+  string mobile = 7;
+  string name = 8;
+  string nickname = 9;
+  map<string, string> rooturls = 10;
+  uint64 status = 11;
+}
+// 定义服务
+service UserService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc GetUserinfo(GetUserinfoRequest) returns (GetUserinfoResponse);
+}

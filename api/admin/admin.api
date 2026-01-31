@@ -9,9 +9,7 @@ info (
 )
 
 type GetCaptchaReq {
-	phone string `json:"phone"`
-	captchaType string `json:"type"`
-
+	captchaType string `json:"type" validate:"required"`
 }
 
 @server (
@@ -26,10 +24,10 @@ service admin-api {
 }
 
 type LoginReq {
-	username string `json:"username"`
-	password string `json:"password"`
-	codeid   string `json:"codeid"`
-	captcha  string `json:"captcha"`
+	username string `json:"username" validate:"required"`
+	password string `json:"password" validate:"required"`
+	codeid   string `json:"codeid" validate:"required"`
+	captcha  string `json:"captcha" validate:"required"`
 }
 
 @server (
@@ -42,6 +40,7 @@ service admin-api {
 	@handler login
 	post /user/login (LoginReq)
 }
+
 //需要验证的接口
 @server (
 	jwt:     Auth // 对当前 Foo 语法块下的所有路由，开启 jwt 认证，不需要则请删除此行
@@ -49,7 +48,6 @@ service admin-api {
 	group:   user // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
 	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
 )
-
 service admin-api {
 	// 获取用户信息
 	@handler getUserInfo

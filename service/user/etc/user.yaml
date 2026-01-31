@@ -1,0 +1,17 @@
+Name: user.rpc
+ListenOn: 0.0.0.0:8883
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: user.rpc
+mysql:
+  Host: 127.0.0.1
+  Port: 3306
+  Database: go_zero_admin
+  Username: go_zero_admin
+  Password: go_zero_admin
+  Charset: utf8mb4
+  TablePrefix: ga_
+Jwt:
+  AccessSecret: HDwpV1wWkGYJLGYs
+  AccessExpire: 86400

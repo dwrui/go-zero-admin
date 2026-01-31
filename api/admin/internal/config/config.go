@@ -7,9 +7,15 @@ import (
 
 type Config struct {
 	rest.RestConf
-	Etcd discov.EtcdConf `json:",optional"`
-	Auth struct {
+	CommonEtcd discov.EtcdConf `json:",optional"`
+	UserEtcd   discov.EtcdConf `json:",optional"`
+	Auth       struct {
 		AccessSecret string
 		AccessExpire int64
+	}
+	Static struct {
+		Dir    string
+		Prefix string
+		Index  string
 	}
 }
