@@ -9,11 +9,28 @@ UserEtcd:
   Hosts:
     - 127.0.0.1:2379
   Key: user.rpc
+# RPC客户端统一配置
+RpcClient:
+  NonBlock: true
+  Timeout: 3000
+  Middlewares:
+    Trace: true  # 开启链路追踪
+    Duration: true # 开启用耗时统计
+    Prometheus: true # 启用监控指标
+    Breaker: true # 开启熔断器
 Auth:
   AccessSecret: HDwpV1wWkGYJLGYs
   AccessExpire: 86400
 # 静态文件服务配置
 Static:
-  Dir: E:/phpproject/go-zero-admin/common/static  # 指向static目录
-  Prefix: /common/static/
+  Dir: E:/phpproject/go-zero-admin/common  # 指向static目录
+  Prefix: /common/
   Index: index.html
+# 添加日志配置
+Log:
+  ServiceName: admin-api
+  Mode: file        # 改为 file 模式，同时输出到文件和控制台
+  Path: ../../logs/admin-api      # 日志文件保存路径
+  Level: info       # 日志级别
+  KeepDays: 7       # 保留7天
+  Compress: false   # 不压缩旧日志

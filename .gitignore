@@ -2,3 +2,5 @@
 go.work
 go.sum
 go.work.sum
+logs/
+.gitignore

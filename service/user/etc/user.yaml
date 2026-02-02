@@ -15,3 +15,10 @@ mysql:
 Jwt:
   AccessSecret: HDwpV1wWkGYJLGYs
   AccessExpire: 86400
+Log:
+  ServiceName: user-service
+  Mode: file
+  Path: ../../logs/user
+  Level: info
+  KeepDays: 7
+  Compress: false

@@ -35,23 +35,17 @@ func main() {
 			fmt.Printf("Error getting absolute path: %v\n", err)
 			return
 		}
-
 		// 检查目录是否存在
 		if _, err := os.Stat(absDir); os.IsNotExist(err) {
 			fmt.Printf("Static directory does not exist: %s\n", absDir)
 			return
 		}
-
-		fmt.Printf("Static file server enabled: /common/static/ -> %s\n", absDir)
-
 		// 使用标准库的http.FileServer
 		fileServer := http.FileServer(http.Dir(absDir))
-
 		// 创建包装函数来处理路径
 		staticHandler := func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("Static file request: %s\n", r.URL.Path)
 			// 调整请求路径，去掉前缀
-			r.URL.Path = strings.TrimPrefix(r.URL.Path, "/common/static")
+			r.URL.Path = strings.TrimPrefix(r.URL.Path, c.Static.Prefix)
 			if r.URL.Path == "" {
 				r.URL.Path = "/"
 			}
@@ -61,7 +55,7 @@ func main() {
 		// 注册静态文件路由
 		server.AddRoute(rest.Route{
 			Method:  http.MethodGet,
-			Path:    "/common/static/:any",
+			Path:    "/common/:any",
 			Handler: http.HandlerFunc(staticHandler),
 		})
 	}
