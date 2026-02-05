@@ -77,7 +77,12 @@ func (db *DBManager) Exec(ctx context.Context, query string, args ...interface{}
 
 // Query 查询多条记录
 func (db *DBManager) Query(ctx context.Context, v interface{}, query string, args ...interface{}) error {
-	return db.conn.QueryRowPartialCtx(ctx, v, query, args...)
+	return db.conn.QueryRowsPartialCtx(ctx, v, query, args...)
+}
+
+// QueryRows 查询多条记录
+func (db *DBManager) QueryRows(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return db.conn.QueryRowsPartialCtx(ctx, v, query, args...)
 }
 
 // QueryRow 查询单条记录

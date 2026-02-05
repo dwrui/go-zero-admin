@@ -52,10 +52,32 @@ message GetCaptchaResponse {
   string img = 4;   // 验证码图片base64编码
   bool show = 5;   // 是否需要展示验证码
 }
+//获取菜单数据
+message GetMenuRequest{
+  uint64 user_id = 1;
+  uint64 route_id = 2;
+}
+message GetMenuResponse {
+    string data = 1;       // 菜单数据
+}
 // 定义服务
 // 如果要将消息类型与 RPC（远程过程调用）系统配合使用，您可以在 .proto 文件中定义 RPC 服务接口，
 // 协议缓冲区编译器会生成以您选择的语言编写的服务接口代码和存根。例如，如果您想使用接受 SearchRequest
 //  并返回 SearchResponse 的方法定义 RPC 服务，可以在 .proto 文件中定义它，如下所示：
 service CommonService {
   rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaResponse);
+  rpc GetMenu(GetMenuRequest) returns (GetMenuResponse);
+}
+/**
+ * 获取首页快速编辑数据
+ */
+message    GetQuickRequest {}
+message GetQuickRow {
+  map<string, string> pairs = 1;
+}
+message   GetQuickResponse {
+  repeated GetQuickRow data = 1;       // 快速数据
+}
+service DashboardService {
+  rpc GetQuick(GetQuickRequest) returns (GetQuickResponse);
 }

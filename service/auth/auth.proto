@@ -1,0 +1,32 @@
+// 声明 proto 使用的语法版本
+syntax = "proto3";
+
+// proto 包名
+package auth;
+
+// golang 包名
+option go_package = "./auth";
+// 获取验证码请求
+message CheckTokenRequest {
+  string token = 1;       // 令牌
+  string permission = 2;       // 权限
+}
+
+message CheckTokenResponse {
+  uint64 user_id = 1;
+}
+//获取菜单数据
+message RefreshTokenRequest{
+  string token = 1;
+}
+message RefreshTokenResponse {
+  string new_token = 2;       // 新令牌
+}
+// 定义服务
+// 如果要将消息类型与 RPC（远程过程调用）系统配合使用，您可以在 .proto 文件中定义 RPC 服务接口，
+// 协议缓冲区编译器会生成以您选择的语言编写的服务接口代码和存根。例如，如果您想使用接受 SearchRequest
+//  并返回 SearchResponse 的方法定义 RPC 服务，可以在 .proto 文件中定义它，如下所示：
+service AuthService {
+  rpc CheckToken(CheckTokenRequest) returns (CheckTokenResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}

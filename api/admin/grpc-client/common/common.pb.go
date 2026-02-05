@@ -211,6 +211,103 @@ func (x *GetCaptchaResponse) GetShow() bool {
 	return false
 }
 
+// 获取菜单数据
+type GetMenuRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        uint64                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	RouteId       uint64                 `protobuf:"varint,2,opt,name=route_id,json=routeId,proto3" json:"route_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMenuRequest) Reset() {
+	*x = GetMenuRequest{}
+	mi := &file_common_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMenuRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMenuRequest) ProtoMessage() {}
+
+func (x *GetMenuRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMenuRequest.ProtoReflect.Descriptor instead.
+func (*GetMenuRequest) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetMenuRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetMenuRequest) GetRouteId() uint64 {
+	if x != nil {
+		return x.RouteId
+	}
+	return 0
+}
+
+type GetMenuResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          string                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"` // 菜单数据
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMenuResponse) Reset() {
+	*x = GetMenuResponse{}
+	mi := &file_common_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMenuResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMenuResponse) ProtoMessage() {}
+
+func (x *GetMenuResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMenuResponse.ProtoReflect.Descriptor instead.
+func (*GetMenuResponse) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetMenuResponse) GetData() string {
+	if x != nil {
+		return x.Data
+	}
+	return ""
+}
+
 var File_common_proto protoreflect.FileDescriptor
 
 const file_common_proto_rawDesc = "" +
@@ -229,10 +326,16 @@ const file_common_proto_rawDesc = "" +
 	"expireTime\x18\x03 \x01(\x03R\n" +
 	"expireTime\x12\x10\n" +
 	"\x03img\x18\x04 \x01(\tR\x03img\x12\x12\n" +
-	"\x04show\x18\x05 \x01(\bR\x04show2T\n" +
+	"\x04show\x18\x05 \x01(\bR\x04show\"D\n" +
+	"\x0eGetMenuRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x19\n" +
+	"\broute_id\x18\x02 \x01(\x04R\arouteId\"%\n" +
+	"\x0fGetMenuResponse\x12\x12\n" +
+	"\x04data\x18\x01 \x01(\tR\x04data2\x90\x01\n" +
 	"\rCommonService\x12C\n" +
 	"\n" +
-	"GetCaptcha\x12\x19.common.GetCaptchaRequest\x1a\x1a.common.GetCaptchaResponseB\n" +
+	"GetCaptcha\x12\x19.common.GetCaptchaRequest\x1a\x1a.common.GetCaptchaResponse\x12:\n" +
+	"\aGetMenu\x12\x16.common.GetMenuRequest\x1a\x17.common.GetMenuResponseB\n" +
 	"Z\b./commonb\x06proto3"
 
 var (
@@ -247,17 +350,21 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_common_proto_goTypes = []any{
 	(*GetCaptchaRequest)(nil),  // 0: common.GetCaptchaRequest
 	(*Result)(nil),             // 1: common.Result
 	(*GetCaptchaResponse)(nil), // 2: common.GetCaptchaResponse
+	(*GetMenuRequest)(nil),     // 3: common.GetMenuRequest
+	(*GetMenuResponse)(nil),    // 4: common.GetMenuResponse
 }
 var file_common_proto_depIdxs = []int32{
 	0, // 0: common.CommonService.GetCaptcha:input_type -> common.GetCaptchaRequest
-	2, // 1: common.CommonService.GetCaptcha:output_type -> common.GetCaptchaResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	3, // 1: common.CommonService.GetMenu:input_type -> common.GetMenuRequest
+	2, // 2: common.CommonService.GetCaptcha:output_type -> common.GetCaptchaResponse
+	4, // 3: common.CommonService.GetMenu:output_type -> common.GetMenuResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -274,7 +381,7 @@ func file_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

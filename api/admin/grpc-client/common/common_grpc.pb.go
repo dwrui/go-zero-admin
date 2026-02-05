@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	CommonService_GetCaptcha_FullMethodName = "/common.CommonService/GetCaptcha"
+	CommonService_GetMenu_FullMethodName    = "/common.CommonService/GetMenu"
 )
 
 // CommonServiceClient is the client API for CommonService service.
@@ -37,6 +38,7 @@ const (
 //	并返回 SearchResponse 的方法定义 RPC 服务，可以在 .proto 文件中定义它，如下所示：
 type CommonServiceClient interface {
 	GetCaptcha(ctx context.Context, in *GetCaptchaRequest, opts ...grpc.CallOption) (*GetCaptchaResponse, error)
+	GetMenu(ctx context.Context, in *GetMenuRequest, opts ...grpc.CallOption) (*GetMenuResponse, error)
 }
 
 type commonServiceClient struct {
@@ -57,6 +59,16 @@ func (c *commonServiceClient) GetCaptcha(ctx context.Context, in *GetCaptchaRequ
 	return out, nil
 }
 
+func (c *commonServiceClient) GetMenu(ctx context.Context, in *GetMenuRequest, opts ...grpc.CallOption) (*GetMenuResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMenuResponse)
+	err := c.cc.Invoke(ctx, CommonService_GetMenu_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CommonServiceServer is the server API for CommonService service.
 // All implementations must embed UnimplementedCommonServiceServer
 // for forward compatibility.
@@ -68,6 +80,7 @@ func (c *commonServiceClient) GetCaptcha(ctx context.Context, in *GetCaptchaRequ
 //	并返回 SearchResponse 的方法定义 RPC 服务，可以在 .proto 文件中定义它，如下所示：
 type CommonServiceServer interface {
 	GetCaptcha(context.Context, *GetCaptchaRequest) (*GetCaptchaResponse, error)
+	GetMenu(context.Context, *GetMenuRequest) (*GetMenuResponse, error)
 	mustEmbedUnimplementedCommonServiceServer()
 }
 
@@ -80,6 +93,9 @@ type UnimplementedCommonServiceServer struct{}
 
 func (UnimplementedCommonServiceServer) GetCaptcha(context.Context, *GetCaptchaRequest) (*GetCaptchaResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCaptcha not implemented")
+}
+func (UnimplementedCommonServiceServer) GetMenu(context.Context, *GetMenuRequest) (*GetMenuResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMenu not implemented")
 }
 func (UnimplementedCommonServiceServer) mustEmbedUnimplementedCommonServiceServer() {}
 func (UnimplementedCommonServiceServer) testEmbeddedByValue()                       {}
@@ -120,6 +136,24 @@ func _CommonService_GetCaptcha_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CommonService_GetMenu_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMenuRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommonServiceServer).GetMenu(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CommonService_GetMenu_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommonServiceServer).GetMenu(ctx, req.(*GetMenuRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CommonService_ServiceDesc is the grpc.ServiceDesc for CommonService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +164,10 @@ var CommonService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCaptcha",
 			Handler:    _CommonService_GetCaptcha_Handler,
+		},
+		{
+			MethodName: "GetMenu",
+			Handler:    _CommonService_GetMenu_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

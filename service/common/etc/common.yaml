@@ -36,6 +36,14 @@ App:
   noVerifyAPIRoot: debug,api
   #不需要接口合法性-具体请求路径
   noVerifyAPI: /common/uploadfile/getfile,/common/install/index,/common/install/save,/common/upload/fileNov,/business/cronjob/getTest
+mysql:
+  Host: 127.0.0.1
+  Port: 3306
+  Database: go_zero_admin
+  Username: go_zero_admin
+  Password: go_zero_admin
+  Charset: utf8mb4
+  TablePrefix: ga_
 Log:
   ServiceName: common-service
   Mode: file

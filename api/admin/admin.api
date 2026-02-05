@@ -8,8 +8,14 @@ info (
 	version: "v1"
 )
 
+//获取验证码
 type GetCaptchaReq {
 	captchaType string `json:"type" validate:"required"`
+}
+
+//获取菜单数据
+type GetMenuReq {
+	RouteId uint64 `json:"route_id"`
 }
 
 @server (
@@ -21,6 +27,9 @@ service admin-api {
 	// 定义只有请求体的接口，如更新信息
 	@handler getCaptcha
 	get /common/getCaptcha (GetCaptchaReq)
+
+	@handler getMenu
+	get /common/getMenu (GetMenuReq)
 }
 
 type LoginReq {

@@ -7,6 +7,10 @@ type GetCaptchaReq struct {
 	CaptchaType string `json:"type" validate:"required"`
 }
 
+type GetMenuReq struct {
+	RouteId uint64 `json:"route_id"`
+}
+
 type LoginReq struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`

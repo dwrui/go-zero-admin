@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"reflect"
 	"strconv"
 	"strings"
@@ -12,27 +13,28 @@ import (
 
 // Model 链式查询构建器
 type Model struct {
-	db          *DBManager
-	table       string
-	alias       string
-	joins       []joinClause
-	where       []whereClause
-	groupBy     []string
-	having      []whereClause
-	orderBy     []orderClause
-	limit       int
-	offset      int
-	page        int
-	pageSize    int
-	lockMode    string
-	distinct    bool
-	fields      []string
-	sqlFetch    bool                   // 是否只输出SQL不执行查询
-	data        map[string]interface{} // 数据操作字段
-	withTrashed bool                   // 是否包含软删除数据
-	updateData  map[string]interface{} // 更新数据
-	incData     map[string]interface{} // 自增数据
-	decData     map[string]interface{} // 自减数据
+	db            *DBManager
+	table         string
+	alias         string
+	joins         []joinClause
+	where         []whereClause
+	groupBy       []string
+	having        []whereClause
+	orderBy       []orderClause
+	limit         int
+	offset        int
+	page          int
+	pageSize      int
+	lockMode      string
+	distinct      bool
+	fields        []string
+	sqlFetch      bool                   // 是否只输出SQL不执行查询
+	data          map[string]interface{} // 数据操作字段
+	withTrashed   bool                   // 是否包含软删除数据
+	updateData    map[string]interface{} // 更新数据
+	incData       map[string]interface{} // 自增数据
+	decData       map[string]interface{} // 自减数据
+	hasDeleteTime *bool                  // 缓存表是否有delete_time字段（nil表示未检测）
 }
 
 // joinClause 关联查询结构
@@ -101,6 +103,11 @@ func (r *QueryResult) GetSQL() string {
 // GetArgs 获取SQL参数（调试用）
 func (r *QueryResult) GetArgs() []interface{} {
 	return r.args
+}
+
+// GetData 获取查询结果数据
+func (r *QueryResult) GetData() interface{} {
+	return r.data
 }
 
 // SQLFetch 设置是否只输出SQL不执行查询
@@ -183,9 +190,14 @@ func (qb *Model) Where(conditions interface{}, args ...interface{}) *Model {
 	switch cond := conditions.(type) {
 	case map[string]interface{}:
 		// 处理map类型条件
+		i := 0
 		for field, value := range cond {
+			operator := "AND"
+			if i == 0 && len(qb.where) == 0 {
+				operator = "" // 第一个条件不加AND
+			}
 			qb.where = append(qb.where, whereClause{
-				operator: "AND",
+				operator: operator,
 				field:    field,
 				cond:     "= ?",
 				args:     []interface{}{value},
@@ -213,12 +225,23 @@ func (qb *Model) Where(conditions interface{}, args ...interface{}) *Model {
 		if len(qb.where) == 0 {
 			operator = ""
 		}
-		qb.where = append(qb.where, whereClause{
-			operator: operator,
-			field:    "",   // 字段名留空，表示这是完整条件
-			cond:     cond, // 条件语句直接存储
-			args:     args,
-		})
+		//判断是否包含?
+		if ga.StrContains(cond, "?") {
+			qb.where = append(qb.where, whereClause{
+				operator: operator,
+				field:    "",   // 字段名留空，表示这是完整条件
+				cond:     cond, // 条件语句直接存储
+				args:     args,
+			})
+		} else {
+			qb.where = append(qb.where, whereClause{
+				operator: operator,
+				field:    cond,  // 字段名留空，表示这是完整条件
+				cond:     "= ?", // 条件语句直接存储
+				args:     args,
+			})
+		}
+
 	}
 	return qb
 }
@@ -436,7 +459,6 @@ func (qb *Model) Find(ctx context.Context, dest interface{}) *QueryResult {
 // Select 查询多条记录
 func (qb *Model) Select(ctx context.Context, dest interface{}) *QueryResult {
 	query, args := qb.buildQuery()
-
 	// 如果设置了SQLFetch，只输出SQL不执行查询
 	if qb.sqlFetch {
 		completeSQL := buildCompleteSQL(query, args)
@@ -448,7 +470,6 @@ func (qb *Model) Select(ctx context.Context, dest interface{}) *QueryResult {
 			args:  args,
 		}
 	}
-
 	err := qb.db.Query(ctx, dest, query, args...)
 	return &QueryResult{
 		data:  dest,
@@ -576,7 +597,7 @@ func (qb *Model) Value(ctx context.Context, field string) *QueryResult {
 		}
 	}
 
-	var value interface{}
+	var value string
 	err := qb.db.QueryRow(ctx, &value, query, args...)
 	return &QueryResult{
 		data:  value,
@@ -586,7 +607,7 @@ func (qb *Model) Value(ctx context.Context, field string) *QueryResult {
 	}
 }
 
-// Column 获取单一字段的所有值
+// Column 获取单一字段的所有值 - 使用QueryRows处理多行数据
 func (qb *Model) Column(ctx context.Context, field string) *QueryResult {
 	qb.fields = []string{field}
 	query, args := qb.buildQuery()
@@ -596,18 +617,27 @@ func (qb *Model) Column(ctx context.Context, field string) *QueryResult {
 		completeSQL := buildCompleteSQL(query, args)
 		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
 		return &QueryResult{
-			data:  int64(0),
+			data:  []interface{}{},
 			err:   nil,
 			query: query,
 			args:  args,
 		}
 	}
+	var result []string
+	err := qb.db.QueryRows(ctx, &result, query, args...)
+	// 如果查询出错，返回空结果
+	if err != nil {
+		return &QueryResult{
+			data:  []interface{}{},
+			err:   err,
+			query: query,
+			args:  args,
+		}
+	}
 
-	var results []interface{}
-	err := qb.db.Query(ctx, &results, query, args...)
 	return &QueryResult{
-		data:  results,
-		err:   err,
+		data:  result,
+		err:   nil,
 		query: query,
 		args:  args,
 	}
@@ -1114,22 +1144,9 @@ func (qb *Model) WithTrashed() *Model {
 // Delete 删除数据（自动判断是否有delete_time字段，有则软删除，没有则真实删除）
 func (qb *Model) Delete(ctx context.Context) *QueryResult {
 	// 首先检查表是否有delete_time字段
-	// 这里通过查询information_schema来判断字段是否存在
-	checkSQL := `SELECT COUNT(*) FROM information_schema.COLUMNS 
-				 WHERE TABLE_SCHEMA = DATABASE() 
-				 AND TABLE_NAME = ? 
-				 AND COLUMN_NAME = 'delete_time'`
-
-	var hasDeleteTime int
-	err := qb.db.QueryRow(ctx, &hasDeleteTime, checkSQL, qb.table)
-	if err != nil {
-		// 如果检查失败，默认使用真实删除
-		hasDeleteTime = 0
-	}
-
-	// 如果有delete_time字段，使用软删除
-	if hasDeleteTime > 0 {
-		// 更新delete_time字段
+	// 使用缓存的字段检测结果
+	if qb.hasDeleteTimeField(ctx) {
+		// 有delete_time字段，使用软删除
 		if qb.updateData == nil {
 			qb.updateData = make(map[string]interface{})
 		}
@@ -1222,48 +1239,40 @@ func (qb *Model) buildQuery() (string, []interface{}) {
 	}
 
 	// WHERE 子句
-	if len(qb.where) > 0 || qb.withTrashed {
+	if len(qb.where) > 0 {
 		sql.WriteString(" WHERE ")
 
 		// 只有调用WithTrashed时才包含软删除数据
 		conditions := make([]string, 0)
-		if qb.withTrashed {
-			// 查询包含软删除的数据，不需要添加delete_time条件
-			for i, where := range qb.where {
-				if i > 0 || where.operator != "" {
-					conditions = append(conditions, " "+where.operator+" ")
-				}
-				// 修改：如果field为空，表示这是完整条件，只使用cond
-				if where.field == "" {
-					conditions = append(conditions, where.cond)
+
+		// 处理其他WHERE条件
+		for i, where := range qb.where {
+			if i > 0 || len(conditions) > 0 {
+				conditions = append(conditions, " "+where.operator+" ")
+			}
+			// 如果field为空，表示这是完整条件，只使用cond
+			if where.field == "" {
+				conditions = append(conditions, where.cond)
+			} else {
+				// 确保cond中包含占位符
+				if !strings.Contains(where.cond, "?") {
+					conditions = append(conditions, where.field+" = ?")
 				} else {
 					conditions = append(conditions, where.field+" "+where.cond)
 				}
-				args = append(args, where.args...)
 			}
-		} else {
-			// 默认情况：只查询未删除的数据
-			deleteCondition := "delete_time IS NULL"
-			if len(qb.where) > 0 {
-				conditions = append(conditions, deleteCondition+" AND ")
-			} else if len(qb.where) == 0 {
+			args = append(args, where.args...)
+		}
+		// 只有未调用WithTrashed且表有delete_time字段时才添加软删除条件
+		if !qb.withTrashed && qb.hasDeleteTimeField(context.Background()) {
+			if len(conditions) > 0 {
+				deleteCondition := " AND delete_time IS NULL"
+				conditions = append(conditions, deleteCondition)
+			} else {
+				deleteCondition := "delete_time IS NULL"
 				conditions = append(conditions, deleteCondition)
 			}
-
-			for i, where := range qb.where {
-				if i > 0 || where.operator != "" {
-					conditions = append(conditions, " "+where.operator+" ")
-				}
-				// 修改：如果field为空，表示这是完整条件，只使用cond
-				if where.field == "" {
-					conditions = append(conditions, where.cond)
-				} else {
-					conditions = append(conditions, where.field+" "+where.cond)
-				}
-				args = append(args, where.args...)
-			}
 		}
-
 		sql.WriteString(strings.Join(conditions, ""))
 	}
 
@@ -1398,4 +1407,27 @@ func buildCompleteSQL(query string, args []interface{}) string {
 	}
 
 	return result
+}
+
+// hasDeleteTimeField 检测表是否有delete_time字段（带缓存）
+func (qb *Model) hasDeleteTimeField(ctx context.Context) bool {
+	// 如果已经检测过，直接返回缓存结果
+	if qb.hasDeleteTime != nil {
+		return *qb.hasDeleteTime
+	}
+
+	// 检测表是否有delete_time字段
+	checkSQL := `SELECT COUNT(*) FROM information_schema.COLUMNS 
+				 WHERE TABLE_SCHEMA = DATABASE() 
+				 AND TABLE_NAME = ? 
+				 AND COLUMN_NAME = 'delete_time'`
+
+	var count int
+	err := qb.db.QueryRow(ctx, &count, checkSQL, qb.table)
+
+	// 设置缓存结果
+	hasField := err == nil && count > 0
+	qb.hasDeleteTime = &hasField
+
+	return hasField
 }

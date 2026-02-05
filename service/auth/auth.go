@@ -1,13 +1,14 @@
 package main
 
 import (
-	server "common/internal/server/commonservice"
 	"flag"
 	"fmt"
 
-	"common/common"
-	"common/internal/config"
-	"common/internal/svc"
+	"auth/auth"
+	"auth/internal/config"
+	authserviceServer "auth/internal/server/authservice"
+	"auth/internal/svc"
+
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -15,15 +16,17 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-var configFile = flag.String("f", "etc/common.yaml", "the config file")
+var configFile = flag.String("f", "etc/auth.yaml", "the config file")
 
 func main() {
 	flag.Parse()
+
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 	ctx := svc.NewServiceContext(c)
+
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
-		common.RegisterCommonServiceServer(grpcServer, server.NewCommonServiceServer(ctx))
+		auth.RegisterAuthServiceServer(grpcServer, authserviceServer.NewAuthServiceServer(ctx))
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)

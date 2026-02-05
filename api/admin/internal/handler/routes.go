@@ -22,6 +22,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/common/getCaptcha",
 				Handler: common.GetCaptchaHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/common/getMenu",
+				Handler: common.GetMenuHandler(serverCtx),
+			},
 		},
 		rest.WithPrefix("/v1"),
 		rest.WithTimeout(3000*time.Millisecond),
