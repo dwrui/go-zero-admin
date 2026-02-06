@@ -23,6 +23,7 @@ type BusinessAuthRule struct {
 	Redirect           string         `db:"redirect"`           // 重定向地址
 	Path               string         `db:"path"`               // 接口路径
 	Permission         sql.NullString `db:"permission"`         // 权限标识
+	ApiAuth            string         `db:"api_auth"`           // 权限标识后端验证
 	Status             int64          `db:"status"`             // 状态 0=启用1=禁用
 	Isext              int64          `db:"isext"`              // 是否外链 0=否1=是
 	Keepalive          int64          `db:"keepalive"`          // 是否缓存 0=否1=是

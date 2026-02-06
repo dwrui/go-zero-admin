@@ -9,9 +9,10 @@ type Config struct {
 	rest.RestConf
 	CommonEtcd discov.EtcdConf `json:",optional"`
 	UserEtcd   discov.EtcdConf `json:",optional"`
+	AuthEtcd   discov.EtcdConf `json:",optional"`
 	Auth       struct {
-		AccessSecret string
-		AccessExpire int64
+		AccessSecret string `json:",optional"`
+		AccessExpire int64  `json:",optional"`
 	}
 	Static struct {
 		Dir    string

@@ -71,7 +71,9 @@ service CommonService {
 /**
  * 获取首页快速编辑数据
  */
-message    GetQuickRequest {}
+message    GetQuickRequest {
+  uint64 business_id = 1;
+}
 message GetQuickRow {
   map<string, string> pairs = 1;
 }

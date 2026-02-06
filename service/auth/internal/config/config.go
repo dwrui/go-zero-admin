@@ -10,10 +10,19 @@ type Config struct {
 		AccessSecret string
 		AccessExpire int64
 	} `json:"jwt"`
-	Redis struct {
+	RedisConf struct {
 		Host string
 		Type string
 		Pass string
 		Tls  bool
-	} `json:"redis"`
+	} `json:"redisConf"`
+	Mysql struct {
+		Host        string
+		Port        int
+		Database    string
+		Username    string
+		Password    string
+		Charset     string
+		TablePrefix string
+	} `json:"mysql"`
 }

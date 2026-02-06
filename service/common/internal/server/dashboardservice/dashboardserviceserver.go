@@ -23,7 +23,7 @@ func NewDashboardServiceServer(svcCtx *svc.ServiceContext) *DashboardServiceServ
 	}
 }
 
-func (s *DashboardServiceServer) GetDashboard(ctx context.Context, in *common.GetQuickRequest) (*common.GetQuickResponse, error) {
-	l := dashboardservicelogic.NewGetDashboardLogic(ctx, s.svcCtx)
-	return l.GetDashboard(in)
+func (s *DashboardServiceServer) GetQuick(ctx context.Context, in *common.GetQuickRequest) (*common.GetQuickResponse, error) {
+	l := dashboardservicelogic.NewGetQuickLogic(ctx, s.svcCtx)
+	return l.GetQuick(in)
 }

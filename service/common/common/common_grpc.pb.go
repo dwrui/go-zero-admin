@@ -175,14 +175,14 @@ var CommonService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	DashboardService_GetDashboard_FullMethodName = "/common.DashboardService/GetDashboard"
+	DashboardService_GetQuick_FullMethodName = "/common.DashboardService/GetQuick"
 )
 
 // DashboardServiceClient is the client API for DashboardService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DashboardServiceClient interface {
-	GetDashboard(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error)
+	GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error)
 }
 
 type dashboardServiceClient struct {
@@ -193,10 +193,10 @@ func NewDashboardServiceClient(cc grpc.ClientConnInterface) DashboardServiceClie
 	return &dashboardServiceClient{cc}
 }
 
-func (c *dashboardServiceClient) GetDashboard(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error) {
+func (c *dashboardServiceClient) GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetQuickResponse)
-	err := c.cc.Invoke(ctx, DashboardService_GetDashboard_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, DashboardService_GetQuick_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (c *dashboardServiceClient) GetDashboard(ctx context.Context, in *GetQuickR
 // All implementations must embed UnimplementedDashboardServiceServer
 // for forward compatibility.
 type DashboardServiceServer interface {
-	GetDashboard(context.Context, *GetQuickRequest) (*GetQuickResponse, error)
+	GetQuick(context.Context, *GetQuickRequest) (*GetQuickResponse, error)
 	mustEmbedUnimplementedDashboardServiceServer()
 }
 
@@ -218,8 +218,8 @@ type DashboardServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedDashboardServiceServer struct{}
 
-func (UnimplementedDashboardServiceServer) GetDashboard(context.Context, *GetQuickRequest) (*GetQuickResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetDashboard not implemented")
+func (UnimplementedDashboardServiceServer) GetQuick(context.Context, *GetQuickRequest) (*GetQuickResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetQuick not implemented")
 }
 func (UnimplementedDashboardServiceServer) mustEmbedUnimplementedDashboardServiceServer() {}
 func (UnimplementedDashboardServiceServer) testEmbeddedByValue()                          {}
@@ -242,20 +242,20 @@ func RegisterDashboardServiceServer(s grpc.ServiceRegistrar, srv DashboardServic
 	s.RegisterService(&DashboardService_ServiceDesc, srv)
 }
 
-func _DashboardService_GetDashboard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DashboardService_GetQuick_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetQuickRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DashboardServiceServer).GetDashboard(ctx, in)
+		return srv.(DashboardServiceServer).GetQuick(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DashboardService_GetDashboard_FullMethodName,
+		FullMethod: DashboardService_GetQuick_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DashboardServiceServer).GetDashboard(ctx, req.(*GetQuickRequest))
+		return srv.(DashboardServiceServer).GetQuick(ctx, req.(*GetQuickRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -268,8 +268,8 @@ var DashboardService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*DashboardServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetDashboard",
-			Handler:    _DashboardService_GetDashboard_Handler,
+			MethodName: "GetQuick",
+			Handler:    _DashboardService_GetQuick_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

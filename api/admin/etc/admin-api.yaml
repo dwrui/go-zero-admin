@@ -9,6 +9,10 @@ UserEtcd:
   Hosts:
     - 127.0.0.1:2379
   Key: user.rpc
+AuthEtcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: auths.rpc
 # RPC客户端统一配置
 RpcClient:
   NonBlock: true

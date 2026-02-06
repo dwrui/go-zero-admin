@@ -312,6 +312,7 @@ func (x *GetMenuResponse) GetData() string {
 // 获取首页快速编辑数据
 type GetQuickRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	BusinessId    uint64                 `protobuf:"varint,1,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -344,6 +345,13 @@ func (x *GetQuickRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetQuickRequest.ProtoReflect.Descriptor instead.
 func (*GetQuickRequest) Descriptor() ([]byte, []int) {
 	return file_common_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetQuickRequest) GetBusinessId() uint64 {
+	if x != nil {
+		return x.BusinessId
+	}
+	return 0
 }
 
 type GetQuickRow struct {
@@ -457,8 +465,10 @@ const file_common_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x19\n" +
 	"\broute_id\x18\x02 \x01(\x04R\arouteId\"%\n" +
 	"\x0fGetMenuResponse\x12\x12\n" +
-	"\x04data\x18\x01 \x01(\tR\x04data\"\x11\n" +
-	"\x0fGetQuickRequest\"}\n" +
+	"\x04data\x18\x01 \x01(\tR\x04data\"2\n" +
+	"\x0fGetQuickRequest\x12\x1f\n" +
+	"\vbusiness_id\x18\x01 \x01(\x04R\n" +
+	"businessId\"}\n" +
 	"\vGetQuickRow\x124\n" +
 	"\x05pairs\x18\x01 \x03(\v2\x1e.common.GetQuickRow.PairsEntryR\x05pairs\x1a8\n" +
 	"\n" +
@@ -470,9 +480,9 @@ const file_common_proto_rawDesc = "" +
 	"\rCommonService\x12C\n" +
 	"\n" +
 	"GetCaptcha\x12\x19.common.GetCaptchaRequest\x1a\x1a.common.GetCaptchaResponse\x12:\n" +
-	"\aGetMenu\x12\x16.common.GetMenuRequest\x1a\x17.common.GetMenuResponse2U\n" +
-	"\x10DashboardService\x12A\n" +
-	"\fGetDashboard\x12\x17.common.GetQuickRequest\x1a\x18.common.GetQuickResponseB\n" +
+	"\aGetMenu\x12\x16.common.GetMenuRequest\x1a\x17.common.GetMenuResponse2Q\n" +
+	"\x10DashboardService\x12=\n" +
+	"\bGetQuick\x12\x17.common.GetQuickRequest\x1a\x18.common.GetQuickResponseB\n" +
 	"Z\b./commonb\x06proto3"
 
 var (
@@ -504,10 +514,10 @@ var file_common_proto_depIdxs = []int32{
 	6, // 1: common.GetQuickResponse.data:type_name -> common.GetQuickRow
 	0, // 2: common.CommonService.GetCaptcha:input_type -> common.GetCaptchaRequest
 	3, // 3: common.CommonService.GetMenu:input_type -> common.GetMenuRequest
-	5, // 4: common.DashboardService.GetDashboard:input_type -> common.GetQuickRequest
+	5, // 4: common.DashboardService.GetQuick:input_type -> common.GetQuickRequest
 	2, // 5: common.CommonService.GetCaptcha:output_type -> common.GetCaptchaResponse
 	4, // 6: common.CommonService.GetMenu:output_type -> common.GetMenuResponse
-	7, // 7: common.DashboardService.GetDashboard:output_type -> common.GetQuickResponse
+	7, // 7: common.DashboardService.GetQuick:output_type -> common.GetQuickResponse
 	5, // [5:8] is the sub-list for method output_type
 	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

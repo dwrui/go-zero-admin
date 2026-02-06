@@ -32,7 +32,6 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
  * @return error
  */
 func (l *LoginLogic) Login(req *types.LoginReq, reqs ga.Map) (any, error) {
-	// todo: add your logic here and delete this line
 	// 调用user.rpc服务的Login方法
 	rpcResp, err := l.svcCtx.UserClient.Login(l.ctx, &user.LoginRequest{
 		Username:  req.Username,

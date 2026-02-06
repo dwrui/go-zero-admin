@@ -6,13 +6,20 @@ package auth;
 
 // golang 包名
 option go_package = "./auth";
-// 获取验证码请求
+
 message CheckTokenRequest {
   string token = 1;       // 令牌
   string permission = 2;       // 权限
 }
 
 message CheckTokenResponse {
+  uint64 user_id = 1;
+}
+message ValidateTokenRequest {
+  string token = 1;       // 令牌
+}
+
+message ValidateTokenResponse {
   uint64 user_id = 1;
 }
 //获取菜单数据
@@ -29,4 +36,5 @@ message RefreshTokenResponse {
 service AuthService {
   rpc CheckToken(CheckTokenRequest) returns (CheckTokenResponse);
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
 }

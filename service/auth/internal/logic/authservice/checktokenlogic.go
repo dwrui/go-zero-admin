@@ -1,6 +1,7 @@
 package authservicelogic
 
 import (
+	"auth/internal/model"
 	"context"
 	"errors"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
@@ -37,8 +38,15 @@ func (l *CheckTokenLogic) CheckToken(in *auth.CheckTokenRequest) (*auth.CheckTok
 	if err != nil {
 		return nil, err
 	}
-	user_id := claims.Data["id"]
-	permission, err := l.svcCtx.Redis.GetCtx(l.ctx, "user_permission:"+ga.String(user_id))
+	userId := claims.Data["id"]
+	businessId := claims.Data["business_id"]
+	//检验是否是自己系统的用户
+	var businessAccountModel model.BusinessAccountModel
+	userInfo, err := businessAccountModel.GetUserInfo(l.ctx, l.svcCtx, ga.Uint64(userId), "business_id")
+	if err != nil {
+		return nil, err
+	}
+	permission, err := l.svcCtx.Redis.GetCtx(l.ctx, "user_permission:"+ga.String(userId))
 	if err != nil {
 		return nil, errors.New("数据解析错误")
 	}
@@ -46,6 +54,13 @@ func (l *CheckTokenLogic) CheckToken(in *auth.CheckTokenRequest) (*auth.CheckTok
 	var permissionData map[string]interface{}
 	if err := json.Unmarshal([]byte(permission), &permissionData); err != nil {
 		return nil, errors.New("数据解析错误")
+	}
+	//如果缓存获取不到数据数据库获取并缓存数据
+	if permission == "" {
+		permissionData, err = model.SetUserPermission(l.ctx, l.svcCtx, ga.Uint64(userId), ga.Uint64(userInfo.BusinessId))
+		if err != nil {
+			return nil, err
+		}
 	}
 	//判断权限
 	permissionDList, ok := permissionData["permissions"].([]interface{})
@@ -61,7 +76,9 @@ func (l *CheckTokenLogic) CheckToken(in *auth.CheckTokenRequest) (*auth.CheckTok
 			return nil, errors.New("权限不足")
 		}
 	}
+
 	return &auth.CheckTokenResponse{
-		UserId: ga.Uint64(user_id),
+		UserId:     ga.Uint64(userId),
+		BusinessId: ga.Uint64(businessId),
 	}, nil
 }

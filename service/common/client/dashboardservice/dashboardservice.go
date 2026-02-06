@@ -24,7 +24,7 @@ type (
 	Result             = common.Result
 
 	DashboardService interface {
-		GetDashboard(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error)
+		GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error)
 	}
 
 	defaultDashboardService struct {
@@ -38,7 +38,7 @@ func NewDashboardService(cli zrpc.Client) DashboardService {
 	}
 }
 
-func (m *defaultDashboardService) GetDashboard(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error) {
+func (m *defaultDashboardService) GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error) {
 	client := common.NewDashboardServiceClient(m.cli.Conn())
-	return client.GetDashboard(ctx, in, opts...)
+	return client.GetQuick(ctx, in, opts...)
 }

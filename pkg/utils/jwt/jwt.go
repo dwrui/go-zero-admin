@@ -26,20 +26,28 @@ type CustomClaims struct {
 
 // GenerateToken 生成token
 func GenerateToken(config JwtConfig, data map[string]interface{}) (string, error) {
-	now := time.Now()
-	expireTime := now.Add(time.Duration(config.AccessExpire) * time.Second)
+	now := time.Now().Unix()
+	//expireTime := now.Add(time.Duration(config.AccessExpire) * time.Second)
 
-	claims := CustomClaims{
-		Data: data,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expireTime),
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
-		},
+	//claims := CustomClaims{
+	//	Data: data,
+	//	RegisteredClaims: jwt.RegisteredClaims{
+	//		ExpiresAt: jwt.NewNumericDate(expireTime),
+	//		IssuedAt:  jwt.NewNumericDate(now),
+	//		NotBefore: jwt.NewNumericDate(now),
+	//	},
+	//}
+	data["exp"] = now + config.AccessExpire
+	data["iat"] = now
+	claims := make(jwt.MapClaims)
+	for k, v := range data {
+		claims[k] = v
 	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.New(jwt.SigningMethodHS256)
+	token.Claims = claims
 	return token.SignedString([]byte(config.AccessSecret))
+	//token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	//return token.SignedString([]byte(config.AccessSecret))
 }
 
 // ParseToken 解析token
