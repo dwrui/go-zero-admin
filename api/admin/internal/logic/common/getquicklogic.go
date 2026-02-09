@@ -24,7 +24,6 @@ func NewGetQuickLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetQuick
 	}
 }
 
-func (l *GetQuickLogic) GetQuick() error {
-	// todo: add your logic here and delete this line
-	return nil
+func (l *GetQuickLogic) GetQuick() (any, error) {
+	return nil, nil
 }

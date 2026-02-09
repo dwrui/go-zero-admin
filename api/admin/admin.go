@@ -26,7 +26,6 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
-
 	// 添加静态文件服务
 	if c.Static.Dir != "" {
 		// 获取绝对路径

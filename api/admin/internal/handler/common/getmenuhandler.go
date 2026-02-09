@@ -17,9 +17,9 @@ import (
 func GetMenuHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.GetMenuReq
-		token := r.Header.Get("Authorization")
+
 		l := common.NewGetMenuLogic(r.Context(), svcCtx)
-		resp, err := l.GetMenu(&req, token)
+		resp, err := l.GetMenu(&req)
 		if err != nil {
 			if st, ok := status.FromError(err); ok {
 				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))

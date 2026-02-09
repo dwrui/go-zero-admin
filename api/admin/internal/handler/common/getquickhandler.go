@@ -4,6 +4,8 @@
 package common
 
 import (
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"google.golang.org/grpc/status"
 	"net/http"
 
 	"admin/internal/logic/common"
@@ -13,13 +15,29 @@ import (
 
 func GetQuickHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		r.Context().Value("data")
+		token := r.Header.Get("Authorization")
+		err := svcCtx.CheckPermission(r.Context(), r, token, "quick:view")
+		if err != nil {
+			st, ok := status.FromError(err)
+			if !ok {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+				return
+			}
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+			return
+		}
 
 		l := common.NewGetQuickLogic(r.Context(), svcCtx)
-		err := l.GetQuick()
+		resp, err := l.GetQuick()
 		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
+			if st, ok := status.FromError(err); ok {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+			} else {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
+			}
 		} else {
-			httpx.Ok(w)
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Success().SetData(resp))
 		}
 	}
 }

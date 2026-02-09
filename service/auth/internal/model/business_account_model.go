@@ -49,7 +49,7 @@ type BusinessAccountModel struct {
  * @param id 用户id
  * @param field 字段
  */
-func (m *BusinessAccountModel) GetUserInfo(ctx context.Context, svg *svc.ServiceContext, id uint64, field string) (BusinessAccountModel, error) {
+func GetUserInfo(ctx context.Context, svg *svc.ServiceContext, id uint64, field string) (BusinessAccountModel, error) {
 	userModel := BusinessAccountModel{}
 	resp := svg.DB.Model("business_account").Fields(field).Where("id = ?", id).Find(ctx, &userModel)
 	if resp.GetError() != nil || resp.IsEmpty() {

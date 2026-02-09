@@ -1,8 +1,10 @@
 package authservicelogic
 
 import (
+	"auth/internal/model"
 	"context"
 	"errors"
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/dwrui/go-zero-admin/pkg/utils/jwt"
 
 	"auth/auth"
@@ -26,23 +28,20 @@ func NewRefreshTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Refr
 }
 
 func (l *RefreshTokenLogic) RefreshToken(in *auth.RefreshTokenRequest) (*auth.RefreshTokenResponse, error) {
-	// todo:
-	// 校验 RefreshToken 的有效性
+	userId := in.UserId
+	userInfo, err := model.GetUserInfo(l.ctx, l.svcCtx, userId, "id,account_id,business_id")
+	if err != nil {
+		return nil, errors.New("用户不存在")
+	}
 	jwtConfig := jwt.JwtConfig{
 		AccessSecret: l.svcCtx.Config.Jwt.AccessSecret,
 		AccessExpire: l.svcCtx.Config.Jwt.AccessExpire,
 	}
-	claims, err := jwt.ParseToken(jwtConfig, in.Token)
-	if err != nil {
-		return nil, errors.New("无效的 RefreshToken")
-	}
-
-	// 生成新的 AccessToken
-	newToken, err := jwt.GenerateToken(jwtConfig, claims.Data)
+	token, err := jwt.GenerateToken(jwtConfig, ga.Map{"id": userInfo.Id, "account_id": userInfo.AccountId, "business_id": userInfo.BusinessId})
 	if err != nil {
 		return nil, errors.New("生成新 Token 失败")
 	}
 	return &auth.RefreshTokenResponse{
-		NewToken: newToken,
+		NewToken: token,
 	}, nil
 }

@@ -13,18 +13,11 @@ message CheckTokenRequest {
 }
 
 message CheckTokenResponse {
-  uint64 user_id = 1;
+  string new_token = 1;       // 新令牌
 }
-message ValidateTokenRequest {
-  string token = 1;       // 令牌
-}
-
-message ValidateTokenResponse {
-  uint64 user_id = 1;
-}
-//获取菜单数据
+//刷新token
 message RefreshTokenRequest{
-  string token = 1;
+  uint64 user_id = 1;       // 用户ID
 }
 message RefreshTokenResponse {
   string new_token = 2;       // 新令牌
@@ -36,5 +29,4 @@ message RefreshTokenResponse {
 service AuthService {
   rpc CheckToken(CheckTokenRequest) returns (CheckTokenResponse);
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
-  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
 }

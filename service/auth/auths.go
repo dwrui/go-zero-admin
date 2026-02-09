@@ -1,13 +1,12 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-
 	"auth/auth"
 	"auth/internal/config"
 	authserviceServer "auth/internal/server/authservice"
 	"auth/internal/svc"
+	"flag"
+	"fmt"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"

@@ -13,11 +13,6 @@ type GetCaptchaReq {
 	captchaType string `json:"type" validate:"required"`
 }
 
-//获取菜单数据
-type GetMenuReq {
-	RouteId uint64 `json:"route_id"`
-}
-
 @server (
 	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
 	group:   common // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
@@ -27,9 +22,11 @@ service admin-api {
 	// 定义只有请求体的接口，如更新信息
 	@handler getCaptcha
 	get /common/getCaptcha (GetCaptchaReq)
+}
 
-	@handler getMenu
-	get /common/getMenu (GetMenuReq)
+//获取菜单数据
+type GetMenuReq {
+	RouteId uint64 `json:"route_id"`
 }
 
 @server (
@@ -39,9 +36,12 @@ service admin-api {
 	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
 )
 service admin-api {
+	@handler getMenu
+	get /common/getMenu (GetMenuReq)
+
 	// 定义只有请求体的接口，如更新信息
 	@handler GetQuick
-	get /common/GetQuick
+	get /common/getQuick
 }
 
 type LoginReq {

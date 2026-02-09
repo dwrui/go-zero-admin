@@ -6,8 +6,8 @@ package common
 import (
 	"admin/grpc-client/common"
 	"context"
+	"errors"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"github.com/dwrui/go-zero-admin/pkg/utils/jwt"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/json"
 
 	"admin/internal/svc"
@@ -30,18 +30,14 @@ func NewGetMenuLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMenuLo
 	}
 }
 
-func (l *GetMenuLogic) GetMenu(req *types.GetMenuReq, token string) (any, error) {
-	jwtConfig := jwt.JwtConfig{
-		AccessSecret: l.svcCtx.Config.Auth.AccessSecret,
-		AccessExpire: l.svcCtx.Config.Auth.AccessExpire,
-	}
-	claims, err := jwt.ParseToken(jwtConfig, token)
-	if err != nil {
-		return nil, err
+func (l *GetMenuLogic) GetMenu(req *types.GetMenuReq) (any, error) {
+	userId := ga.Uint64(l.ctx.Value("user_id"))
+	if userId == 0 {
+		return nil, errors.New("用户不存在")
 	}
 	resp, err := l.svcCtx.CommonClient.GetMenu(l.ctx, &common.GetMenuRequest{
 		RouteId: req.RouteId,
-		UserId:  ga.Uint64(claims.Data["id"]),
+		UserId:  userId,
 	})
 	if err != nil {
 		return nil, err

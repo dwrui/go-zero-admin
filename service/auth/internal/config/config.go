@@ -7,8 +7,9 @@ import (
 type Config struct {
 	zrpc.RpcServerConf
 	Jwt struct {
-		AccessSecret string
-		AccessExpire int64
+		AccessSecret     string
+		AccessExpire     int64
+		RefreshThreshold int64
 	} `json:"jwt"`
 	RedisConf struct {
 		Host string

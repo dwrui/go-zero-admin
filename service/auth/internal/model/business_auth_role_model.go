@@ -31,7 +31,7 @@ type BusinessAuthRoleModel struct {
  * @param businessId 业务id
  */
 func SetUserPermission(ctx context.Context, svg *svc.ServiceContext, userId uint64, businessId uint64) (map[string]interface{}, error) {
-	var permissions ga.Map
+	var permissions = make(map[string]interface{})
 	var BusinessAuthRole BusinessAuthRoleModel
 	resp := svg.DB.Model("business_auth_role").Where(ga.Map{"business_id": businessId, "account_id": userId}).Find(ctx, &BusinessAuthRole)
 	if resp.GetError() != nil {
@@ -41,9 +41,9 @@ func SetUserPermission(ctx context.Context, svg *svc.ServiceContext, userId uint
 	if BusinessAuthRole.Rules == "" {
 		return nil, errors.New("用户角色暂无权限")
 	}
-	permissions["roles"] = BusinessAuthRole.Rules
+	permissions["roles"] = ga.String(BusinessAuthRole.Rules)
 	if BusinessAuthRole.Rules != "*" {
-		roles := svg.DB.Model("business_auth_rule").WhereIn("id", ga.Axplode(BusinessAuthRole.Rules)).Where("type != ?", 0).Column(ctx, "api_auth")
+		roles := svg.DB.Model("business_auth_rule").WhereIn("id", ga.Axplode(BusinessAuthRole.Rules)).Where("api_auth != ?", "").Where("type != ?", 0).Column(ctx, "api_auth")
 		if roles.GetError() != nil || roles.IsEmpty() {
 			return nil, errors.New("用户角色暂无权限")
 		}

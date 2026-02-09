@@ -79,8 +79,7 @@ func (x *CheckTokenRequest) GetPermission() string {
 
 type CheckTokenResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        uint64                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	BusinessId    uint64                 `protobuf:"varint,2,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
+	NewToken      string                 `protobuf:"bytes,1,opt,name=new_token,json=newToken,proto3" json:"new_token,omitempty"` // 新令牌
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -115,24 +114,17 @@ func (*CheckTokenResponse) Descriptor() ([]byte, []int) {
 	return file_auths_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CheckTokenResponse) GetUserId() uint64 {
+func (x *CheckTokenResponse) GetNewToken() string {
 	if x != nil {
-		return x.UserId
+		return x.NewToken
 	}
-	return 0
+	return ""
 }
 
-func (x *CheckTokenResponse) GetBusinessId() uint64 {
-	if x != nil {
-		return x.BusinessId
-	}
-	return 0
-}
-
-// 获取菜单数据
+// 刷新token
 type RefreshTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	UserId        uint64                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 用户ID
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -167,11 +159,11 @@ func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
 	return file_auths_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *RefreshTokenRequest) GetToken() string {
+func (x *RefreshTokenRequest) GetUserId() uint64 {
 	if x != nil {
-		return x.Token
+		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 type RefreshTokenResponse struct {
@@ -227,13 +219,11 @@ const file_auths_proto_rawDesc = "" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x1e\n" +
 	"\n" +
 	"permission\x18\x02 \x01(\tR\n" +
-	"permission\"N\n" +
-	"\x12CheckTokenResponse\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x1f\n" +
-	"\vbusiness_id\x18\x02 \x01(\x04R\n" +
-	"businessId\"+\n" +
-	"\x13RefreshTokenRequest\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"3\n" +
+	"permission\"1\n" +
+	"\x12CheckTokenResponse\x12\x1b\n" +
+	"\tnew_token\x18\x01 \x01(\tR\bnewToken\".\n" +
+	"\x13RefreshTokenRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x04R\x06userId\"3\n" +
 	"\x14RefreshTokenResponse\x12\x1b\n" +
 	"\tnew_token\x18\x02 \x01(\tR\bnewToken2\x95\x01\n" +
 	"\vAuthService\x12?\n" +

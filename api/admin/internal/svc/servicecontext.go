@@ -4,8 +4,10 @@ import (
 	"admin/grpc-client/common"
 	"admin/internal/config"
 	"auth/auth"
+	"context"
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/zrpc"
+	"net/http"
 	"user/user"
 )
 
@@ -39,4 +41,20 @@ func createRpcClientConf(etcdConf discov.EtcdConf) zrpc.RpcClientConf {
 		NonBlock: true, // 非阻塞模式
 		Timeout:  3000, // 3秒超时
 	}
+}
+
+// 统一鉴权方法
+func (svcCtx *ServiceContext) CheckPermission(ctx context.Context, r *http.Request, token string, permission string) error {
+	resp, err := svcCtx.AuthClient.CheckToken(ctx, &auth.CheckTokenRequest{
+		Token:      token,
+		Permission: permission,
+	})
+	if err != nil {
+		return err
+	}
+	if resp.NewToken != "" {
+		r.Header.Set("X-New-Token", resp.NewToken)
+		return nil
+	}
+	return nil
 }

@@ -5,9 +5,8 @@ import (
 	_ "admin/internal/types"
 	"context"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"user/user"
-
 	"github.com/zeromicro/go-zero/core/logx"
+	"user/user"
 )
 
 type GetUserInfoLogic struct {
@@ -25,9 +24,9 @@ func NewGetUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 }
 
 func (l *GetUserInfoLogic) GetUserInfo() (any, error) {
-	userId := ga.Uint64(l.ctx.Value("id"))
+	userId := ga.Uint64(l.ctx.Value("user_id"))
 	resp, err := l.svcCtx.UserClient.GetUserinfo(l.ctx, &user.GetUserinfoRequest{
-		UserId: userId,
+		UserId: ga.Uint64(userId),
 	})
 	if err != nil {
 		return nil, err
