@@ -58,7 +58,7 @@ message GetMenuRequest{
   uint64 route_id = 2;
 }
 message GetMenuResponse {
-    string data = 1;       // 菜单数据
+  string data = 1;       // 菜单数据
 }
 // 定义服务
 // 如果要将消息类型与 RPC（远程过程调用）系统配合使用，您可以在 .proto 文件中定义 RPC 服务接口，
@@ -67,4 +67,43 @@ message GetMenuResponse {
 service CommonService {
   rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaResponse);
   rpc GetMenu(GetMenuRequest) returns (GetMenuResponse);
+}
+/**
+ * 获取首页快速编辑数据
+ */
+message    GetQuickRequest {
+  uint64 business_id = 1;
+}
+message GetQuickRow {
+  uint64 id = 1;
+  uint64 business_id = 2;
+  uint64 uid = 3;
+  uint64 is_common = 4;
+  uint64 type = 5;
+  string name = 6;
+  string path_url = 7;
+  string icon = 8;
+  uint64 weigh = 9;
+}
+message  GetQuickResponse {
+  repeated GetQuickRow data = 1;       // 快速数据
+}
+//保存首页快速编辑数据
+message SaveQuickRequest {
+  string  icon = 1;
+  uint64  id = 2;
+  string  name = 3;
+  string  path_url = 4;
+  uint64  type = 5;
+  uint64  weigh = 6;
+  uint64  business_id = 7;
+  uint64  uid = 8;
+
+}
+message SaveQuickResponse {
+  uint64 id = 1;
+}
+service DashboardService {
+  rpc GetQuick(GetQuickRequest) returns (GetQuickResponse);
+  rpc SaveQuick(SaveQuickRequest) returns (SaveQuickResponse);
 }

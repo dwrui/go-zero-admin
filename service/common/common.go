@@ -2,6 +2,7 @@ package main
 
 import (
 	server "common/internal/server/commonservice"
+	dashboardserver "common/internal/server/dashboardservice"
 	"flag"
 	"fmt"
 
@@ -24,7 +25,8 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		common.RegisterCommonServiceServer(grpcServer, server.NewCommonServiceServer(ctx))
-
+		// 注册DashboardService
+		common.RegisterDashboardServiceServer(grpcServer, dashboardserver.NewDashboardServiceServer(ctx))
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)
 		}

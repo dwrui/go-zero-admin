@@ -1,0 +1,21 @@
+Name: system.rpc
+ListenOn: 0.0.0.0:8885
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: system.rpc
+mysql:
+  Host: 127.0.0.1
+  Port: 3306
+  Database: go_zero_admin
+  Username: go_zero_admin
+  Password: go_zero_admin
+  Charset: utf8mb4
+  TablePrefix: ga_
+Log:
+  ServiceName: common-service
+  Mode: file
+  Path: ../../logs/common
+  Level: info
+  KeepDays: 7
+  Compress: false

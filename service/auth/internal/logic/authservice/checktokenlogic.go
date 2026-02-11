@@ -53,8 +53,6 @@ func (l *CheckTokenLogic) CheckToken(in *auth.CheckTokenRequest) (*auth.CheckTok
 		return nil, err
 	}
 	permission, err := l.svcCtx.Redis.GetCtx(l.ctx, "user_permission:"+ga.String(userId))
-	fmt.Println(err)
-	fmt.Println(permission)
 	if err != nil {
 		return nil, errors.New("数据解析错误")
 	}
@@ -74,7 +72,6 @@ func (l *CheckTokenLogic) CheckToken(in *auth.CheckTokenRequest) (*auth.CheckTok
 	}
 	//判断权限
 	permissionDList, ok := permissionData["permissions"].([]interface{})
-	fmt.Println(permissionDList)
 	if !ok {
 		return nil, errors.New("权限数据解析错误")
 	}

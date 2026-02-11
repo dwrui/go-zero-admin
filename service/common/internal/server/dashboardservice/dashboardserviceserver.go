@@ -27,3 +27,8 @@ func (s *DashboardServiceServer) GetQuick(ctx context.Context, in *common.GetQui
 	l := dashboardservicelogic.NewGetQuickLogic(ctx, s.svcCtx)
 	return l.GetQuick(in)
 }
+
+func (s *DashboardServiceServer) SaveQuick(ctx context.Context, in *common.SaveQuickRequest) (*common.SaveQuickResponse, error) {
+	l := dashboardservicelogic.NewSaveQuickLogic(ctx, s.svcCtx)
+	return l.SaveQuick(in)
+}

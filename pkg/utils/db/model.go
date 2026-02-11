@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gconv"
 	"reflect"
 	"strconv"
 	"strings"
@@ -37,6 +38,70 @@ type Model struct {
 	hasDeleteTime *bool                  // 缓存表是否有delete_time字段（nil表示未检测）
 }
 
+// convertToMap 将任意类型转换为map[string]interface{}
+func (qb *Model) convertToMap(data interface{}) (map[string]interface{}, error) {
+	if data == nil {
+		return nil, fmt.Errorf("data cannot be nil")
+	}
+
+	switch v := data.(type) {
+	case map[string]interface{}:
+		return v, nil
+	case map[string]string:
+		result := make(map[string]interface{})
+		for k, val := range v {
+			result[k] = val
+		}
+		return result, nil
+	default:
+		// 使用gconv转换结构体到map
+		result := gconv.Map(data)
+		if result == nil {
+			return nil, fmt.Errorf("convert data to map failed: data type %T is not supported", data)
+		}
+		return result, nil
+	}
+}
+
+// convertToMaps 将任意类型转换为[]map[string]interface{}
+func (qb *Model) convertToMaps(data interface{}) ([]map[string]interface{}, error) {
+	if data == nil {
+		return nil, fmt.Errorf("data cannot be nil")
+	}
+
+	switch v := data.(type) {
+	case []map[string]interface{}:
+		return v, nil
+	case []map[string]string:
+		result := make([]map[string]interface{}, len(v))
+		for i, m := range v {
+			newMap := make(map[string]interface{})
+			for k, val := range m {
+				newMap[k] = val
+			}
+			result[i] = newMap
+		}
+		return result, nil
+	default:
+		// 使用反射处理结构体切片
+		reflectValue := reflect.ValueOf(data)
+		if reflectValue.Kind() != reflect.Slice {
+			return nil, fmt.Errorf("data must be slice type")
+		}
+
+		result := make([]map[string]interface{}, reflectValue.Len())
+		for i := 0; i < reflectValue.Len(); i++ {
+			item := reflectValue.Index(i).Interface()
+			itemMap, err := qb.convertToMap(item)
+			if err != nil {
+				return nil, fmt.Errorf("convert item %d to map failed: %v", i, err)
+			}
+			result[i] = itemMap
+		}
+		return result, nil
+	}
+}
+
 // joinClause 关联查询结构
 type joinClause struct {
 	joinType string // LEFT, RIGHT, INNER
@@ -62,10 +127,18 @@ type orderClause struct {
 
 // QueryResult 查询结果包装器
 type QueryResult struct {
-	data  interface{}
-	err   error
-	query string
-	args  []interface{}
+	data   interface{}
+	err    error
+	query  string
+	args   []interface{}
+	lastId string
+}
+type PaginateResult struct {
+	Items interface{}
+	Page  int
+	Size  int
+	Total int64
+	Error error
 }
 
 // IsEmpty 判断查询结果是否为空
@@ -108,6 +181,11 @@ func (r *QueryResult) GetArgs() []interface{} {
 // GetData 获取查询结果数据
 func (r *QueryResult) GetData() interface{} {
 	return r.data
+}
+
+// GetData 获取查询结果数据
+func (r *QueryResult) GetLastId() string {
+	return r.lastId
 }
 
 // SQLFetch 设置是否只输出SQL不执行查询
@@ -489,6 +567,67 @@ func (qb *Model) All(ctx context.Context, dest interface{}) *QueryResult {
 	return qb.Select(ctx, dest)
 }
 
+// Paginate 分页查询方法
+// page: 第几页（从1开始）
+// pageSize: 每页显示多少行
+// 返回: 包含items数据、page页码、size每页行数、total总数的分页结果
+func (qb *Model) Paginate(ctx context.Context, page, pageSize int, dest interface{}) *PaginateResult {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
+	// 设置分页参数
+	qb.Page(page, pageSize)
+
+	// 查询总记录数
+	countResult := qb.Count(ctx)
+	if countResult.err != nil {
+		return &PaginateResult{
+			Items: []interface{}{},
+			Page:  page,
+			Size:  pageSize,
+			Total: 0,
+			Error: countResult.err,
+		}
+	}
+
+	total := countResult.data.(int64)
+
+	// 如果总数为0，直接返回空结果
+	if total == 0 {
+		return &PaginateResult{
+			Items: []interface{}{},
+			Page:  page,
+			Size:  pageSize,
+			Total: 0,
+			Error: nil,
+		}
+	}
+
+	// 查询当前页数据
+	selectResult := qb.Select(ctx, dest)
+	if selectResult.err != nil {
+		return &PaginateResult{
+			Items: []interface{}{},
+			Page:  page,
+			Size:  pageSize,
+			Total: total,
+			Error: selectResult.err,
+		}
+	}
+
+	return &PaginateResult{
+		Items: dest,
+		Page:  page,
+		Size:  pageSize,
+		Total: total,
+		Error: nil,
+	}
+}
+
 // Count 统计数量
 func (qb *Model) Count(ctx context.Context) *QueryResult {
 	qb.fields = []string{"COUNT(*)"}
@@ -644,20 +783,30 @@ func (qb *Model) Column(ctx context.Context, field string) *QueryResult {
 }
 
 // Data 设置数据操作字段
-func (qb *Model) Data(data map[string]interface{}) *Model {
-	if qb.data == nil {
-		qb.data = make(map[string]interface{})
-	}
-	for k, v := range data {
-		qb.data[k] = v
+func (qb *Model) Data(data interface{}) *Model {
+	if data != nil {
+		dataMap, err := qb.convertToMap(data)
+		if err == nil {
+			qb.data = dataMap
+		}
 	}
 	return qb
 }
 
 // Insert 使用INSERT INTO语句进行数据库写入，如果写入的数据中存在主键或者唯一索引时，返回失败
-func (qb *Model) Insert(ctx context.Context, data ...map[string]interface{}) *QueryResult {
-	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
-		qb.data = data[0]
+func (qb *Model) Insert(ctx context.Context, data ...interface{}) *QueryResult {
+	// 处理参数
+	if len(data) > 0 && data[0] != nil {
+		dataMap, err := qb.convertToMap(data[0])
+		if err != nil {
+			return &QueryResult{
+				data:  nil,
+				err:   err,
+				query: "",
+				args:  nil,
+			}
+		}
+		qb.data = dataMap
 	}
 	// 如果没有数据，返回错误
 	if len(qb.data) == 0 {
@@ -705,18 +854,30 @@ func (qb *Model) Insert(ctx context.Context, data ...map[string]interface{}) *Qu
 	}
 
 	result, err := qb.db.Exec(ctx, query, args...)
+	lastInsertID, _ := result.LastInsertId()
 	return &QueryResult{
-		data:  result,
-		err:   err,
-		query: query,
-		args:  args,
+		data:   result,
+		err:    err,
+		query:  query,
+		args:   args,
+		lastId: ga.String(lastInsertID),
 	}
 }
 
 // Save 使用INSERT INTO语句进行数据库写入，如果写入的数据中存在主键或者唯一索引时，更新原有数据
-func (qb *Model) Save(ctx context.Context, data ...map[string]interface{}) *QueryResult {
-	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
-		qb.data = data[0]
+func (qb *Model) Save(ctx context.Context, data ...interface{}) *QueryResult {
+	// 处理参数
+	if len(data) > 0 && data[0] != nil {
+		dataMap, err := qb.convertToMap(data[0])
+		if err != nil {
+			return &QueryResult{
+				data:  nil,
+				err:   err,
+				query: "",
+				args:  nil,
+			}
+		}
+		qb.data = dataMap
 	}
 
 	// 如果没有数据，返回错误
@@ -772,17 +933,28 @@ func (qb *Model) Save(ctx context.Context, data ...map[string]interface{}) *Quer
 	}
 
 	result, err := qb.db.Exec(ctx, query, args...)
+	lastInsertID, _ := result.LastInsertId()
 	return &QueryResult{
-		data:  result,
-		err:   err,
-		query: query,
-		args:  args,
+		data:   result,
+		err:    err,
+		query:  query,
+		args:   args,
+		lastId: ga.String(lastInsertID),
 	}
 }
 
 // InsertAll 批量插入
-func (qb *Model) InsertAll(ctx context.Context, data []map[string]interface{}) *QueryResult {
-	if len(data) == 0 {
+func (qb *Model) InsertAll(ctx context.Context, data interface{}) *QueryResult {
+	dataMaps, err := qb.convertToMaps(data)
+	if err != nil {
+		return &QueryResult{
+			data:  nil,
+			err:   err,
+			query: "",
+			args:  nil,
+		}
+	}
+	if len(dataMaps) == 0 {
 		return &QueryResult{
 			data:  nil,
 			err:   fmt.Errorf("no data to insert"),
@@ -799,21 +971,20 @@ func (qb *Model) InsertAll(ctx context.Context, data []map[string]interface{}) *
 	sql.WriteString(" (")
 
 	// 获取所有字段名
-	fields := make([]string, 0, len(data[0]))
-	for field := range data[0] {
+	fields := make([]string, 0, len(dataMaps[0]))
+	for field := range dataMaps[0] {
 		fields = append(fields, field)
 	}
 
 	sql.WriteString(strings.Join(fields, ", "))
-	sql.WriteString(") VALUES ")
-
+	// 创建占位符
 	placeholders := make([]string, len(fields))
 	for i := range placeholders {
 		placeholders[i] = "?"
 	}
 
-	valuePlaceholders := make([]string, 0, len(data))
-	for i, row := range data {
+	valuePlaceholders := make([]string, 0, len(dataMaps))
+	for i, row := range dataMaps {
 		if i > 0 {
 			valuePlaceholders = append(valuePlaceholders, ", ")
 		}
@@ -851,17 +1022,26 @@ func (qb *Model) InsertAll(ctx context.Context, data []map[string]interface{}) *
 
 // Update 数据更新
 // Update 数据更新
-func (qb *Model) Update(ctx context.Context, data ...map[string]interface{}) *QueryResult {
+func (qb *Model) Update(ctx context.Context, data ...interface{}) *QueryResult {
 	// 如果Data没有设置数据，才使用Update参数中的数据
-	if len(qb.data) == 0 && len(data) > 0 {
-		qb.data = data[0]
+	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
+		dataMap, err := qb.convertToMap(data[0])
+		if err != nil {
+			return &QueryResult{
+				data:  nil,
+				err:   err,
+				query: "",
+				args:  nil,
+			}
+		}
+		qb.data = dataMap
 	}
 
 	// 如果没有数据，返回错误
 	if len(qb.data) == 0 {
 		return &QueryResult{
 			data:  nil,
-			err:   fmt.Errorf("no data to replace"),
+			err:   fmt.Errorf("no data to update"),
 			query: "",
 			args:  nil,
 		}
@@ -941,19 +1121,30 @@ func (qb *Model) Update(ctx context.Context, data ...map[string]interface{}) *Qu
 	}
 
 	result, err := qb.db.Exec(ctx, query, args...)
+	lastInsertID, _ := result.LastInsertId()
 	return &QueryResult{
-		data:  result,
-		err:   err,
-		query: query,
-		args:  args,
+		data:   result,
+		err:    err,
+		query:  query,
+		args:   args,
+		lastId: ga.String(lastInsertID),
 	}
 }
 
 // Replace 使用REPLACE INTO语句进行数据库写入
-func (qb *Model) Replace(ctx context.Context, data ...map[string]interface{}) *QueryResult {
+func (qb *Model) Replace(ctx context.Context, data ...interface{}) *QueryResult {
 	// 如果Data没有设置数据，才使用Replace参数中的数据
 	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
-		qb.data = data[0]
+		dataMap, err := qb.convertToMap(data[0])
+		if err != nil {
+			return &QueryResult{
+				data:  nil,
+				err:   err,
+				query: "",
+				args:  nil,
+			}
+		}
+		qb.data = dataMap
 	}
 
 	// 如果没有数据，返回错误

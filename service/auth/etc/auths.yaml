@@ -23,9 +23,9 @@ mysql:
   TablePrefix: ga_
 # 添加日志配置
 Log:
-  ServiceName: auth-api
+  ServiceName: auth-service
   Mode: file        # 改为 file 模式，同时输出到文件和控制台
-  Path: ../../logs/auth-api      # 日志文件保存路径
+  Path: ../../logs/auth      # 日志文件保存路径
   Level: info       # 日志级别
   KeepDays: 7       # 保留7天
   Compress: false   # 不压缩旧日志

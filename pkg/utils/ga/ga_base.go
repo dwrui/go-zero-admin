@@ -67,12 +67,45 @@ func LocalIP() string {
 	return ip
 }
 
-/*
-*
-  - 1.批量获取子节点id
-  - @tablename 数据表名称
-    @ids 要获取的id
-*/
+// FindAllChildrenIDs 根据 targetID 切片查找所有下级 ID
+func FindAllChildrenIDs(data []map[string]interface{}, targetIDs []uint64) []uint64 {
+	// 用于存储所有下级 ID，避免重复
+	idSet := make(map[uint64]bool)
+
+	// 遍历 targetID 切片中的每个 ID
+	for _, targetID := range targetIDs {
+		findChildrenRecursive(data, targetID, idSet)
+	}
+
+	// 将 map 转换为切片返回
+	result := make([]uint64, 0, len(idSet))
+	for id := range idSet {
+		result = append(result, id)
+	}
+	return result
+}
+
+// findChildrenRecursive 递归查找子级 ID
+func findChildrenRecursive(data []map[string]interface{}, targetID uint64, idSet map[uint64]bool) {
+	for _, item := range data {
+		// 如果当前项的 pid 匹配 targetID，则记录其 id
+		if pid, ok := item["pid"].(uint64); ok && pid == targetID {
+			id := item["id"].(uint64)
+			if !idSet[id] {
+				idSet[id] = true
+				// 递归查找该 id 的子级
+				findChildrenRecursive(data, id, idSet)
+			}
+		}
+	}
+}
+
+///*
+//*
+//  - 1.批量获取子节点id
+//  - @tablename 数据表名称
+//    @ids 要获取的id
+//*/
 //func GetAllChilIds(tablename string, ids []*gvar.Var) []interface{} {
 //	var allsubids []interface{}
 //	for _, id := range ids {
@@ -81,8 +114,8 @@ func LocalIP() string {
 //	}
 //	return allsubids
 //}
-
-// 1.2获取所有子级ID
+//
+//// 1.2获取所有子级ID
 //func GetAllChilId(tablename string, id interface{}) []interface{} {
 //	var subids []interface{}
 //	sub_ids, _ := Model(tablename).Where("pid", id).Array("id")
@@ -201,41 +234,47 @@ func StringToJSON(val interface{}) interface{} {
 }
 
 // tool-获取树状数组
-//func GetTreeArray(list OrmResult, pid int64, itemprefix string) OrmResult {
-//	childs := ToolFar(list, pid) //获取pid下的所有数据
-//	var chridnum OrmResult
-//	if childs != nil {
-//		var number int = 1
-//		var total int = len(childs)
-//		for _, v := range childs {
-//			j := ""
-//			k := ""
-//			if number == total {
-//				j += "└"
-//				k = ""
-//				if itemprefix != "" {
-//					k = "&nbsp;"
-//				}
-//
-//			} else {
-//				j += "├"
-//				k = ""
-//				if itemprefix != "" {
-//					k = "│"
-//				}
-//			}
-//			spacer := ""
-//			if itemprefix != "" {
-//				spacer = itemprefix + j
-//			}
-//			v["spacer"] = gvar.New(spacer)
-//			v["children"] = gvar.New(GetTreeArray(list, v["id"].Int64(), itemprefix+k+"&nbsp;"))
-//			chridnum = append(chridnum, v)
-//			number++
-//		}
-//	}
-//	return chridnum
-//}
+func GetTreeArray(list []map[string]interface{}, pid int64, itemprefix string) List {
+
+	childs := ToolFar(list, pid) //获取pid下的所有数据
+	var chridnum List
+	if childs != nil {
+		var number int = 1
+		var total int = len(childs)
+		for _, v := range childs {
+			j := ""
+			k := ""
+			if number == total {
+				j += "└"
+				k = ""
+				if itemprefix != "" {
+					k = "&nbsp;"
+				}
+
+			} else {
+				j += "├"
+				k = ""
+				if itemprefix != "" {
+					k = "│"
+				}
+			}
+			spacer := ""
+			if itemprefix != "" {
+				spacer = itemprefix + j
+			}
+			v["spacer"] = gvar.New(spacer)
+			children := gvar.New(GetTreeArray(list, Int64(v["id"]), itemprefix+k+"&nbsp;"))
+			if children != nil {
+				v["children"] = children
+			} else {
+				v["children"] = gvar.New(Slice{})
+			}
+			chridnum = append(chridnum, v)
+			number++
+		}
+	}
+	return chridnum
+}
 
 // 将getTreeArray的结果返回为二维数组
 func GetTreeToList(list []Map, field string) []Map {
@@ -297,15 +336,15 @@ func ArrayMerge_x(ss ...[]Map) []Map {
 //}
 
 // base_tool-获取pid下所有数组
-//func ToolFar(data OrmResult, pid int64) OrmResult {
-//	var mapString OrmResult
-//	for _, v := range data {
-//		if v["pid"].Int64() == pid {
-//			mapString = append(mapString, v)
-//		}
-//	}
-//	return mapString
-//}
+func ToolFar(data List, pid int64) List {
+	var mapString List
+	for _, v := range data {
+		if Int64(v["pid"]) == pid {
+			mapString = append(mapString, v)
+		}
+	}
+	return mapString
+}
 
 // 获取子菜单包含的父级ID-返回全部ID
 //func GetRulesID(tablename string, field string, menus interface{}) interface{} {
@@ -394,19 +433,21 @@ func ArraymoreMerge(data []*gvar.Var) []interface{} {
 //}
 
 // 获取后台菜单子树结构
-//func GetMenuChildrenArray(pdata OrmResult, parent_id int64, pid_file string) OrmResult {
-//	var returnList OrmResult
-//	for _, v := range pdata {
-//		if v[pid_file].Int64() == parent_id {
-//			children := GetMenuChildrenArray(pdata, v["id"].Int64(), pid_file)
-//			if children != nil {
-//				v["children"] = gvar.New(children)
-//			}
-//			returnList = append(returnList, v)
-//		}
-//	}
-//	return returnList
-//}
+func GetMenuChildrenArray(pdata List, parent_id int64, pid_file string) List {
+	var returnList List
+	for _, v := range pdata {
+		if Int64(v[pid_file]) == parent_id {
+			children := GetMenuChildrenArray(pdata, Int64(v["id"]), pid_file)
+			if children != nil {
+				v["children"] = gvar.New(children)
+			} else {
+				v["children"] = gvar.New(Slice{})
+			}
+			returnList = append(returnList, v)
+		}
+	}
+	return returnList
+}
 
 // 删除本地附件
 func Del_file(file_list []*gvar.Var) {

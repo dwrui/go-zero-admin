@@ -356,7 +356,15 @@ func (x *GetQuickRequest) GetBusinessId() uint64 {
 
 type GetQuickRow struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pairs         map[string]string      `protobuf:"bytes,1,rep,name=pairs,proto3" json:"pairs,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	BusinessId    uint64                 `protobuf:"varint,2,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
+	Uid           uint64                 `protobuf:"varint,3,opt,name=uid,proto3" json:"uid,omitempty"`
+	IsCommon      uint64                 `protobuf:"varint,4,opt,name=is_common,json=isCommon,proto3" json:"is_common,omitempty"`
+	Type          uint64                 `protobuf:"varint,5,opt,name=type,proto3" json:"type,omitempty"`
+	Name          string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	PathUrl       string                 `protobuf:"bytes,7,opt,name=path_url,json=pathUrl,proto3" json:"path_url,omitempty"`
+	Icon          string                 `protobuf:"bytes,8,opt,name=icon,proto3" json:"icon,omitempty"`
+	Weigh         uint64                 `protobuf:"varint,9,opt,name=weigh,proto3" json:"weigh,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -391,11 +399,67 @@ func (*GetQuickRow) Descriptor() ([]byte, []int) {
 	return file_common_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetQuickRow) GetPairs() map[string]string {
+func (x *GetQuickRow) GetId() uint64 {
 	if x != nil {
-		return x.Pairs
+		return x.Id
 	}
-	return nil
+	return 0
+}
+
+func (x *GetQuickRow) GetBusinessId() uint64 {
+	if x != nil {
+		return x.BusinessId
+	}
+	return 0
+}
+
+func (x *GetQuickRow) GetUid() uint64 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+func (x *GetQuickRow) GetIsCommon() uint64 {
+	if x != nil {
+		return x.IsCommon
+	}
+	return 0
+}
+
+func (x *GetQuickRow) GetType() uint64 {
+	if x != nil {
+		return x.Type
+	}
+	return 0
+}
+
+func (x *GetQuickRow) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetQuickRow) GetPathUrl() string {
+	if x != nil {
+		return x.PathUrl
+	}
+	return ""
+}
+
+func (x *GetQuickRow) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *GetQuickRow) GetWeigh() uint64 {
+	if x != nil {
+		return x.Weigh
+	}
+	return 0
 }
 
 type GetQuickResponse struct {
@@ -442,6 +506,151 @@ func (x *GetQuickResponse) GetData() []*GetQuickRow {
 	return nil
 }
 
+// 保存首页快速编辑数据
+type SaveQuickRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Icon          string                 `protobuf:"bytes,1,opt,name=icon,proto3" json:"icon,omitempty"`
+	Id            uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	PathUrl       string                 `protobuf:"bytes,4,opt,name=path_url,json=pathUrl,proto3" json:"path_url,omitempty"`
+	Type          uint64                 `protobuf:"varint,5,opt,name=type,proto3" json:"type,omitempty"`
+	Weigh         uint64                 `protobuf:"varint,6,opt,name=weigh,proto3" json:"weigh,omitempty"`
+	BusinessId    uint64                 `protobuf:"varint,7,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
+	Uid           uint64                 `protobuf:"varint,8,opt,name=uid,proto3" json:"uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveQuickRequest) Reset() {
+	*x = SaveQuickRequest{}
+	mi := &file_common_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveQuickRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveQuickRequest) ProtoMessage() {}
+
+func (x *SaveQuickRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveQuickRequest.ProtoReflect.Descriptor instead.
+func (*SaveQuickRequest) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SaveQuickRequest) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *SaveQuickRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SaveQuickRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SaveQuickRequest) GetPathUrl() string {
+	if x != nil {
+		return x.PathUrl
+	}
+	return ""
+}
+
+func (x *SaveQuickRequest) GetType() uint64 {
+	if x != nil {
+		return x.Type
+	}
+	return 0
+}
+
+func (x *SaveQuickRequest) GetWeigh() uint64 {
+	if x != nil {
+		return x.Weigh
+	}
+	return 0
+}
+
+func (x *SaveQuickRequest) GetBusinessId() uint64 {
+	if x != nil {
+		return x.BusinessId
+	}
+	return 0
+}
+
+func (x *SaveQuickRequest) GetUid() uint64 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+type SaveQuickResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveQuickResponse) Reset() {
+	*x = SaveQuickResponse{}
+	mi := &file_common_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveQuickResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveQuickResponse) ProtoMessage() {}
+
+func (x *SaveQuickResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveQuickResponse.ProtoReflect.Descriptor instead.
+func (*SaveQuickResponse) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SaveQuickResponse) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 var File_common_proto protoreflect.FileDescriptor
 
 const file_common_proto_rawDesc = "" +
@@ -468,21 +677,39 @@ const file_common_proto_rawDesc = "" +
 	"\x04data\x18\x01 \x01(\tR\x04data\"2\n" +
 	"\x0fGetQuickRequest\x12\x1f\n" +
 	"\vbusiness_id\x18\x01 \x01(\x04R\n" +
-	"businessId\"}\n" +
-	"\vGetQuickRow\x124\n" +
-	"\x05pairs\x18\x01 \x03(\v2\x1e.common.GetQuickRow.PairsEntryR\x05pairs\x1a8\n" +
-	"\n" +
-	"PairsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\";\n" +
+	"businessId\"\xda\x01\n" +
+	"\vGetQuickRow\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1f\n" +
+	"\vbusiness_id\x18\x02 \x01(\x04R\n" +
+	"businessId\x12\x10\n" +
+	"\x03uid\x18\x03 \x01(\x04R\x03uid\x12\x1b\n" +
+	"\tis_common\x18\x04 \x01(\x04R\bisCommon\x12\x12\n" +
+	"\x04type\x18\x05 \x01(\x04R\x04type\x12\x12\n" +
+	"\x04name\x18\x06 \x01(\tR\x04name\x12\x19\n" +
+	"\bpath_url\x18\a \x01(\tR\apathUrl\x12\x12\n" +
+	"\x04icon\x18\b \x01(\tR\x04icon\x12\x14\n" +
+	"\x05weigh\x18\t \x01(\x04R\x05weigh\";\n" +
 	"\x10GetQuickResponse\x12'\n" +
-	"\x04data\x18\x01 \x03(\v2\x13.common.GetQuickRowR\x04data2\x90\x01\n" +
+	"\x04data\x18\x01 \x03(\v2\x13.common.GetQuickRowR\x04data\"\xc2\x01\n" +
+	"\x10SaveQuickRequest\x12\x12\n" +
+	"\x04icon\x18\x01 \x01(\tR\x04icon\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x19\n" +
+	"\bpath_url\x18\x04 \x01(\tR\apathUrl\x12\x12\n" +
+	"\x04type\x18\x05 \x01(\x04R\x04type\x12\x14\n" +
+	"\x05weigh\x18\x06 \x01(\x04R\x05weigh\x12\x1f\n" +
+	"\vbusiness_id\x18\a \x01(\x04R\n" +
+	"businessId\x12\x10\n" +
+	"\x03uid\x18\b \x01(\x04R\x03uid\"#\n" +
+	"\x11SaveQuickResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id2\x90\x01\n" +
 	"\rCommonService\x12C\n" +
 	"\n" +
 	"GetCaptcha\x12\x19.common.GetCaptchaRequest\x1a\x1a.common.GetCaptchaResponse\x12:\n" +
-	"\aGetMenu\x12\x16.common.GetMenuRequest\x1a\x17.common.GetMenuResponse2Q\n" +
+	"\aGetMenu\x12\x16.common.GetMenuRequest\x1a\x17.common.GetMenuResponse2\x93\x01\n" +
 	"\x10DashboardService\x12=\n" +
-	"\bGetQuick\x12\x17.common.GetQuickRequest\x1a\x18.common.GetQuickResponseB\n" +
+	"\bGetQuick\x12\x17.common.GetQuickRequest\x1a\x18.common.GetQuickResponse\x12@\n" +
+	"\tSaveQuick\x12\x18.common.SaveQuickRequest\x1a\x19.common.SaveQuickResponseB\n" +
 	"Z\b./commonb\x06proto3"
 
 var (
@@ -497,7 +724,7 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_common_proto_goTypes = []any{
 	(*GetCaptchaRequest)(nil),  // 0: common.GetCaptchaRequest
 	(*Result)(nil),             // 1: common.Result
@@ -507,22 +734,24 @@ var file_common_proto_goTypes = []any{
 	(*GetQuickRequest)(nil),    // 5: common.GetQuickRequest
 	(*GetQuickRow)(nil),        // 6: common.GetQuickRow
 	(*GetQuickResponse)(nil),   // 7: common.GetQuickResponse
-	nil,                        // 8: common.GetQuickRow.PairsEntry
+	(*SaveQuickRequest)(nil),   // 8: common.SaveQuickRequest
+	(*SaveQuickResponse)(nil),  // 9: common.SaveQuickResponse
 }
 var file_common_proto_depIdxs = []int32{
-	8, // 0: common.GetQuickRow.pairs:type_name -> common.GetQuickRow.PairsEntry
-	6, // 1: common.GetQuickResponse.data:type_name -> common.GetQuickRow
-	0, // 2: common.CommonService.GetCaptcha:input_type -> common.GetCaptchaRequest
-	3, // 3: common.CommonService.GetMenu:input_type -> common.GetMenuRequest
-	5, // 4: common.DashboardService.GetQuick:input_type -> common.GetQuickRequest
+	6, // 0: common.GetQuickResponse.data:type_name -> common.GetQuickRow
+	0, // 1: common.CommonService.GetCaptcha:input_type -> common.GetCaptchaRequest
+	3, // 2: common.CommonService.GetMenu:input_type -> common.GetMenuRequest
+	5, // 3: common.DashboardService.GetQuick:input_type -> common.GetQuickRequest
+	8, // 4: common.DashboardService.SaveQuick:input_type -> common.SaveQuickRequest
 	2, // 5: common.CommonService.GetCaptcha:output_type -> common.GetCaptchaResponse
 	4, // 6: common.CommonService.GetMenu:output_type -> common.GetMenuResponse
 	7, // 7: common.DashboardService.GetQuick:output_type -> common.GetQuickResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	9, // 8: common.DashboardService.SaveQuick:output_type -> common.SaveQuickResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_common_proto_init() }
@@ -536,7 +765,7 @@ func file_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

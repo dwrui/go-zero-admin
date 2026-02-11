@@ -2,7 +2,7 @@ package model
 
 import "database/sql"
 
-type BusinessAuthRule struct {
+type BusinessAuthRuleModel struct {
 	Id                 uint64         `db:"id"`
 	Uid                int64          `db:"uid"`                // 添加用户
 	Title              string         `db:"title"`              // 菜单名称

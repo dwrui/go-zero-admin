@@ -12,10 +12,11 @@ import (
 )
 
 type ServiceContext struct {
-	Config       config.Config
-	CommonClient common.CommonServiceClient
-	UserClient   user.UserServiceClient
-	AuthClient   auth.AuthServiceClient
+	Config          config.Config
+	CommonClient    common.CommonServiceClient
+	DashboardClient common.DashboardServiceClient
+	UserClient      user.UserServiceClient
+	AuthClient      auth.AuthServiceClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -27,10 +28,11 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	//auth client链接
 	authConn := zrpc.MustNewClient(createRpcClientConf(c.AuthEtcd))
 	return &ServiceContext{
-		Config:       c,
-		CommonClient: common.NewCommonServiceClient(commonConn.Conn()),
-		UserClient:   user.NewUserServiceClient(userConn.Conn()),
-		AuthClient:   auth.NewAuthServiceClient(authConn.Conn()),
+		Config:          c,
+		CommonClient:    common.NewCommonServiceClient(commonConn.Conn()),
+		DashboardClient: common.NewDashboardServiceClient(commonConn.Conn()),
+		UserClient:      user.NewUserServiceClient(userConn.Conn()),
+		AuthClient:      auth.NewAuthServiceClient(authConn.Conn()),
 	}
 }
 

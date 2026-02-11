@@ -29,6 +29,15 @@ type GetMenuReq {
 	RouteId uint64 `json:"route_id"`
 }
 
+type SaveQuickReq {
+	icon    string `json:"icon" validate:"required"`
+	id      uint64 `json:"id"`
+	name    string `json:"name" validate:"required"`
+	pathUrl string `json:"path_url" validate:"required"`
+	reqType uint64 `json:"type"`
+	weigh   uint64 `json:"weigh"`
+}
+
 @server (
 	jwt:     Auth // 对当前 Foo 语法块下的所有路由，开启 jwt 认证，不需要则请删除此行
 	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
@@ -42,6 +51,10 @@ service admin-api {
 	// 定义只有请求体的接口，如更新信息
 	@handler GetQuick
 	get /common/getQuick
+
+	// 定义只有请求体的接口，如更新信息
+	@handler SaveQuick
+	post /common/saveQuick (SaveQuickReq)
 }
 
 type LoginReq {

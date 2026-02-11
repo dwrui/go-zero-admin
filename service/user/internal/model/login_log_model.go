@@ -8,7 +8,7 @@ import (
 	"user/internal/svc"
 )
 
-type LoginLog struct {
+type LoginLogModel struct {
 	Id          int64     `db:"id"`
 	Uid         int64     `db:"uid"`
 	AccountId   int64     `db:"account_id"`

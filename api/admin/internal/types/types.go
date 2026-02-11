@@ -17,3 +17,12 @@ type LoginReq struct {
 	Codeid   string `json:"codeid" validate:"required"`
 	Captcha  string `json:"captcha" validate:"required"`
 }
+
+type SaveQuickReq struct {
+	Icon    string `json:"icon" validate:"required"`
+	Id      uint64 `json:"id"`
+	Name    string `json:"name" validate:"required"`
+	PathUrl string `json:"path_url" validate:"required"`
+	ReqType uint64 `json:"type"`
+	Weigh   uint64 `json:"weigh"`
+}

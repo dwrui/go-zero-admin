@@ -22,6 +22,8 @@ type (
 	GetQuickResponse   = common.GetQuickResponse
 	GetQuickRow        = common.GetQuickRow
 	Result             = common.Result
+	SaveQuickRequest   = common.SaveQuickRequest
+	SaveQuickResponse  = common.SaveQuickResponse
 
 	CommonService interface {
 		GetCaptcha(ctx context.Context, in *GetCaptchaRequest, opts ...grpc.CallOption) (*GetCaptchaResponse, error)

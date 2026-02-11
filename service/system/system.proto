@@ -1,0 +1,338 @@
+// 声明 proto 使用的语法版本
+syntax = "proto3";
+
+// proto 包名
+package system;
+
+// golang 包名
+option go_package = "./system";
+// 获取登录请求
+message GetRuleListRequest {}
+// 获取登录响应
+// 登录数据
+message GetRuleListResponse {
+  string data = 1;           // 登录成功后返回的token
+}
+message SaveRuleRequest{
+  uint64 activemenu = 1;
+  string component = 2;
+  string des = 3;
+  uint64 hidechildreninmenu = 4;
+  uint64 hideinmenu = 5;
+  string icon = 6;
+  uint64 id = 7;
+  uint64 isext = 8;
+  uint64 keepalive = 9;
+  string locale = 10;
+  uint64 noaffix = 11;
+  uint64 onlypage = 12;
+  string path = 13;
+  string permission = 14;
+  uint64 pid = 15;
+  string redirect = 16;
+  uint64 requiresauth = 17;
+  string routename = 18;
+  string routepath = 19;
+  string title = 20;
+  uint64 type = 21;
+  uint64 weigh = 22;
+}
+message SaveRuleResponse{
+    uint64 id = 1;
+}
+message UpStatusRuleRequest{
+  uint64 id = 1;
+  uint64 status = 2;
+}
+message UpStatusRuleResponse{
+}
+message DelRuleRequest{
+  uint64 id = 1;
+}
+message DelRuleResponse{
+
+}
+message GetRuleContentRequest{
+  uint64 id = 1;
+}
+message GetRuleContentResponse{
+  uint64 activemenu = 1;
+  string component = 2;
+  string des = 3;
+  uint64 hidechildreninmenu = 4;
+  uint64 hideinmenu = 5;
+  string icon = 6;
+  uint64 id = 7;
+  uint64 isext = 8;
+  uint64 keepalive = 9;
+  string locale = 10;
+  uint64 noaffix = 11;
+  uint64 onlypage = 12;
+  string path = 13;
+  string permission = 14;
+  uint64 pid = 15;
+  string redirect = 16;
+  uint64 requiresauth = 17;
+  string routename = 18;
+  string routepath = 19;
+  string title = 20;
+  uint64 type = 21;
+  uint64 weigh = 22;
+  string create_time = 23;
+  uint64 status = 24;
+  uint64 uid = 25;
+}
+message GetRuleParentRequest{
+  uint64 id = 1;
+}
+message GetRuleParentResponse{
+  string data = 1;
+}
+message GetRoutesRequest{
+}
+message GetRoutesResponse{
+  string data = 1;
+}
+// 定义服务
+service RuleService {
+  rpc GetList(GetRuleListRequest) returns (GetRuleListResponse);
+  rpc Save(SaveRuleRequest) returns (SaveRuleResponse);
+  rpc UpStatus(UpStatusRuleRequest) returns (UpStatusRuleResponse);
+  rpc Del(DelRuleRequest) returns (DelRuleResponse);
+  rpc GetContent(GetRuleContentRequest) returns (GetRuleContentResponse);
+  rpc GetParent(GetRuleParentRequest) returns (GetRuleParentResponse);
+  rpc GetRoutes(GetRoutesRequest) returns (GetRoutesResponse);
+}
+// 获取部门列表请求
+message GetDeptListRequest {
+    uint64 business_id = 1;
+    string name = 2;
+    uint64 status = 3;
+    string create_time = 4;
+}
+message DeptData{
+    uint64 id = 1;
+    uint64 account_id = 2;
+    string name = 3;
+    uint64 status = 4;
+    string create_time = 5;
+    uint64 business_id = 6;
+    uint64 pid = 7;
+    string remark = 8;
+    string spacer = 9;
+    uint64 weigh = 10;
+    repeated DeptData children = 11;
+}
+message GetDeptListResponse {
+  repeated DeptData data = 1;
+}
+message SaveDeptRequest{
+  uint64 id = 1;
+  uint64 account_id = 2;
+  string name = 3;
+  uint64 status = 4;
+  uint64 business_id = 5;
+  uint64 pid = 6;
+  string remark = 7;
+  uint64 weigh = 8;
+}
+message SaveDeptResponse{
+  uint64 id = 1;
+}
+message UpStatusDeptRequest{
+  uint64 id = 1;
+  uint64 status = 2;
+}
+message UpStatusDeptResponse{
+
+}
+message DelDeptRequest{
+  uint64 id = 1;
+}
+message DelDeptResponse{
+
+}
+message GetDeptParentRequest{
+  uint64 business_id = 1;
+}
+message DeptParentData{
+  uint64 id = 1;
+  string name = 2;
+  uint64  pid = 3;
+  repeated DeptParentData children = 4;
+}
+message GetDeptParentResponse{
+  repeated DeptParentData data = 1;
+}
+// 定义服务
+service DeptService {
+  rpc GetList(GetDeptListRequest) returns (GetDeptListResponse);
+  rpc Save(SaveDeptRequest) returns (SaveDeptResponse);
+  rpc UpState(UpStatusDeptRequest) returns (UpStatusDeptResponse);
+  rpc Del(DelDeptRequest) returns (DelDeptResponse);
+  rpc GetParent(GetDeptParentRequest) returns (GetDeptParentResponse);
+}
+// 获取登录请求
+message GetRoleListRequest {
+  uint64 user_id = 1;
+  string name = 2;
+  uint64 status = 3;
+  string create_time = 4;
+}
+message RoleData{
+  uint64 account_id = 1;
+  string btns = 2;
+  uint64 business_id = 3;
+  string create_time = 4;
+  uint64 data_access = 5;
+  uint64 id = 6;
+  string menu = 7;
+  string name = 8;
+  uint64 pid = 9;
+  string remark = 10;
+  string rules = 11;
+  string spacer = 12;
+  uint64 status = 13;
+  uint64 weigh = 14;
+  repeated RoleData children = 15;
+}
+message GetRoleListResponse {
+  uint64 max_pid = 1;
+  repeated RoleData list = 2;
+}
+message SaveRoleRequest{
+  uint64 account_id = 1;
+  string btns = 2;
+  uint64 business_id = 3;
+  string create_time = 4;
+  uint64 data_access = 5;
+  uint64 id = 6;
+  string menu = 7;
+  string name = 8;
+  uint64 pid = 9;
+  string remark = 10;
+  string rules = 11;
+  uint64 status = 12;
+  uint64 weigh = 13;
+}
+message SaveRoleResponse{
+  uint64 id = 1;
+}
+message UpStatusRoleRequest{
+  uint64 id = 1;
+  uint64 status = 2;
+}
+message UpStatusRoleResponse{
+
+}
+message DelRoleRequest{
+  uint64 id = 1;
+}
+message DelRoleResponse{
+
+}
+message GetRoleParentRequest{
+  uint64 id = 1;
+}
+message GetRoleParentResponse{
+  string data = 1;
+}
+message GetMenuListRequest{
+  uint64 pid = 1;
+}
+message GetMenuListResponse{
+  string data = 1;
+}
+// 定义服务
+service RoleService {
+  rpc GetList(GetRoleListRequest) returns (GetRoleListResponse);
+  rpc Save(SaveRoleRequest) returns (SaveRoleResponse);
+  rpc UpStatus(UpStatusRoleRequest) returns (UpStatusRoleResponse);
+  rpc Del(DelRoleRequest) returns (DelRoleResponse);
+  rpc GetParent(GetRoleParentRequest) returns (GetRoleParentResponse);
+  rpc GetMenuList(GetMenuListRequest) returns (GetMenuListResponse);
+}
+// 获取登录请求
+message GetAccountListRequest {}
+// 获取登录响应
+// 登录数据
+message GetAccountListResponse {
+  string data = 1;
+}
+message SaveAccountRequest{
+  uint64 user_id = 1;
+}
+message SaveAccountResponse{
+
+}
+message UpStatusAccountRequest{
+  uint64 id = 1;
+  uint64 status = 2;
+}
+message UpStatusAccountResponse{
+}
+message DelAccountRequest{
+  uint64 id = 1;
+}
+message DelAccountResponse{}
+message GetAccountRoleRequest{
+  uint64 account_id = 1;
+}
+message GetAccountRoleResponse{
+  string data = 1;
+}
+message IsAccountExistRequest{
+  uint64 account_id = 1;
+  string username = 2;
+}
+message IsAccountExistResponse{
+}
+// 定义服务
+service AccountService {
+  rpc GetList(GetRoleListRequest) returns (GetRoleListResponse);
+  rpc Save(SaveAccountRequest) returns (SaveAccountResponse);
+  rpc UpState(UpStatusAccountRequest) returns (UpStatusAccountResponse);
+  rpc Del(DelAccountRequest) returns (DelAccountResponse);
+  rpc GetRole(GetAccountRoleRequest) returns (GetAccountRoleResponse);
+  rpc Isaccountexist(IsAccountExistRequest) returns (IsAccountExistResponse);
+}
+
+
+// 获取登录请求
+message GetLogListRequest {}
+// 获取登录响应
+// 登录数据
+message GetLogListResponse {
+  string data = 1;           // 登录成功后返回的token
+}
+message DelLastLoginRequest{
+}
+message DelLastLoginResponse{
+}
+message GetOperationRequest{
+
+}
+message GetOperationResponse{
+  string data = 1;
+}
+message DelLastOperationRequest{
+
+}
+message DelLastOperationResponse{
+}
+message GetOperationDetailRequest{
+  uint64 id = 1;
+}
+message GetOperationDetailResponse{
+  string data = 1;
+}
+// 定义服务
+service LogService {
+  rpc GetLogin(GetLogListRequest) returns (GetLogListResponse);
+  rpc DelLastLogin(DelLastLoginRequest) returns (DelLastLoginResponse);
+  rpc GetOperation(GetOperationRequest) returns (GetOperationResponse);
+  rpc DelLastOperation(DelLastOperationRequest) returns (DelLastOperationResponse);
+  rpc GetOperationDetail(GetOperationDetailRequest) returns (GetOperationDetailResponse);
+}
+
+

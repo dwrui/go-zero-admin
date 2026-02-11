@@ -15,18 +15,17 @@ import (
 
 func GetQuickHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.Context().Value("data")
-		token := r.Header.Get("Authorization")
-		err := svcCtx.CheckPermission(r.Context(), r, token, "quick:view")
-		if err != nil {
-			st, ok := status.FromError(err)
-			if !ok {
-				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
-				return
-			}
-			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
-			return
-		}
+		//token := r.Header.Get("Authorization")
+		//err := svcCtx.CheckPermission(r.Context(), r, token, "quick:view")
+		//if err != nil {
+		//	st, ok := status.FromError(err)
+		//	if !ok {
+		//		httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+		//		return
+		//	}
+		//	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+		//	return
+		//}
 
 		l := common.NewGetQuickLogic(r.Context(), svcCtx)
 		resp, err := l.GetQuick()

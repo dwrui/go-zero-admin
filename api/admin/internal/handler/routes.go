@@ -39,6 +39,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/common/getQuick",
 				Handler: common.GetQuickHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/common/saveQuick",
+				Handler: common.SaveQuickHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithPrefix("/v1"),

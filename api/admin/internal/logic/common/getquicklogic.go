@@ -4,9 +4,9 @@
 package common
 
 import (
-	"context"
-
+	"admin/grpc-client/common"
 	"admin/internal/svc"
+	"context"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -25,5 +25,9 @@ func NewGetQuickLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetQuick
 }
 
 func (l *GetQuickLogic) GetQuick() (any, error) {
-	return nil, nil
+	resp, err := l.svcCtx.DashboardClient.GetQuick(l.ctx, &common.GetQuickRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Data, nil
 }

@@ -61,13 +61,35 @@ func (mv *MessageValidator) SetFieldNames(names map[string]string) *MessageValid
 	mv.fieldNames = names
 	return mv
 }
-
-// Validate 验证结构体
 func (mv *MessageValidator) Validate(data interface{}) error {
 	if err := mv.validator.Struct(data); err != nil {
 		return mv.convertValidationError(err.(validator.ValidationErrors), data)
 	}
 	return nil
+}
+
+// ValidateOne 验证结构体，只返回第一个错误
+func (mv *MessageValidator) ValidateOne(data interface{}) error {
+	if err := mv.validator.Struct(data); err != nil {
+		return mv.convertFirstValidationError(err.(validator.ValidationErrors), data)
+	}
+	return nil
+}
+
+// ValidateAll 验证结构体，返回所有错误信息
+func (mv *MessageValidator) ValidateAll(data interface{}) []error {
+	if err := mv.validator.Struct(data); err != nil {
+		return mv.convertAllValidationErrors(err.(validator.ValidationErrors), data)
+	}
+	return nil
+}
+
+// ValidateMap 验证结构体，返回字段名到错误信息的映射
+func (mv *MessageValidator) ValidateMap(data interface{}) map[string]string {
+	if err := mv.validator.Struct(data); err != nil {
+		return mv.convertValidationErrorMap(err.(validator.ValidationErrors), data)
+	}
+	return make(map[string]string)
 }
 
 // ValidateVar 验证单个变量
@@ -104,6 +126,76 @@ func (mv *MessageValidator) convertValidationError(errs validator.ValidationErro
 	}
 
 	return nil
+}
+
+// convertFirstValidationError 转换第一个验证错误
+func (mv *MessageValidator) convertFirstValidationError(errs validator.ValidationErrors, data interface{}) error {
+	if len(errs) == 0 {
+		return nil
+	}
+
+	// 只处理第一个错误
+	err := errs[0]
+	fieldName := err.Field()
+	tag := err.Tag()
+	param := err.Param()
+
+	// 获取自定义错误消息
+	customMsg := mv.getCustomMessage(fieldName, tag, param)
+	if customMsg != "" {
+		return gerror.New(customMsg)
+	}
+
+	// 使用默认转换
+	return gerror.New(mv.convertDefaultError(err))
+}
+
+// convertAllValidationErrors 转换所有验证错误为错误数组
+func (mv *MessageValidator) convertAllValidationErrors(errs validator.ValidationErrors, data interface{}) []error {
+	var errors []error
+
+	for _, err := range errs {
+		fieldName := err.Field()
+		tag := err.Tag()
+		param := err.Param()
+
+		// 获取自定义错误消息
+		customMsg := mv.getCustomMessage(fieldName, tag, param)
+		if customMsg != "" {
+			errors = append(errors, gerror.New(customMsg))
+			continue
+		}
+
+		// 使用默认转换
+		defaultMsg := mv.convertDefaultError(err)
+		errors = append(errors, gerror.New(defaultMsg))
+	}
+
+	return errors
+}
+
+// convertValidationErrorMap 转换验证错误为字段名到错误信息的映射
+func (mv *MessageValidator) convertValidationErrorMap(errs validator.ValidationErrors, data interface{}) map[string]string {
+	errorMap := make(map[string]string)
+
+	for _, err := range errs {
+		fieldName := err.Field()
+		tag := err.Tag()
+		param := err.Param()
+
+		// 获取自定义错误消息
+		customMsg := mv.getCustomMessage(fieldName, tag, param)
+		if customMsg != "" {
+			errorMap[fieldName] = customMsg
+			continue
+		}
+
+		// 使用默认转换
+		defaultMsg := mv.convertDefaultError(err)
+		errorMap[fieldName] = defaultMsg
+	}
+
+	return errorMap
 }
 
 // 转换单个错误

@@ -22,9 +22,12 @@ type (
 	GetQuickResponse   = common.GetQuickResponse
 	GetQuickRow        = common.GetQuickRow
 	Result             = common.Result
+	SaveQuickRequest   = common.SaveQuickRequest
+	SaveQuickResponse  = common.SaveQuickResponse
 
 	DashboardService interface {
 		GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error)
+		SaveQuick(ctx context.Context, in *SaveQuickRequest, opts ...grpc.CallOption) (*SaveQuickResponse, error)
 	}
 
 	defaultDashboardService struct {
@@ -41,4 +44,9 @@ func NewDashboardService(cli zrpc.Client) DashboardService {
 func (m *defaultDashboardService) GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error) {
 	client := common.NewDashboardServiceClient(m.cli.Conn())
 	return client.GetQuick(ctx, in, opts...)
+}
+
+func (m *defaultDashboardService) SaveQuick(ctx context.Context, in *SaveQuickRequest, opts ...grpc.CallOption) (*SaveQuickResponse, error) {
+	client := common.NewDashboardServiceClient(m.cli.Conn())
+	return client.SaveQuick(ctx, in, opts...)
 }

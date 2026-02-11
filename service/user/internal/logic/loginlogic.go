@@ -52,7 +52,7 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 		//判断密码是否正确
 		if pass != account.Password {
 			// 添加日志操作
-			model.AddloginLog(l.ctx, l.svcCtx, ga.Map{"uid": account.Id, "account_id": account.AccountId, "business_id": account.BusinessId, "type": "business", "status": 0, "des": "账号登录", "error_msg": "输入的密码不正确！", "ip": in.ClientIp, "user_agent": in.UserAgent})
+			go model.AddloginLog(l.ctx, l.svcCtx, ga.Map{"uid": account.Id, "account_id": account.AccountId, "business_id": account.BusinessId, "type": "business", "status": 0, "des": "账号登录", "error_msg": "输入的密码不正确！", "ip": in.ClientIp, "user_agent": in.UserAgent})
 			if account.LoginAttempts >= 3 {
 				//锁定账户
 				err := model.LockAccount(l.ctx, l.svcCtx, account.Id)
@@ -77,7 +77,7 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 		if err != nil {
 			return nil, err
 		}
-		model.AddloginLog(l.ctx, l.svcCtx, ga.Map{"uid": account.Id, "account_id": account.AccountId, "business_id": account.BusinessId, "type": "business", "status": 1, "des": "账号登录", "ip": in.ClientIp, "user_agent": in.UserAgent})
+		go model.AddloginLog(l.ctx, l.svcCtx, ga.Map{"uid": account.Id, "account_id": account.AccountId, "business_id": account.BusinessId, "type": "business", "status": 1, "des": "账号登录", "ip": in.ClientIp, "user_agent": in.UserAgent})
 		l.svcCtx.DB.Model("business_account").Where("id = ?", account.Id).Data(ga.Map{"loginstatus": 1, "last_login_time": gtime.Timestamp(), "last_login_ip": in.ClientIp}).Update(l.ctx)
 		return &user.LoginResponse{
 			Data: token,

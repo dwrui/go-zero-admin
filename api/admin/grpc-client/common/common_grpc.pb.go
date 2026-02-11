@@ -173,3 +173,143 @@ var CommonService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "common.proto",
 }
+
+const (
+	DashboardService_GetQuick_FullMethodName  = "/common.DashboardService/GetQuick"
+	DashboardService_SaveQuick_FullMethodName = "/common.DashboardService/SaveQuick"
+)
+
+// DashboardServiceClient is the client API for DashboardService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type DashboardServiceClient interface {
+	GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error)
+	SaveQuick(ctx context.Context, in *SaveQuickRequest, opts ...grpc.CallOption) (*SaveQuickResponse, error)
+}
+
+type dashboardServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDashboardServiceClient(cc grpc.ClientConnInterface) DashboardServiceClient {
+	return &dashboardServiceClient{cc}
+}
+
+func (c *dashboardServiceClient) GetQuick(ctx context.Context, in *GetQuickRequest, opts ...grpc.CallOption) (*GetQuickResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetQuickResponse)
+	err := c.cc.Invoke(ctx, DashboardService_GetQuick_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dashboardServiceClient) SaveQuick(ctx context.Context, in *SaveQuickRequest, opts ...grpc.CallOption) (*SaveQuickResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveQuickResponse)
+	err := c.cc.Invoke(ctx, DashboardService_SaveQuick_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DashboardServiceServer is the server API for DashboardService service.
+// All implementations must embed UnimplementedDashboardServiceServer
+// for forward compatibility.
+type DashboardServiceServer interface {
+	GetQuick(context.Context, *GetQuickRequest) (*GetQuickResponse, error)
+	SaveQuick(context.Context, *SaveQuickRequest) (*SaveQuickResponse, error)
+	mustEmbedUnimplementedDashboardServiceServer()
+}
+
+// UnimplementedDashboardServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedDashboardServiceServer struct{}
+
+func (UnimplementedDashboardServiceServer) GetQuick(context.Context, *GetQuickRequest) (*GetQuickResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetQuick not implemented")
+}
+func (UnimplementedDashboardServiceServer) SaveQuick(context.Context, *SaveQuickRequest) (*SaveQuickResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveQuick not implemented")
+}
+func (UnimplementedDashboardServiceServer) mustEmbedUnimplementedDashboardServiceServer() {}
+func (UnimplementedDashboardServiceServer) testEmbeddedByValue()                          {}
+
+// UnsafeDashboardServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DashboardServiceServer will
+// result in compilation errors.
+type UnsafeDashboardServiceServer interface {
+	mustEmbedUnimplementedDashboardServiceServer()
+}
+
+func RegisterDashboardServiceServer(s grpc.ServiceRegistrar, srv DashboardServiceServer) {
+	// If the following call panics, it indicates UnimplementedDashboardServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&DashboardService_ServiceDesc, srv)
+}
+
+func _DashboardService_GetQuick_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetQuickRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DashboardServiceServer).GetQuick(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DashboardService_GetQuick_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DashboardServiceServer).GetQuick(ctx, req.(*GetQuickRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DashboardService_SaveQuick_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveQuickRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DashboardServiceServer).SaveQuick(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DashboardService_SaveQuick_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DashboardServiceServer).SaveQuick(ctx, req.(*SaveQuickRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// DashboardService_ServiceDesc is the grpc.ServiceDesc for DashboardService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var DashboardService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "common.DashboardService",
+	HandlerType: (*DashboardServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetQuick",
+			Handler:    _DashboardService_GetQuick_Handler,
+		},
+		{
+			MethodName: "SaveQuick",
+			Handler:    _DashboardService_SaveQuick_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "common.proto",
+}
