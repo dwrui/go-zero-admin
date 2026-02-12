@@ -6,6 +6,8 @@ import (
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/empty"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gcache"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmd5"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
+	"reflect"
 	"time"
 )
 
@@ -92,4 +94,66 @@ func FormatColumnData(data interface{}) []interface{} {
 		// 对于其他类型，尝试转换为字符串数组
 		return []interface{}{fmt.Sprintf("%v", data)}
 	}
+}
+
+// ToInterfaceSlice 将任意类型转换为[]interface{}
+// 支持[]string、[]int、[]int64、[]uint64、[]*gvar.Var等多种类型
+func ToInterfaceSlice(data interface{}) []interface{} {
+	if data == nil {
+		return []interface{}{}
+	}
+
+	// 尝试直接类型断言
+	switch v := data.(type) {
+	case []interface{}:
+		return v
+	case []string:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []int:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []int64:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []uint64:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []*gvar.Var:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	default:
+		// 使用反射处理其他类型
+		return reflectToInterfaceSlice(data)
+	}
+}
+
+// reflectToInterfaceSlice 使用反射将任意类型的切片转换为[]interface{}
+func reflectToInterfaceSlice(data interface{}) []interface{} {
+	v := reflect.ValueOf(data)
+	if v.Kind() != reflect.Slice {
+		return []interface{}{data}
+	}
+
+	result := make([]interface{}, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		result[i] = v.Index(i).Interface()
+	}
+
+	return result
 }

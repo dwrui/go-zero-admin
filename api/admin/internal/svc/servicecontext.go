@@ -8,15 +8,20 @@ import (
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/zrpc"
 	"net/http"
+	"system/system"
 	"user/user"
 )
 
 type ServiceContext struct {
-	Config          config.Config
-	CommonClient    common.CommonServiceClient
-	DashboardClient common.DashboardServiceClient
-	UserClient      user.UserServiceClient
-	AuthClient      auth.AuthServiceClient
+	Config              config.Config
+	CommonClient        common.CommonServiceClient
+	DashboardClient     common.DashboardServiceClient
+	UserClient          user.UserServiceClient
+	AuthClient          auth.AuthServiceClient
+	SystemAccountClient system.AccountServiceClient
+	SystemRoleClient    system.RoleServiceClient
+	SystemRuleClient    system.RuleServiceClient
+	SystemLogClient     system.LogServiceClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -27,12 +32,18 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	userConn := zrpc.MustNewClient(createRpcClientConf(c.UserEtcd))
 	//auth client链接
 	authConn := zrpc.MustNewClient(createRpcClientConf(c.AuthEtcd))
+	//系统模块 client链接
+	systemConn := zrpc.MustNewClient(createRpcClientConf(c.SystemEtcd))
 	return &ServiceContext{
-		Config:          c,
-		CommonClient:    common.NewCommonServiceClient(commonConn.Conn()),
-		DashboardClient: common.NewDashboardServiceClient(commonConn.Conn()),
-		UserClient:      user.NewUserServiceClient(userConn.Conn()),
-		AuthClient:      auth.NewAuthServiceClient(authConn.Conn()),
+		Config:              c,
+		CommonClient:        common.NewCommonServiceClient(commonConn.Conn()),
+		DashboardClient:     common.NewDashboardServiceClient(commonConn.Conn()),
+		UserClient:          user.NewUserServiceClient(userConn.Conn()),
+		AuthClient:          auth.NewAuthServiceClient(authConn.Conn()),
+		SystemAccountClient: system.NewAccountServiceClient(systemConn.Conn()),
+		SystemRoleClient:    system.NewRoleServiceClient(systemConn.Conn()),
+		SystemRuleClient:    system.NewRuleServiceClient(systemConn.Conn()),
+		SystemLogClient:     system.NewLogServiceClient(systemConn.Conn()),
 	}
 }
 

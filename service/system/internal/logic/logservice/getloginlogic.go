@@ -2,6 +2,9 @@ package logservicelogic
 
 import (
 	"context"
+	"fmt"
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -25,6 +28,31 @@ func NewGetLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetLogin
 
 func (l *GetLoginLogic) GetLogin(in *system.GetLogListRequest) (*system.GetLogListResponse, error) {
 	// todo: add your logic here and delete this line
-
-	return &system.GetLogListResponse{}, nil
+	list, err := model.GetLoginLogList(l.ctx, l.svcCtx, in)
+	if err != nil {
+		return nil, err
+	}
+	logList := make([]*system.GetLogData, 0)
+	for _, v := range list["items"].([]*model.LoginLogModel) {
+		fmt.Println(v)
+		logList = append(logList, &system.GetLogData{
+			Id:         v.Id,
+			Uid:        v.Uid,
+			AccountId:  v.AccountId,
+			BusinessId: v.BusinessId,
+			Type:       v.Type,
+			Status:     ga.Uint64(v.Status),
+			Des:        v.Des,
+			Ip:         v.Ip,
+			Address:    v.Address,
+			UserAgent:  v.UserAgent,
+		})
+	}
+	fmt.Println(logList)
+	return &system.GetLogListResponse{
+		Items:    logList,
+		Page:     ga.Uint64(list["page"]),
+		PageSize: ga.Uint64(list["page_size"]),
+		Total:    ga.Uint64(list["total"]),
+	}, nil
 }

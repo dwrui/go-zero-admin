@@ -35,7 +35,7 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 			return nil, errors.New("密码不能为空")
 		}
 		var account model.GaBusinessAccount
-		res := l.svcCtx.DB.Model("business_account").Fields("id,account_id,business_id,password,salt,name,status,login_attempts,lock_time").Where("username =? OR email = ?", in.Username, in.Username).Find(l.ctx, &account)
+		res := l.svcCtx.DB.Model("admin_account").Fields("id,account_id,business_id,password,salt,name,status,login_attempts,lock_time").Where("username =? OR email = ?", in.Username, in.Username).Find(l.ctx, &account)
 		if res.GetError() != nil {
 			return nil, res.GetError()
 		}
@@ -60,7 +60,7 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 					return nil, errors.New("密码错误次数过多，账户已被锁定30分钟")
 				}
 			}
-			l.svcCtx.DB.Model("business_account").Where("id = ?", account.Id).Inc(l.ctx, "login_attempts", 1)
+			l.svcCtx.DB.Model("admin_account").Where("id = ?", account.Id).Inc(l.ctx, "login_attempts", 1)
 			return nil, errors.New("密码错误!")
 		}
 		//暂时先不做资源共享
@@ -78,7 +78,7 @@ func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
 			return nil, err
 		}
 		go model.AddloginLog(l.ctx, l.svcCtx, ga.Map{"uid": account.Id, "account_id": account.AccountId, "business_id": account.BusinessId, "type": "business", "status": 1, "des": "账号登录", "ip": in.ClientIp, "user_agent": in.UserAgent})
-		l.svcCtx.DB.Model("business_account").Where("id = ?", account.Id).Data(ga.Map{"loginstatus": 1, "last_login_time": gtime.Timestamp(), "last_login_ip": in.ClientIp}).Update(l.ctx)
+		l.svcCtx.DB.Model("admin_account").Where("id = ?", account.Id).Data(ga.Map{"loginstatus": 1, "last_login_time": gtime.Timestamp(), "last_login_ip": in.ClientIp}).Update(l.ctx)
 		return &user.LoginResponse{
 			Data: token,
 		}, nil

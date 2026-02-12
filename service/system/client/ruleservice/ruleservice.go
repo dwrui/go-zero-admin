@@ -36,6 +36,7 @@ type (
 	GetDeptListResponse        = system.GetDeptListResponse
 	GetDeptParentRequest       = system.GetDeptParentRequest
 	GetDeptParentResponse      = system.GetDeptParentResponse
+	GetLogData                 = system.GetLogData
 	GetLogListRequest          = system.GetLogListRequest
 	GetLogListResponse         = system.GetLogListResponse
 	GetMenuListRequest         = system.GetMenuListRequest

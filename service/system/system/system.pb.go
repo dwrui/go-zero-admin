@@ -1692,6 +1692,7 @@ type GetRoleListRequest struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Status        uint64                 `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`
 	CreateTime    string                 `protobuf:"bytes,4,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	RequestUrl    string                 `protobuf:"bytes,5,opt,name=request_url,json=requestUrl,proto3" json:"request_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1750,6 +1751,13 @@ func (x *GetRoleListRequest) GetStatus() uint64 {
 func (x *GetRoleListRequest) GetCreateTime() string {
 	if x != nil {
 		return x.CreateTime
+	}
+	return ""
+}
+
+func (x *GetRoleListRequest) GetRequestUrl() string {
+	if x != nil {
+		return x.RequestUrl
 	}
 	return ""
 }
@@ -2317,6 +2325,8 @@ func (*DelRoleResponse) Descriptor() ([]byte, []int) {
 type GetRoleParentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	RequestUrl    string                 `protobuf:"bytes,2,opt,name=request_url,json=requestUrl,proto3" json:"request_url,omitempty"`
+	UserId        uint64                 `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2358,9 +2368,23 @@ func (x *GetRoleParentRequest) GetId() uint64 {
 	return 0
 }
 
+func (x *GetRoleParentRequest) GetRequestUrl() string {
+	if x != nil {
+		return x.RequestUrl
+	}
+	return ""
+}
+
+func (x *GetRoleParentRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
 type GetRoleParentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          string                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	List          []*RoleData            `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2395,16 +2419,17 @@ func (*GetRoleParentResponse) Descriptor() ([]byte, []int) {
 	return file_system_proto_rawDescGZIP(), []int{36}
 }
 
-func (x *GetRoleParentResponse) GetData() string {
+func (x *GetRoleParentResponse) GetList() []*RoleData {
 	if x != nil {
-		return x.Data
+		return x.List
 	}
-	return ""
+	return nil
 }
 
 type GetMenuListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Pid           uint64                 `protobuf:"varint,1,opt,name=pid,proto3" json:"pid,omitempty"`
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2442,6 +2467,13 @@ func (*GetMenuListRequest) Descriptor() ([]byte, []int) {
 func (x *GetMenuListRequest) GetPid() uint64 {
 	if x != nil {
 		return x.Pid
+	}
+	return 0
+}
+
+func (x *GetMenuListRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -3000,6 +3032,13 @@ func (*IsAccountExistResponse) Descriptor() ([]byte, []int) {
 // 获取登录请求
 type GetLogListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          uint64                 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      uint64                 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	BusinessId    uint64                 `protobuf:"varint,3,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
+	Ip            string                 `protobuf:"bytes,4,opt,name=ip,proto3" json:"ip,omitempty"`
+	User          string                 `protobuf:"bytes,5,opt,name=user,proto3" json:"user,omitempty"`
+	Status        uint64                 `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`
+	CreateTime    string                 `protobuf:"bytes,7,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3034,18 +3073,209 @@ func (*GetLogListRequest) Descriptor() ([]byte, []int) {
 	return file_system_proto_rawDescGZIP(), []int{51}
 }
 
-// 获取登录响应
-// 登录数据
+func (x *GetLogListRequest) GetPage() uint64 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetLogListRequest) GetPageSize() uint64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetLogListRequest) GetBusinessId() uint64 {
+	if x != nil {
+		return x.BusinessId
+	}
+	return 0
+}
+
+func (x *GetLogListRequest) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *GetLogListRequest) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
+}
+
+func (x *GetLogListRequest) GetStatus() uint64 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *GetLogListRequest) GetCreateTime() string {
+	if x != nil {
+		return x.CreateTime
+	}
+	return ""
+}
+
+type GetLogData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	AccountId     uint64                 `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	BusinessId    uint64                 `protobuf:"varint,3,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
+	Type          string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
+	Status        uint64                 `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`
+	Des           string                 `protobuf:"bytes,6,opt,name=des,proto3" json:"des,omitempty"`
+	Ip            string                 `protobuf:"bytes,7,opt,name=ip,proto3" json:"ip,omitempty"`
+	Address       string                 `protobuf:"bytes,8,opt,name=address,proto3" json:"address,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,9,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	ErrorMsg      string                 `protobuf:"bytes,10,opt,name=error_msg,json=errorMsg,proto3" json:"error_msg,omitempty"`
+	CreatedTime   string                 `protobuf:"bytes,11,opt,name=created_time,json=createdTime,proto3" json:"created_time,omitempty"`
+	Uid           uint64                 `protobuf:"varint,12,opt,name=uid,proto3" json:"uid,omitempty"`
+	User          map[string]string      `protobuf:"bytes,13,rep,name=user,proto3" json:"user,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLogData) Reset() {
+	*x = GetLogData{}
+	mi := &file_system_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLogData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLogData) ProtoMessage() {}
+
+func (x *GetLogData) ProtoReflect() protoreflect.Message {
+	mi := &file_system_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLogData.ProtoReflect.Descriptor instead.
+func (*GetLogData) Descriptor() ([]byte, []int) {
+	return file_system_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *GetLogData) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *GetLogData) GetAccountId() uint64 {
+	if x != nil {
+		return x.AccountId
+	}
+	return 0
+}
+
+func (x *GetLogData) GetBusinessId() uint64 {
+	if x != nil {
+		return x.BusinessId
+	}
+	return 0
+}
+
+func (x *GetLogData) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *GetLogData) GetStatus() uint64 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *GetLogData) GetDes() string {
+	if x != nil {
+		return x.Des
+	}
+	return ""
+}
+
+func (x *GetLogData) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *GetLogData) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *GetLogData) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *GetLogData) GetErrorMsg() string {
+	if x != nil {
+		return x.ErrorMsg
+	}
+	return ""
+}
+
+func (x *GetLogData) GetCreatedTime() string {
+	if x != nil {
+		return x.CreatedTime
+	}
+	return ""
+}
+
+func (x *GetLogData) GetUid() uint64 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+func (x *GetLogData) GetUser() map[string]string {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+// 获取登录日志
 type GetLogListResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          string                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"` // 登录成功后返回的token
+	Items         []*GetLogData          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Page          uint64                 `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      uint64                 `protobuf:"varint,3,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
+	Total         uint64                 `protobuf:"varint,4,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetLogListResponse) Reset() {
 	*x = GetLogListResponse{}
-	mi := &file_system_proto_msgTypes[52]
+	mi := &file_system_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3057,7 +3287,7 @@ func (x *GetLogListResponse) String() string {
 func (*GetLogListResponse) ProtoMessage() {}
 
 func (x *GetLogListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[52]
+	mi := &file_system_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3070,14 +3300,35 @@ func (x *GetLogListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLogListResponse.ProtoReflect.Descriptor instead.
 func (*GetLogListResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{52}
+	return file_system_proto_rawDescGZIP(), []int{53}
 }
 
-func (x *GetLogListResponse) GetData() string {
+func (x *GetLogListResponse) GetItems() []*GetLogData {
 	if x != nil {
-		return x.Data
+		return x.Items
 	}
-	return ""
+	return nil
+}
+
+func (x *GetLogListResponse) GetPage() uint64 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetLogListResponse) GetPageSize() uint64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetLogListResponse) GetTotal() uint64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
 }
 
 type DelLastLoginRequest struct {
@@ -3088,7 +3339,7 @@ type DelLastLoginRequest struct {
 
 func (x *DelLastLoginRequest) Reset() {
 	*x = DelLastLoginRequest{}
-	mi := &file_system_proto_msgTypes[53]
+	mi := &file_system_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3100,7 +3351,7 @@ func (x *DelLastLoginRequest) String() string {
 func (*DelLastLoginRequest) ProtoMessage() {}
 
 func (x *DelLastLoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[53]
+	mi := &file_system_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3113,7 +3364,7 @@ func (x *DelLastLoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelLastLoginRequest.ProtoReflect.Descriptor instead.
 func (*DelLastLoginRequest) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{53}
+	return file_system_proto_rawDescGZIP(), []int{54}
 }
 
 type DelLastLoginResponse struct {
@@ -3124,7 +3375,7 @@ type DelLastLoginResponse struct {
 
 func (x *DelLastLoginResponse) Reset() {
 	*x = DelLastLoginResponse{}
-	mi := &file_system_proto_msgTypes[54]
+	mi := &file_system_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3136,7 +3387,7 @@ func (x *DelLastLoginResponse) String() string {
 func (*DelLastLoginResponse) ProtoMessage() {}
 
 func (x *DelLastLoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[54]
+	mi := &file_system_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3149,7 +3400,7 @@ func (x *DelLastLoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelLastLoginResponse.ProtoReflect.Descriptor instead.
 func (*DelLastLoginResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{54}
+	return file_system_proto_rawDescGZIP(), []int{55}
 }
 
 type GetOperationRequest struct {
@@ -3160,7 +3411,7 @@ type GetOperationRequest struct {
 
 func (x *GetOperationRequest) Reset() {
 	*x = GetOperationRequest{}
-	mi := &file_system_proto_msgTypes[55]
+	mi := &file_system_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3172,7 +3423,7 @@ func (x *GetOperationRequest) String() string {
 func (*GetOperationRequest) ProtoMessage() {}
 
 func (x *GetOperationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[55]
+	mi := &file_system_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3185,7 +3436,7 @@ func (x *GetOperationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOperationRequest.ProtoReflect.Descriptor instead.
 func (*GetOperationRequest) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{55}
+	return file_system_proto_rawDescGZIP(), []int{56}
 }
 
 type GetOperationResponse struct {
@@ -3197,7 +3448,7 @@ type GetOperationResponse struct {
 
 func (x *GetOperationResponse) Reset() {
 	*x = GetOperationResponse{}
-	mi := &file_system_proto_msgTypes[56]
+	mi := &file_system_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3209,7 +3460,7 @@ func (x *GetOperationResponse) String() string {
 func (*GetOperationResponse) ProtoMessage() {}
 
 func (x *GetOperationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[56]
+	mi := &file_system_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3222,7 +3473,7 @@ func (x *GetOperationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOperationResponse.ProtoReflect.Descriptor instead.
 func (*GetOperationResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{56}
+	return file_system_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetOperationResponse) GetData() string {
@@ -3240,7 +3491,7 @@ type DelLastOperationRequest struct {
 
 func (x *DelLastOperationRequest) Reset() {
 	*x = DelLastOperationRequest{}
-	mi := &file_system_proto_msgTypes[57]
+	mi := &file_system_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3252,7 +3503,7 @@ func (x *DelLastOperationRequest) String() string {
 func (*DelLastOperationRequest) ProtoMessage() {}
 
 func (x *DelLastOperationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[57]
+	mi := &file_system_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3265,7 +3516,7 @@ func (x *DelLastOperationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelLastOperationRequest.ProtoReflect.Descriptor instead.
 func (*DelLastOperationRequest) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{57}
+	return file_system_proto_rawDescGZIP(), []int{58}
 }
 
 type DelLastOperationResponse struct {
@@ -3276,7 +3527,7 @@ type DelLastOperationResponse struct {
 
 func (x *DelLastOperationResponse) Reset() {
 	*x = DelLastOperationResponse{}
-	mi := &file_system_proto_msgTypes[58]
+	mi := &file_system_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3288,7 +3539,7 @@ func (x *DelLastOperationResponse) String() string {
 func (*DelLastOperationResponse) ProtoMessage() {}
 
 func (x *DelLastOperationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[58]
+	mi := &file_system_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3301,7 +3552,7 @@ func (x *DelLastOperationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelLastOperationResponse.ProtoReflect.Descriptor instead.
 func (*DelLastOperationResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{58}
+	return file_system_proto_rawDescGZIP(), []int{59}
 }
 
 type GetOperationDetailRequest struct {
@@ -3313,7 +3564,7 @@ type GetOperationDetailRequest struct {
 
 func (x *GetOperationDetailRequest) Reset() {
 	*x = GetOperationDetailRequest{}
-	mi := &file_system_proto_msgTypes[59]
+	mi := &file_system_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3325,7 +3576,7 @@ func (x *GetOperationDetailRequest) String() string {
 func (*GetOperationDetailRequest) ProtoMessage() {}
 
 func (x *GetOperationDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[59]
+	mi := &file_system_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3338,7 +3589,7 @@ func (x *GetOperationDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOperationDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetOperationDetailRequest) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{59}
+	return file_system_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetOperationDetailRequest) GetId() uint64 {
@@ -3357,7 +3608,7 @@ type GetOperationDetailResponse struct {
 
 func (x *GetOperationDetailResponse) Reset() {
 	*x = GetOperationDetailResponse{}
-	mi := &file_system_proto_msgTypes[60]
+	mi := &file_system_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3369,7 +3620,7 @@ func (x *GetOperationDetailResponse) String() string {
 func (*GetOperationDetailResponse) ProtoMessage() {}
 
 func (x *GetOperationDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[60]
+	mi := &file_system_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3382,7 +3633,7 @@ func (x *GetOperationDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOperationDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetOperationDetailResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{60}
+	return file_system_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetOperationDetailResponse) GetData() string {
@@ -3536,13 +3787,15 @@ const file_system_proto_rawDesc = "" +
 	"\x03pid\x18\x03 \x01(\x04R\x03pid\x122\n" +
 	"\bchildren\x18\x04 \x03(\v2\x16.system.DeptParentDataR\bchildren\"C\n" +
 	"\x15GetDeptParentResponse\x12*\n" +
-	"\x04data\x18\x01 \x03(\v2\x16.system.DeptParentDataR\x04data\"z\n" +
+	"\x04data\x18\x01 \x03(\v2\x16.system.DeptParentDataR\x04data\"\x9b\x01\n" +
 	"\x12GetRoleListRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\x04R\x06status\x12\x1f\n" +
 	"\vcreate_time\x18\x04 \x01(\tR\n" +
-	"createTime\"\x8c\x03\n" +
+	"createTime\x12\x1f\n" +
+	"\vrequest_url\x18\x05 \x01(\tR\n" +
+	"requestUrl\"\x8c\x03\n" +
 	"\bRoleData\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x04R\taccountId\x12\x12\n" +
@@ -3594,13 +3847,17 @@ const file_system_proto_rawDesc = "" +
 	"\x14UpStatusRoleResponse\" \n" +
 	"\x0eDelRoleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\"\x11\n" +
-	"\x0fDelRoleResponse\"&\n" +
+	"\x0fDelRoleResponse\"`\n" +
 	"\x14GetRoleParentRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id\"+\n" +
-	"\x15GetRoleParentResponse\x12\x12\n" +
-	"\x04data\x18\x01 \x01(\tR\x04data\"&\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1f\n" +
+	"\vrequest_url\x18\x02 \x01(\tR\n" +
+	"requestUrl\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\x04R\x06userId\"=\n" +
+	"\x15GetRoleParentResponse\x12$\n" +
+	"\x04list\x18\x01 \x03(\v2\x10.system.RoleDataR\x04list\"?\n" +
 	"\x12GetMenuListRequest\x12\x10\n" +
-	"\x03pid\x18\x01 \x01(\x04R\x03pid\")\n" +
+	"\x03pid\x18\x01 \x01(\x04R\x03pid\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\")\n" +
 	"\x13GetMenuListResponse\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\tR\x04data\"\x17\n" +
 	"\x15GetAccountListRequest\",\n" +
@@ -3625,10 +3882,44 @@ const file_system_proto_rawDesc = "" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x04R\taccountId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\"\x18\n" +
-	"\x16IsAccountExistResponse\"\x13\n" +
-	"\x11GetLogListRequest\"(\n" +
-	"\x12GetLogListResponse\x12\x12\n" +
-	"\x04data\x18\x01 \x01(\tR\x04data\"\x15\n" +
+	"\x16IsAccountExistResponse\"\xc2\x01\n" +
+	"\x11GetLogListRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x04R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x04R\bpageSize\x12\x1f\n" +
+	"\vbusiness_id\x18\x03 \x01(\x04R\n" +
+	"businessId\x12\x0e\n" +
+	"\x02ip\x18\x04 \x01(\tR\x02ip\x12\x12\n" +
+	"\x04user\x18\x05 \x01(\tR\x04user\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\x04R\x06status\x12\x1f\n" +
+	"\vcreate_time\x18\a \x01(\tR\n" +
+	"createTime\"\xa0\x03\n" +
+	"\n" +
+	"GetLogData\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x02 \x01(\x04R\taccountId\x12\x1f\n" +
+	"\vbusiness_id\x18\x03 \x01(\x04R\n" +
+	"businessId\x12\x12\n" +
+	"\x04type\x18\x04 \x01(\tR\x04type\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\x04R\x06status\x12\x10\n" +
+	"\x03des\x18\x06 \x01(\tR\x03des\x12\x0e\n" +
+	"\x02ip\x18\a \x01(\tR\x02ip\x12\x18\n" +
+	"\aaddress\x18\b \x01(\tR\aaddress\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\t \x01(\tR\tuserAgent\x12\x1b\n" +
+	"\terror_msg\x18\n" +
+	" \x01(\tR\berrorMsg\x12!\n" +
+	"\fcreated_time\x18\v \x01(\tR\vcreatedTime\x12\x10\n" +
+	"\x03uid\x18\f \x01(\x04R\x03uid\x120\n" +
+	"\x04user\x18\r \x03(\v2\x1c.system.GetLogData.UserEntryR\x04user\x1a7\n" +
+	"\tUserEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x84\x01\n" +
+	"\x12GetLogListResponse\x12(\n" +
+	"\x05items\x18\x01 \x03(\v2\x12.system.GetLogDataR\x05items\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x04R\x04page\x12\x1a\n" +
+	"\bpageSize\x18\x03 \x01(\x04R\bpageSize\x12\x14\n" +
+	"\x05total\x18\x04 \x01(\x04R\x05total\"\x15\n" +
 	"\x13DelLastLoginRequest\"\x16\n" +
 	"\x14DelLastLoginResponse\"\x15\n" +
 	"\x13GetOperationRequest\"*\n" +
@@ -3690,7 +3981,7 @@ func file_system_proto_rawDescGZIP() []byte {
 	return file_system_proto_rawDescData
 }
 
-var file_system_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
+var file_system_proto_msgTypes = make([]protoimpl.MessageInfo, 63)
 var file_system_proto_goTypes = []any{
 	(*GetRuleListRequest)(nil),         // 0: system.GetRuleListRequest
 	(*GetRuleListResponse)(nil),        // 1: system.GetRuleListResponse
@@ -3744,15 +4035,17 @@ var file_system_proto_goTypes = []any{
 	(*IsAccountExistRequest)(nil),      // 49: system.IsAccountExistRequest
 	(*IsAccountExistResponse)(nil),     // 50: system.IsAccountExistResponse
 	(*GetLogListRequest)(nil),          // 51: system.GetLogListRequest
-	(*GetLogListResponse)(nil),         // 52: system.GetLogListResponse
-	(*DelLastLoginRequest)(nil),        // 53: system.DelLastLoginRequest
-	(*DelLastLoginResponse)(nil),       // 54: system.DelLastLoginResponse
-	(*GetOperationRequest)(nil),        // 55: system.GetOperationRequest
-	(*GetOperationResponse)(nil),       // 56: system.GetOperationResponse
-	(*DelLastOperationRequest)(nil),    // 57: system.DelLastOperationRequest
-	(*DelLastOperationResponse)(nil),   // 58: system.DelLastOperationResponse
-	(*GetOperationDetailRequest)(nil),  // 59: system.GetOperationDetailRequest
-	(*GetOperationDetailResponse)(nil), // 60: system.GetOperationDetailResponse
+	(*GetLogData)(nil),                 // 52: system.GetLogData
+	(*GetLogListResponse)(nil),         // 53: system.GetLogListResponse
+	(*DelLastLoginRequest)(nil),        // 54: system.DelLastLoginRequest
+	(*DelLastLoginResponse)(nil),       // 55: system.DelLastLoginResponse
+	(*GetOperationRequest)(nil),        // 56: system.GetOperationRequest
+	(*GetOperationResponse)(nil),       // 57: system.GetOperationResponse
+	(*DelLastOperationRequest)(nil),    // 58: system.DelLastOperationRequest
+	(*DelLastOperationResponse)(nil),   // 59: system.DelLastOperationResponse
+	(*GetOperationDetailRequest)(nil),  // 60: system.GetOperationDetailRequest
+	(*GetOperationDetailResponse)(nil), // 61: system.GetOperationDetailResponse
+	nil,                                // 62: system.GetLogData.UserEntry
 }
 var file_system_proto_depIdxs = []int32{
 	15, // 0: system.DeptData.children:type_name -> system.DeptData
@@ -3761,69 +4054,72 @@ var file_system_proto_depIdxs = []int32{
 	24, // 3: system.GetDeptParentResponse.data:type_name -> system.DeptParentData
 	27, // 4: system.RoleData.children:type_name -> system.RoleData
 	27, // 5: system.GetRoleListResponse.list:type_name -> system.RoleData
-	0,  // 6: system.RuleService.GetList:input_type -> system.GetRuleListRequest
-	2,  // 7: system.RuleService.Save:input_type -> system.SaveRuleRequest
-	4,  // 8: system.RuleService.UpStatus:input_type -> system.UpStatusRuleRequest
-	6,  // 9: system.RuleService.Del:input_type -> system.DelRuleRequest
-	8,  // 10: system.RuleService.GetContent:input_type -> system.GetRuleContentRequest
-	10, // 11: system.RuleService.GetParent:input_type -> system.GetRuleParentRequest
-	12, // 12: system.RuleService.GetRoutes:input_type -> system.GetRoutesRequest
-	14, // 13: system.DeptService.GetList:input_type -> system.GetDeptListRequest
-	17, // 14: system.DeptService.Save:input_type -> system.SaveDeptRequest
-	19, // 15: system.DeptService.UpState:input_type -> system.UpStatusDeptRequest
-	21, // 16: system.DeptService.Del:input_type -> system.DelDeptRequest
-	23, // 17: system.DeptService.GetParent:input_type -> system.GetDeptParentRequest
-	26, // 18: system.RoleService.GetList:input_type -> system.GetRoleListRequest
-	29, // 19: system.RoleService.Save:input_type -> system.SaveRoleRequest
-	31, // 20: system.RoleService.UpStatus:input_type -> system.UpStatusRoleRequest
-	33, // 21: system.RoleService.Del:input_type -> system.DelRoleRequest
-	35, // 22: system.RoleService.GetParent:input_type -> system.GetRoleParentRequest
-	37, // 23: system.RoleService.GetMenuList:input_type -> system.GetMenuListRequest
-	26, // 24: system.AccountService.GetList:input_type -> system.GetRoleListRequest
-	41, // 25: system.AccountService.Save:input_type -> system.SaveAccountRequest
-	43, // 26: system.AccountService.UpState:input_type -> system.UpStatusAccountRequest
-	45, // 27: system.AccountService.Del:input_type -> system.DelAccountRequest
-	47, // 28: system.AccountService.GetRole:input_type -> system.GetAccountRoleRequest
-	49, // 29: system.AccountService.Isaccountexist:input_type -> system.IsAccountExistRequest
-	51, // 30: system.LogService.GetLogin:input_type -> system.GetLogListRequest
-	53, // 31: system.LogService.DelLastLogin:input_type -> system.DelLastLoginRequest
-	55, // 32: system.LogService.GetOperation:input_type -> system.GetOperationRequest
-	57, // 33: system.LogService.DelLastOperation:input_type -> system.DelLastOperationRequest
-	59, // 34: system.LogService.GetOperationDetail:input_type -> system.GetOperationDetailRequest
-	1,  // 35: system.RuleService.GetList:output_type -> system.GetRuleListResponse
-	3,  // 36: system.RuleService.Save:output_type -> system.SaveRuleResponse
-	5,  // 37: system.RuleService.UpStatus:output_type -> system.UpStatusRuleResponse
-	7,  // 38: system.RuleService.Del:output_type -> system.DelRuleResponse
-	9,  // 39: system.RuleService.GetContent:output_type -> system.GetRuleContentResponse
-	11, // 40: system.RuleService.GetParent:output_type -> system.GetRuleParentResponse
-	13, // 41: system.RuleService.GetRoutes:output_type -> system.GetRoutesResponse
-	16, // 42: system.DeptService.GetList:output_type -> system.GetDeptListResponse
-	18, // 43: system.DeptService.Save:output_type -> system.SaveDeptResponse
-	20, // 44: system.DeptService.UpState:output_type -> system.UpStatusDeptResponse
-	22, // 45: system.DeptService.Del:output_type -> system.DelDeptResponse
-	25, // 46: system.DeptService.GetParent:output_type -> system.GetDeptParentResponse
-	28, // 47: system.RoleService.GetList:output_type -> system.GetRoleListResponse
-	30, // 48: system.RoleService.Save:output_type -> system.SaveRoleResponse
-	32, // 49: system.RoleService.UpStatus:output_type -> system.UpStatusRoleResponse
-	34, // 50: system.RoleService.Del:output_type -> system.DelRoleResponse
-	36, // 51: system.RoleService.GetParent:output_type -> system.GetRoleParentResponse
-	38, // 52: system.RoleService.GetMenuList:output_type -> system.GetMenuListResponse
-	28, // 53: system.AccountService.GetList:output_type -> system.GetRoleListResponse
-	42, // 54: system.AccountService.Save:output_type -> system.SaveAccountResponse
-	44, // 55: system.AccountService.UpState:output_type -> system.UpStatusAccountResponse
-	46, // 56: system.AccountService.Del:output_type -> system.DelAccountResponse
-	48, // 57: system.AccountService.GetRole:output_type -> system.GetAccountRoleResponse
-	50, // 58: system.AccountService.Isaccountexist:output_type -> system.IsAccountExistResponse
-	52, // 59: system.LogService.GetLogin:output_type -> system.GetLogListResponse
-	54, // 60: system.LogService.DelLastLogin:output_type -> system.DelLastLoginResponse
-	56, // 61: system.LogService.GetOperation:output_type -> system.GetOperationResponse
-	58, // 62: system.LogService.DelLastOperation:output_type -> system.DelLastOperationResponse
-	60, // 63: system.LogService.GetOperationDetail:output_type -> system.GetOperationDetailResponse
-	35, // [35:64] is the sub-list for method output_type
-	6,  // [6:35] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	27, // 6: system.GetRoleParentResponse.list:type_name -> system.RoleData
+	62, // 7: system.GetLogData.user:type_name -> system.GetLogData.UserEntry
+	52, // 8: system.GetLogListResponse.items:type_name -> system.GetLogData
+	0,  // 9: system.RuleService.GetList:input_type -> system.GetRuleListRequest
+	2,  // 10: system.RuleService.Save:input_type -> system.SaveRuleRequest
+	4,  // 11: system.RuleService.UpStatus:input_type -> system.UpStatusRuleRequest
+	6,  // 12: system.RuleService.Del:input_type -> system.DelRuleRequest
+	8,  // 13: system.RuleService.GetContent:input_type -> system.GetRuleContentRequest
+	10, // 14: system.RuleService.GetParent:input_type -> system.GetRuleParentRequest
+	12, // 15: system.RuleService.GetRoutes:input_type -> system.GetRoutesRequest
+	14, // 16: system.DeptService.GetList:input_type -> system.GetDeptListRequest
+	17, // 17: system.DeptService.Save:input_type -> system.SaveDeptRequest
+	19, // 18: system.DeptService.UpState:input_type -> system.UpStatusDeptRequest
+	21, // 19: system.DeptService.Del:input_type -> system.DelDeptRequest
+	23, // 20: system.DeptService.GetParent:input_type -> system.GetDeptParentRequest
+	26, // 21: system.RoleService.GetList:input_type -> system.GetRoleListRequest
+	29, // 22: system.RoleService.Save:input_type -> system.SaveRoleRequest
+	31, // 23: system.RoleService.UpStatus:input_type -> system.UpStatusRoleRequest
+	33, // 24: system.RoleService.Del:input_type -> system.DelRoleRequest
+	35, // 25: system.RoleService.GetParent:input_type -> system.GetRoleParentRequest
+	37, // 26: system.RoleService.GetMenuList:input_type -> system.GetMenuListRequest
+	26, // 27: system.AccountService.GetList:input_type -> system.GetRoleListRequest
+	41, // 28: system.AccountService.Save:input_type -> system.SaveAccountRequest
+	43, // 29: system.AccountService.UpState:input_type -> system.UpStatusAccountRequest
+	45, // 30: system.AccountService.Del:input_type -> system.DelAccountRequest
+	47, // 31: system.AccountService.GetRole:input_type -> system.GetAccountRoleRequest
+	49, // 32: system.AccountService.Isaccountexist:input_type -> system.IsAccountExistRequest
+	51, // 33: system.LogService.GetLogin:input_type -> system.GetLogListRequest
+	54, // 34: system.LogService.DelLastLogin:input_type -> system.DelLastLoginRequest
+	56, // 35: system.LogService.GetOperation:input_type -> system.GetOperationRequest
+	58, // 36: system.LogService.DelLastOperation:input_type -> system.DelLastOperationRequest
+	60, // 37: system.LogService.GetOperationDetail:input_type -> system.GetOperationDetailRequest
+	1,  // 38: system.RuleService.GetList:output_type -> system.GetRuleListResponse
+	3,  // 39: system.RuleService.Save:output_type -> system.SaveRuleResponse
+	5,  // 40: system.RuleService.UpStatus:output_type -> system.UpStatusRuleResponse
+	7,  // 41: system.RuleService.Del:output_type -> system.DelRuleResponse
+	9,  // 42: system.RuleService.GetContent:output_type -> system.GetRuleContentResponse
+	11, // 43: system.RuleService.GetParent:output_type -> system.GetRuleParentResponse
+	13, // 44: system.RuleService.GetRoutes:output_type -> system.GetRoutesResponse
+	16, // 45: system.DeptService.GetList:output_type -> system.GetDeptListResponse
+	18, // 46: system.DeptService.Save:output_type -> system.SaveDeptResponse
+	20, // 47: system.DeptService.UpState:output_type -> system.UpStatusDeptResponse
+	22, // 48: system.DeptService.Del:output_type -> system.DelDeptResponse
+	25, // 49: system.DeptService.GetParent:output_type -> system.GetDeptParentResponse
+	28, // 50: system.RoleService.GetList:output_type -> system.GetRoleListResponse
+	30, // 51: system.RoleService.Save:output_type -> system.SaveRoleResponse
+	32, // 52: system.RoleService.UpStatus:output_type -> system.UpStatusRoleResponse
+	34, // 53: system.RoleService.Del:output_type -> system.DelRoleResponse
+	36, // 54: system.RoleService.GetParent:output_type -> system.GetRoleParentResponse
+	38, // 55: system.RoleService.GetMenuList:output_type -> system.GetMenuListResponse
+	28, // 56: system.AccountService.GetList:output_type -> system.GetRoleListResponse
+	42, // 57: system.AccountService.Save:output_type -> system.SaveAccountResponse
+	44, // 58: system.AccountService.UpState:output_type -> system.UpStatusAccountResponse
+	46, // 59: system.AccountService.Del:output_type -> system.DelAccountResponse
+	48, // 60: system.AccountService.GetRole:output_type -> system.GetAccountRoleResponse
+	50, // 61: system.AccountService.Isaccountexist:output_type -> system.IsAccountExistResponse
+	53, // 62: system.LogService.GetLogin:output_type -> system.GetLogListResponse
+	55, // 63: system.LogService.DelLastLogin:output_type -> system.DelLastLoginResponse
+	57, // 64: system.LogService.GetOperation:output_type -> system.GetOperationResponse
+	59, // 65: system.LogService.DelLastOperation:output_type -> system.DelLastOperationResponse
+	61, // 66: system.LogService.GetOperationDetail:output_type -> system.GetOperationDetailResponse
+	38, // [38:67] is the sub-list for method output_type
+	9,  // [9:38] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_system_proto_init() }
@@ -3837,7 +4133,7 @@ func file_system_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_system_proto_rawDesc), len(file_system_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   61,
+			NumMessages:   63,
 			NumExtensions: 0,
 			NumServices:   5,
 		},

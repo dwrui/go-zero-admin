@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gconv"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
 	"reflect"
 	"strconv"
 	"strings"
@@ -281,6 +283,22 @@ func (qb *Model) Where(conditions interface{}, args ...interface{}) *Model {
 				args:     []interface{}{value},
 			})
 		}
+	case *gmap.Map:
+		// 处理gmap.Map类型条件
+		mapData := cond.MapStrAny() // 转换为map[string]interface{}
+		i := 0
+		for field, value := range mapData {
+			operator := "AND"
+			if i == 0 && len(qb.where) == 0 {
+				operator = "" // 第一个条件不加AND
+			}
+			qb.where = append(qb.where, whereClause{
+				operator: operator,
+				field:    field,
+				cond:     "= ?",
+				args:     []interface{}{value},
+			})
+		}
 	case []map[string]interface{}:
 		// 处理map切片类型条件
 		for i, condition := range cond {
@@ -340,26 +358,24 @@ func (qb *Model) WhereOr(field string, args ...interface{}) *Model {
 }
 
 // WhereIn 设置IN条件
-func (qb *Model) WhereIn(field string, values []interface{}) *Model {
-	if len(values) == 0 {
+func (qb *Model) WhereIn(field string, values interface{}) *Model {
+	// 将任意类型的切片转换为[]interface{}
+	interfaceValues := convertToInterfaceSlice(values)
+	if len(interfaceValues) == 0 {
 		return qb
 	}
 
-	placeholders := make([]string, len(values))
-	for i := range values {
+	placeholders := make([]string, len(interfaceValues))
+	for i := range interfaceValues {
 		placeholders[i] = "?"
 	}
 
 	operator := "AND"
-	if len(qb.where) == 0 {
-		operator = ""
-	}
-
 	qb.where = append(qb.where, whereClause{
 		operator: operator,
 		field:    field,
 		cond:     fmt.Sprintf("IN (%s)", strings.Join(placeholders, ",")),
-		args:     values,
+		args:     interfaceValues,
 	})
 	return qb
 }
@@ -582,15 +598,35 @@ func (qb *Model) Paginate(ctx context.Context, page, pageSize int, dest interfac
 	// 设置分页参数
 	qb.Page(page, pageSize)
 
+	// 保存原始字段设置，避免Count操作影响后续查询
+	originalFields := make([]string, len(qb.fields))
+	copy(originalFields, qb.fields)
+
 	// 查询总记录数
 	countResult := qb.Count(ctx)
 	if countResult.err != nil {
+		return &PaginateResult{
+			Error: countResult.err,
+		}
+	}
+
+	// 恢复原始字段设置
+	qb.fields = originalFields
+
+	// 手动执行数据查询的SQL打印（当处于SQLFetch模式时）
+	if qb.sqlFetch {
+		// 构建并打印数据查询的SQL
+		query, args := qb.buildQuery()
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("数据查询SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+
+		// 返回空结果
 		return &PaginateResult{
 			Items: []interface{}{},
 			Page:  page,
 			Size:  pageSize,
 			Total: 0,
-			Error: countResult.err,
+			Error: nil,
 		}
 	}
 
@@ -854,7 +890,15 @@ func (qb *Model) Insert(ctx context.Context, data ...interface{}) *QueryResult {
 	}
 
 	result, err := qb.db.Exec(ctx, query, args...)
-	lastInsertID, _ := result.LastInsertId()
+	if err != nil {
+		return &QueryResult{
+			data:  result,
+			err:   err,
+			query: query,
+			args:  args,
+		}
+	}
+	lastInsertID, err := result.LastInsertId()
 	return &QueryResult{
 		data:   result,
 		err:    err,
@@ -1121,7 +1165,15 @@ func (qb *Model) Update(ctx context.Context, data ...interface{}) *QueryResult {
 	}
 
 	result, err := qb.db.Exec(ctx, query, args...)
-	lastInsertID, _ := result.LastInsertId()
+	if err != nil {
+		return &QueryResult{
+			data:  result,
+			err:   err,
+			query: query,
+			args:  args,
+		}
+	}
+	lastInsertID, err := result.LastInsertId()
 	return &QueryResult{
 		data:   result,
 		err:    err,
@@ -1621,4 +1673,65 @@ func (qb *Model) hasDeleteTimeField(ctx context.Context) bool {
 	qb.hasDeleteTime = &hasField
 
 	return hasField
+}
+
+// convertToInterfaceSlice 将任意类型的切片转换为[]interface{}
+func convertToInterfaceSlice(values interface{}) []interface{} {
+	if values == nil {
+		return []interface{}{}
+	}
+
+	// 尝试直接类型断言
+	switch v := values.(type) {
+	case []interface{}:
+		return v
+	case []string:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []int:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []int64:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []uint64:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	case []*gvar.Var:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			result[i] = val
+		}
+		return result
+	default:
+		// 使用反射处理其他类型
+		return reflectConvertToInterfaceSlice(values)
+	}
+}
+
+// reflectConvertToInterfaceSlice 使用反射将任意类型的切片转换为[]interface{}
+func reflectConvertToInterfaceSlice(values interface{}) []interface{} {
+	v := reflect.ValueOf(values)
+	if v.Kind() != reflect.Slice {
+		return []interface{}{values}
+	}
+
+	result := make([]interface{}, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		result[i] = v.Index(i).Interface()
+	}
+
+	return result
 }

@@ -74,7 +74,7 @@ type (
 func newGaBusinessAccountModel(conn sqlx.SqlConn) *defaultGaBusinessAccountModel {
 	return &defaultGaBusinessAccountModel{
 		conn:  conn,
-		table: "`ga_business_account`",
+		table: "`ga_admin_account`",
 	}
 }
 

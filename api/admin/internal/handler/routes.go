@@ -8,6 +8,7 @@ import (
 	"time"
 
 	common "admin/internal/handler/common"
+	system "admin/internal/handler/system"
 	user "admin/internal/handler/user"
 	"admin/internal/svc"
 
@@ -23,7 +24,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: common.GetCaptchaHandler(serverCtx),
 			},
 		},
-		rest.WithPrefix("/v1"),
+		rest.WithPrefix("/api/admin"),
 		rest.WithTimeout(3000*time.Millisecond),
 	)
 
@@ -46,7 +47,20 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
-		rest.WithPrefix("/v1"),
+		rest.WithPrefix("/api/admin"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/system/getLogin",
+				Handler: system.GetLoginHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin"),
 		rest.WithTimeout(3000*time.Millisecond),
 	)
 
@@ -58,7 +72,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: user.LoginHandler(serverCtx),
 			},
 		},
-		rest.WithPrefix("/v1"),
+		rest.WithPrefix("/api/admin"),
 		rest.WithTimeout(3000*time.Millisecond),
 	)
 
@@ -71,7 +85,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
-		rest.WithPrefix("/v1"),
+		rest.WithPrefix("/api/admin"),
 		rest.WithTimeout(3000*time.Millisecond),
 	)
 }

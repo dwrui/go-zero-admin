@@ -88,7 +88,9 @@ type Searcher struct {
 func baseNew(vIndex []byte, cBuff []byte) (*Searcher, error) {
 	var err error
 	path, _ := os.Getwd()
-	dbFile := filepath.Join(path, "/resource/static/ipregion/database.xdb")
+	parentDir := filepath.Dir(path)
+	parentsDir := filepath.Dir(parentDir)
+	dbFile := filepath.Join(parentsDir, "/common/static/ipregion/database.xdb")
 	// content buff first
 	if cBuff != nil {
 		return &Searcher{

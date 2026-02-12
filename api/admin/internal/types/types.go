@@ -26,3 +26,12 @@ type SaveQuickReq struct {
 	ReqType uint64 `json:"type"`
 	Weigh   uint64 `json:"weigh"`
 }
+
+type GetLoginReq struct {
+	Page        uint64 `json:"page"`
+	PageSize    uint64 `json:"pageSize"`
+	User        string `json:"user"`
+	Ip          string `json:"ip"`
+	Create_time string `json:"create_time"`
+	Status      uint64 `json:"status"`
+}

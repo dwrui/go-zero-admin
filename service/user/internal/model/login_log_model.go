@@ -36,5 +36,4 @@ func AddloginLog(ctx context.Context, svg *svc.ServiceContext, savedata ga.Map) 
 		savedata["address"] = address
 	}
 	svg.DB.Model("common_sys_login_log").Insert(ctx, savedata)
-
 }

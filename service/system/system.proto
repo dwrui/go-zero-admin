@@ -178,6 +178,7 @@ message GetRoleListRequest {
   string name = 2;
   uint64 status = 3;
   string create_time = 4;
+  string request_url = 5;
 }
 message RoleData{
   uint64 account_id = 1;
@@ -200,6 +201,7 @@ message GetRoleListResponse {
   uint64 max_pid = 1;
   repeated RoleData list = 2;
 }
+
 message SaveRoleRequest{
   uint64 account_id = 1;
   string btns = 2;
@@ -233,12 +235,15 @@ message DelRoleResponse{
 }
 message GetRoleParentRequest{
   uint64 id = 1;
+  string request_url = 2;
+  uint64 user_id = 3;
 }
 message GetRoleParentResponse{
-  string data = 1;
+  repeated RoleData list = 1;
 }
 message GetMenuListRequest{
   uint64 pid = 1;
+  uint64 user_id = 2;
 }
 message GetMenuListResponse{
   string data = 1;
@@ -299,11 +304,36 @@ service AccountService {
 
 
 // 获取登录请求
-message GetLogListRequest {}
-// 获取登录响应
-// 登录数据
+message GetLogListRequest {
+    uint64 page = 1;
+    uint64 page_size = 2;
+    uint64 business_id = 3;
+    string ip = 4;
+    string user = 5;
+    uint64 status = 6;
+    string create_time = 7;
+}
+message GetLogData{
+  uint64 id = 1;
+  uint64 account_id = 2;
+  uint64 business_id = 3;
+  string type = 4;
+  uint64 status = 5;
+  string des = 6;
+  string ip = 7;
+  string address = 8;
+  string user_agent = 9;
+  string error_msg = 10;
+  string created_time = 11;
+  uint64 uid = 12;
+  map<string, string> user = 13;
+}
+//获取登录日志
 message GetLogListResponse {
-  string data = 1;           // 登录成功后返回的token
+  repeated GetLogData items = 1;
+  uint64 page = 2;
+  uint64 pageSize = 3;
+  uint64 total = 4;
 }
 message DelLastLoginRequest{
 }

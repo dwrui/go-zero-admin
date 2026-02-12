@@ -14,9 +14,9 @@ type GetCaptchaReq {
 }
 
 @server (
-	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
-	group:   common // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
-	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+	prefix:  /api/admin
+	group:   common
+	timeout: 3s
 )
 service admin-api {
 	// 定义只有请求体的接口，如更新信息
@@ -39,10 +39,10 @@ type SaveQuickReq {
 }
 
 @server (
-	jwt:     Auth // 对当前 Foo 语法块下的所有路由，开启 jwt 认证，不需要则请删除此行
-	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
-	group:   common // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
-	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+	jwt:     Auth
+	prefix:  /api/admin
+	group:   common
+	timeout: 3s
 )
 service admin-api {
 	@handler getMenu
@@ -65,9 +65,9 @@ type LoginReq {
 }
 
 @server (
-	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
-	group:   user // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
-	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+	prefix:  /api/admin
+	group:   user
+	timeout: 3s
 )
 service admin-api {
 	// 定义只有请求体的接口，如更新信息
@@ -77,14 +77,36 @@ service admin-api {
 
 //需要验证的接口
 @server (
-	jwt:     Auth // 对当前 Foo 语法块下的所有路由，开启 jwt 认证，不需要则请删除此行
-	prefix:  /v1 // 对当前 Foo 语法块下的所有路由，新增 /v1 路由前缀，不需要则请删除此行
-	group:   user // 对当前 Foo 语法块下的所有路由，路由归并到 g1 目录下，不需要则请删除此行
-	timeout: 3s // 对当前 Foo 语法块下的所有路由进行超时配置，不需要则请删除此行
+	jwt:     Auth
+	prefix:  /api/admin
+	group:   user
+	timeout: 3s
 )
 service admin-api {
 	// 获取用户信息
 	@handler getUserInfo
 	get /user/getUserInfo
+}
+
+type getLoginReq {
+	page        uint64 `json:"page"`
+	pageSize    uint64 `json:"pageSize"`
+	user        string `json:"user"`
+	ip          string `json:"ip"`
+	create_time string `json:"create_time"`
+	status      uint64 `json:"status"`
+}
+
+//需要验证的接口
+@server (
+	jwt:     Auth
+	prefix:  /api/admin
+	group:   system
+	timeout: 3s
+)
+service admin-api {
+	// 获取登录日志
+	@handler getLogin
+	get /system/getLogin (getLoginReq)
 }
 

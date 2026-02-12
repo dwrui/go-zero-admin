@@ -33,8 +33,8 @@ func (l *GetMenuLogic) GetMenu(in *common.GetMenuRequest) (*common.GetMenuRespon
 		if in.RouteId == 0 {
 			return &common.GetMenuResponse{}, errors.New("route_id 不能为空")
 		}
-		var routeInfo []model.BusinessAuthRule
-		nemu_list := l.svcCtx.DB.Model("business_auth_rule").Where("id", in.RouteId).Order("weigh", "asc").Select(l.ctx, &routeInfo)
+		var routeInfo []model.AdminAuthRule
+		nemu_list := l.svcCtx.DB.Model("admin_auth_rule").Where("id", in.RouteId).Order("weigh", "asc").Select(l.ctx, &routeInfo)
 		if nemu_list.IsEmpty() {
 			return &common.GetMenuResponse{}, errors.New("路由不存在")
 		}
@@ -49,20 +49,20 @@ func (l *GetMenuLogic) GetMenu(in *common.GetMenuRequest) (*common.GetMenuRespon
 		}, nil
 	}
 	//获取用户权限菜单
-	role_id := l.svcCtx.DB.Model("business_auth_role_access").Where("uid", in.UserId).Column(l.ctx, "role_id")
+	role_id := l.svcCtx.DB.Model("admin_auth_role_access").Where("uid", in.UserId).Column(l.ctx, "role_id")
 	if role_id.GetError() != nil {
 		return &common.GetMenuResponse{}, role_id.GetError()
 	}
 	if role_id.IsEmpty() {
 		return &common.GetMenuResponse{}, errors.New("您没有管理后台权限，请联系管理员授权")
 	}
-	menu_ids := l.svcCtx.DB.Model("business_auth_role").WhereIn("id", ga.FormatColumnData(role_id.GetData())).Column(l.ctx, "rules")
+	menu_ids := l.svcCtx.DB.Model("admin_auth_role").WhereIn("id", ga.FormatColumnData(role_id.GetData())).Column(l.ctx, "rules")
 	if menu_ids.GetError() != nil {
 		return &common.GetMenuResponse{}, menu_ids.GetError()
 	}
 	//获取超级角色
-	super_role := l.svcCtx.DB.Model("business_auth_role").WhereIn("id", ga.FormatColumnData(role_id.GetData())).Where("rules", "*").Value(l.ctx, "id")
-	RMDB := l.svcCtx.DB.Model("business_auth_rule")
+	super_role := l.svcCtx.DB.Model("admin_auth_role").WhereIn("id", ga.FormatColumnData(role_id.GetData())).Where("rules", "*").Value(l.ctx, "id")
+	RMDB := l.svcCtx.DB.Model("admin_auth_rule")
 	var roles []interface{}
 	if super_role == nil { //不是超级权限-过滤菜单权限
 		// 获取菜单ID数据并处理格式
@@ -82,7 +82,7 @@ func (l *GetMenuLogic) GetMenu(in *common.GetMenuRequest) (*common.GetMenuRespon
 	} else {
 		roles = make([]interface{}, 0)
 	}
-	var menuInfo []model.BusinessAuthRule
+	var menuInfo []model.AdminAuthRule
 	nemu_list := RMDB.Where("status", 0).WhereIn("type", ga.Slice{0, 1}).OrderBy("weigh").Select(l.ctx, &menuInfo)
 	if nemu_list.GetError() != nil {
 		return &common.GetMenuResponse{}, nemu_list.GetError()

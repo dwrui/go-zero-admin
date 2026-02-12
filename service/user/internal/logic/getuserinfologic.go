@@ -29,7 +29,7 @@ func (l *GetUserinfoLogic) GetUserinfo(in *user.GetUserinfoRequest) (*user.GetUs
 	// todo: add your logic here and delete this line
 	userID := in.UserId
 	account := model.GaBusinessAccount{}
-	userInfo := l.svcCtx.DB.Model("business_account").Where("id = ?", userID).Find(l.ctx, &account)
+	userInfo := l.svcCtx.DB.Model("admin_account").Where("id = ?", userID).Find(l.ctx, &account)
 	if userInfo.GetError() != nil {
 		return nil, userInfo.GetError()
 	}

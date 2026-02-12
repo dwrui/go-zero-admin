@@ -10,6 +10,7 @@ type Config struct {
 	CommonEtcd discov.EtcdConf `json:",optional"`
 	UserEtcd   discov.EtcdConf `json:",optional"`
 	AuthEtcd   discov.EtcdConf `json:",optional"`
+	SystemEtcd discov.EtcdConf `json:",optional"`
 	Auth       struct {
 		AccessSecret string `json:",optional"`
 		AccessExpire int64  `json:",optional"`
