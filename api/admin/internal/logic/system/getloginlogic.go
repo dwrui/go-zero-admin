@@ -29,6 +29,12 @@ func NewGetLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetLogin
 
 func (l *GetLoginLogic) GetLogin(req *types.GetLoginReq) (any, error) {
 	// todo: add your logic here and delete this line
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 10
+	}
 	resp, err := l.svcCtx.SystemLogClient.GetLogin(l.ctx, &system.GetLogListRequest{
 		Page:       req.Page,
 		PageSize:   req.PageSize,
@@ -41,5 +47,15 @@ func (l *GetLoginLogic) GetLogin(req *types.GetLoginReq) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	if resp.Total == 0 {
+		return &types.GetLoginResp{
+			Total:    0,
+			Page:     req.Page,
+			PageSize: req.PageSize,
+			Items:    []types.GetLogData{},
+		}, nil
+	} else {
+		return resp, nil
+	}
+
 }

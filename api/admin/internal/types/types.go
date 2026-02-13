@@ -7,6 +7,22 @@ type GetCaptchaReq struct {
 	CaptchaType string `json:"type" validate:"required"`
 }
 
+type GetLogData struct {
+	Id         uint64            `json:"id"`
+	Uid        uint64            `json:"uid"`
+	AccountId  uint64            `json:"account_id"`
+	BusinessId uint64            `json:"business_id"`
+	Type       string            `json:"type"`
+	Status     uint64            `json:"status"`
+	Des        string            `json:"des"`
+	Ip         string            `json:"ip"`
+	Address    string            `json:"address"`
+	UserAgent  string            `json:"user_agent"`
+	ErrorMsg   string            `json:"error_msg"`
+	CreateTime string            `json:"create_time"`
+	User       map[string]string `json:"user"`
+}
+
 type GetMenuReq struct {
 	RouteId uint64 `json:"route_id"`
 }
@@ -28,10 +44,17 @@ type SaveQuickReq struct {
 }
 
 type GetLoginReq struct {
-	Page        uint64 `json:"page"`
-	PageSize    uint64 `json:"pageSize"`
-	User        string `json:"user"`
-	Ip          string `json:"ip"`
-	Create_time string `json:"create_time"`
-	Status      uint64 `json:"status"`
+	Page        uint64 `form:"page,optional"`
+	PageSize    uint64 `form:"pageSize,optional"`
+	User        string `form:"user,optional"`
+	Ip          string `form:"ip,optional"`
+	Create_time string `form:"create_time,optional"`
+	Status      uint64 `form:"status,optional"`
+}
+
+type GetLoginResp struct {
+	Items    []GetLogData `json:"items"`
+	Total    uint64       `json:"total"`
+	Page     uint64       `json:"page"`
+	PageSize uint64       `json:"pageSize"`
 }

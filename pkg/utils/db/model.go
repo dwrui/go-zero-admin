@@ -266,67 +266,310 @@ func (qb *Model) Join(table, alias, on string, args ...interface{}) *Model {
 }
 
 // Where 设置条件 (支持map和map切片)
+// Where 设置条件 (支持map和map切片)
 func (qb *Model) Where(conditions interface{}, args ...interface{}) *Model {
 	switch cond := conditions.(type) {
 	case map[string]interface{}:
 		// 处理map类型条件
 		i := 0
-		for field, value := range cond {
+		for conditionStr, value := range cond {
 			operator := "AND"
 			if i == 0 && len(qb.where) == 0 {
 				operator = "" // 第一个条件不加AND
 			}
-			qb.where = append(qb.where, whereClause{
-				operator: operator,
-				field:    field,
-				cond:     "= ?",
-				args:     []interface{}{value},
-			})
-		}
-	case *gmap.Map:
-		// 处理gmap.Map类型条件
-		mapData := cond.MapStrAny() // 转换为map[string]interface{}
-		i := 0
-		for field, value := range mapData {
-			operator := "AND"
-			if i == 0 && len(qb.where) == 0 {
-				operator = "" // 第一个条件不加AND
-			}
-			qb.where = append(qb.where, whereClause{
-				operator: operator,
-				field:    field,
-				cond:     "= ?",
-				args:     []interface{}{value},
-			})
-		}
-	case []map[string]interface{}:
-		// 处理map切片类型条件
-		for i, condition := range cond {
-			for field, value := range condition {
-				operator := "AND"
-				if i == 0 && len(qb.where) == 0 {
-					operator = "" // 第一个条件不加AND
+			i++
+
+			// 检查是否包含 IN 关键字
+			lowerCond := strings.ToLower(conditionStr)
+			if strings.Contains(lowerCond, "in(?)") {
+				// 提取字段名
+				field := conditionStr
+				if idx := strings.Index(lowerCond, "in(?)"); idx != -1 {
+					field = strings.TrimSpace(conditionStr[:idx])
 				}
+
+				// 处理值，转换为 []interface{}
+				var inArgs []interface{}
+				if value != nil {
+					v := reflect.ValueOf(value)
+					if v.Kind() == reflect.Slice {
+						// 是切片，转换为 []interface{}
+						inArgs = make([]interface{}, v.Len())
+						for j := 0; j < v.Len(); j++ {
+							inArgs[j] = v.Index(j).Interface()
+						}
+					} else {
+						// 不是切片，作为单个值处理
+						inArgs = []interface{}{value}
+					}
+				}
+				// 如果没有从value中获取到参数，尝试从args中获取
+				if len(inArgs) == 0 && len(args) > 0 {
+					// 检查args[0]是否为切片
+					v := reflect.ValueOf(args[0])
+					if v.Kind() == reflect.Slice {
+						// 是切片，转换为 []interface{}
+						inArgs = make([]interface{}, v.Len())
+						for j := 0; j < v.Len(); j++ {
+							inArgs[j] = v.Index(j).Interface()
+						}
+					} else {
+						// 不是切片，直接使用args
+						inArgs = args
+					}
+				}
+				// 只有当有值时才添加 IN 条件
+				if len(inArgs) > 0 {
+					placeholders := make([]string, len(inArgs))
+					for j := range placeholders {
+						placeholders[j] = "?"
+					}
+					condPattern := fmt.Sprintf("%s IN (%s)", field, strings.Join(placeholders, ", "))
+
+					qb.where = append(qb.where, whereClause{
+						operator: operator,
+						field:    "",
+						cond:     condPattern,
+						args:     inArgs,
+					})
+				} else {
+					// 没有值，添加一个永远为假的条件（避免查询出全部数据）
+					qb.where = append(qb.where, whereClause{
+						operator: operator,
+						field:    field,       // 保留字段名
+						cond:     "IN (NULL)", // 添加一个永远为假的条件
+						args:     []interface{}{},
+					})
+				}
+			} else if strings.Contains(conditionStr, "?") {
+				// 其他带问号的条件
 				qb.where = append(qb.where, whereClause{
 					operator: operator,
-					field:    field,
+					field:    "",
+					cond:     conditionStr,
+					args:     getConditionArgs(value),
+				})
+			} else {
+				// 简单条件：默认等于
+				qb.where = append(qb.where, whereClause{
+					operator: operator,
+					field:    conditionStr,
 					cond:     "= ?",
 					args:     []interface{}{value},
 				})
 			}
 		}
+	case *gmap.Map:
+		// 处理gmap.Map类型条件，与map[string]interface{}处理逻辑相同
+		mapData := cond.MapStrAny()
+		i := 0
+		for conditionStr, value := range mapData {
+			operator := "AND"
+			if i == 0 && len(qb.where) == 0 {
+				operator = "" // 第一个条件不加AND
+			}
+			i++
+
+			// 检查是否包含 IN 关键字
+			lowerCond := strings.ToLower(conditionStr)
+			if strings.Contains(lowerCond, "in(?)") {
+				// 提取字段名
+				field := conditionStr
+				if idx := strings.Index(lowerCond, "in(?)"); idx != -1 {
+					field = strings.TrimSpace(conditionStr[:idx])
+				}
+
+				// 处理值，转换为 []interface{}
+				var inArgs []interface{}
+				if value != nil {
+					v := reflect.ValueOf(value)
+					if v.Kind() == reflect.Slice {
+						// 是切片，转换为 []interface{}
+						inArgs = make([]interface{}, v.Len())
+						for j := 0; j < v.Len(); j++ {
+							inArgs[j] = v.Index(j).Interface()
+						}
+					} else {
+						// 不是切片，作为单个值处理
+						inArgs = []interface{}{value}
+					}
+				}
+				// 只有当有值时才添加 IN 条件
+				if len(inArgs) > 0 {
+					placeholders := make([]string, len(inArgs))
+					for j := range placeholders {
+						placeholders[j] = "?"
+					}
+					condPattern := fmt.Sprintf("%s IN (%s)", field, strings.Join(placeholders, ", "))
+
+					qb.where = append(qb.where, whereClause{
+						operator: operator,
+						field:    "",
+						cond:     condPattern,
+						args:     inArgs,
+					})
+				} else {
+					qb.where = append(qb.where, whereClause{
+						operator: operator,
+						field:    field,       // 保留字段名
+						cond:     "IN (NULL)", // 添加一个永远为假的条件
+						args:     []interface{}{},
+					})
+				}
+			} else if strings.Contains(conditionStr, "?") {
+				qb.where = append(qb.where, whereClause{
+					operator: operator,
+					field:    "",
+					cond:     conditionStr,
+					args:     getConditionArgs(value),
+				})
+			} else {
+				// 简单条件：默认等于
+				qb.where = append(qb.where, whereClause{
+					operator: operator,
+					field:    conditionStr,
+					cond:     "= ?",
+					args:     getConditionArgs(value),
+				})
+			}
+		}
+	case []map[string]interface{}:
+		// 处理map切片类型条件
+		for i, condition := range cond {
+			for conditionStr, value := range condition {
+				operator := "AND"
+				if i == 0 && len(qb.where) == 0 {
+					operator = "" // 第一个条件不加AND
+				}
+
+				// 检查是否包含 IN 关键字
+				lowerCond := strings.ToLower(conditionStr)
+				if strings.Contains(lowerCond, "in(?)") {
+					// 提取字段名
+					field := conditionStr
+					if idx := strings.Index(lowerCond, "in(?)"); idx != -1 {
+						field = strings.TrimSpace(conditionStr[:idx])
+					}
+
+					// 处理值，转换为 []interface{}
+					var inArgs []interface{}
+					if value != nil {
+						v := reflect.ValueOf(value)
+						if v.Kind() == reflect.Slice {
+							// 是切片，转换为 []interface{}
+							inArgs = make([]interface{}, v.Len())
+							for j := 0; j < v.Len(); j++ {
+								inArgs[j] = v.Index(j).Interface()
+							}
+						} else {
+							// 不是切片，作为单个值处理
+							inArgs = []interface{}{value}
+						}
+					}
+					// 只有当有值时才添加 IN 条件
+					if len(inArgs) > 0 {
+						placeholders := make([]string, len(inArgs))
+						for j := range placeholders {
+							placeholders[j] = "?"
+						}
+						condPattern := fmt.Sprintf("%s IN (%s)", field, strings.Join(placeholders, ", "))
+
+						qb.where = append(qb.where, whereClause{
+							operator: operator,
+							field:    "",
+							cond:     condPattern,
+							args:     inArgs,
+						})
+					} else {
+						qb.where = append(qb.where, whereClause{
+							operator: operator,
+							field:    field,       // 保留字段名
+							cond:     "IN (NULL)", // 添加一个永远为假的条件
+							args:     []interface{}{},
+						})
+					}
+				} else if strings.Contains(conditionStr, "?") {
+					// 其他带问号的条件
+					qb.where = append(qb.where, whereClause{
+						operator: operator,
+						field:    "",
+						cond:     conditionStr,
+						args:     getConditionArgs(value),
+					})
+				} else {
+					// 简单条件：默认等于
+					qb.where = append(qb.where, whereClause{
+						operator: operator,
+						field:    conditionStr,
+						cond:     "= ?",
+						args:     []interface{}{value},
+					})
+				}
+			}
+		}
 	case string:
-		// 处理字符串条件 - 对于完整SQL条件，field留空，只使用cond
+		// 处理字符串条件
 		operator := "AND"
 		if len(qb.where) == 0 {
 			operator = ""
 		}
-		//判断是否包含?
-		if ga.StrContains(cond, "?") {
+		// 检查是否包含 IN 关键字
+		lowerCond := strings.ToLower(cond)
+		if strings.Contains(lowerCond, "in(?)") && len(args) > 0 {
+			// 提取字段名
+			field := cond
+			if idx := strings.Index(lowerCond, "in(?)"); idx != -1 {
+				field = strings.TrimSpace(cond[:idx])
+			}
+
+			// 处理参数，转换为 []interface{}
+			var inArgs []interface{}
+			if len(args) == 1 {
+				// 单个参数，检查是否为切片
+				v := reflect.ValueOf(args[0])
+				if v.Kind() == reflect.Slice {
+					// 是切片，转换为 []interface{}
+					inArgs = make([]interface{}, v.Len())
+					for j := 0; j < v.Len(); j++ {
+						inArgs[j] = v.Index(j).Interface()
+					}
+				} else {
+					// 不是切片，作为单个值处理
+					inArgs = []interface{}{args[0]}
+				}
+			} else {
+				// 多个参数，直接使用
+				inArgs = args
+			}
+
+			// 只有当有值时才添加 IN 条件
+			if len(inArgs) > 0 {
+				placeholders := make([]string, len(inArgs))
+				for j := range placeholders {
+					placeholders[j] = "?"
+				}
+				condPattern := fmt.Sprintf("%s IN (%s)", field, strings.Join(placeholders, ", "))
+
+				qb.where = append(qb.where, whereClause{
+					operator: operator,
+					field:    "",
+					cond:     condPattern,
+					args:     inArgs,
+				})
+			} else {
+				qb.where = append(qb.where, whereClause{
+					operator: operator,
+					field:    field,       // 保留字段名
+					cond:     "IN (NULL)", // 添加一个永远为假的条件
+					args:     []interface{}{},
+				})
+			}
+		} else if strings.Contains(cond, "?") {
+			// 其他带问号的条件
 			qb.where = append(qb.where, whereClause{
 				operator: operator,
-				field:    "",   // 字段名留空，表示这是完整条件
-				cond:     cond, // 条件语句直接存储
+				field:    "",
+				cond:     cond,
 				args:     args,
 			})
 		} else {
@@ -337,7 +580,6 @@ func (qb *Model) Where(conditions interface{}, args ...interface{}) *Model {
 				args:     args,
 			})
 		}
-
 	}
 	return qb
 }
@@ -594,24 +836,17 @@ func (qb *Model) Paginate(ctx context.Context, page, pageSize int, dest interfac
 	if pageSize < 1 {
 		pageSize = 10
 	}
-
-	// 设置分页参数
-	qb.Page(page, pageSize)
-
 	// 保存原始字段设置，避免Count操作影响后续查询
 	originalFields := make([]string, len(qb.fields))
 	copy(originalFields, qb.fields)
 
-	// 查询总记录数
 	countResult := qb.Count(ctx)
-	if countResult.err != nil {
-		return &PaginateResult{
-			Error: countResult.err,
-		}
-	}
 
 	// 恢复原始字段设置
 	qb.fields = originalFields
+
+	// 设置分页参数
+	qb.Page(page, pageSize)
 
 	// 手动执行数据查询的SQL打印（当处于SQLFetch模式时）
 	if qb.sqlFetch {
@@ -680,7 +915,6 @@ func (qb *Model) Count(ctx context.Context) *QueryResult {
 			args:  args,
 		}
 	}
-
 	var count int64
 	err := qb.db.QueryRow(ctx, &count, query, args...)
 	return &QueryResult{
@@ -1489,6 +1723,7 @@ func (qb *Model) buildQuery() (string, []interface{}) {
 		conditions := make([]string, 0)
 
 		// 处理其他WHERE条件
+		// 处理其他WHERE条件
 		for i, where := range qb.where {
 			if i > 0 || len(conditions) > 0 {
 				conditions = append(conditions, " "+where.operator+" ")
@@ -1497,12 +1732,8 @@ func (qb *Model) buildQuery() (string, []interface{}) {
 			if where.field == "" {
 				conditions = append(conditions, where.cond)
 			} else {
-				// 确保cond中包含占位符
-				if !strings.Contains(where.cond, "?") {
-					conditions = append(conditions, where.field+" = ?")
-				} else {
-					conditions = append(conditions, where.field+" "+where.cond)
-				}
+				// 简单条件，组合字段名和条件
+				conditions = append(conditions, where.field+" "+where.cond)
 			}
 			args = append(args, where.args...)
 		}
@@ -1734,4 +1965,29 @@ func reflectConvertToInterfaceSlice(values interface{}) []interface{} {
 	}
 
 	return result
+}
+
+// parseConditionString 解析条件字符串，提取字段名和操作符
+func parseConditionString(conditionStr string) (field, condPattern string, isComplexCondition bool) {
+	// 检查是否包含问号
+	if strings.Contains(conditionStr, "?") {
+		// 包含问号，认为是复杂条件
+		// 直接使用整个字符串作为条件
+		return "", conditionStr, true
+	} else {
+		// 不包含问号，认为是简单条件
+		// 返回字段名，条件留空
+		return conditionStr, "", false
+	}
+}
+
+// getConditionArgs 处理条件值，转换为[]interface{}
+// getConditionArgs 处理条件值，转换为[]interface{}
+func getConditionArgs(value interface{}) []interface{} {
+	if value == nil {
+		return []interface{}{}
+	}
+
+	// 使用convertToInterfaceSlice函数处理各种类型的切片
+	return convertToInterfaceSlice(value)
 }

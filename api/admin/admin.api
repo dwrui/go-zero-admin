@@ -89,12 +89,35 @@ service admin-api {
 }
 
 type getLoginReq {
-	page        uint64 `json:"page"`
-	pageSize    uint64 `json:"pageSize"`
-	user        string `json:"user"`
-	ip          string `json:"ip"`
-	create_time string `json:"create_time"`
-	status      uint64 `json:"status"`
+	page        uint64 `form:"page,optional"`
+	pageSize    uint64 `form:"pageSize,optional"`
+	user        string `form:"user,optional"`
+	ip          string `form:"ip,optional"`
+	create_time string `form:"create_time,optional"`
+	status      uint64 `form:"status,optional"`
+}
+
+type GetLogData {
+	Id         uint64            `json:"id"`
+	Uid        uint64            `json:"uid"`
+	AccountId  uint64            `json:"account_id"`
+	BusinessId uint64            `json:"business_id"`
+	Type       string            `json:"type"`
+	Status     uint64            `json:"status"`
+	Des        string            `json:"des"`
+	Ip         string            `json:"ip"`
+	Address    string            `json:"address"`
+	UserAgent  string            `json:"user_agent"`
+	ErrorMsg   string            `json:"error_msg"`
+	CreateTime string            `json:"create_time"`
+	User       map[string]string `json:"user"`
+}
+
+type getLoginResp {
+	Items    []GetLogData `json:"items"`
+	Total    uint64       `json:"total"`
+	Page     uint64       `json:"page"`
+	PageSize uint64       `json:"pageSize"`
 }
 
 //需要验证的接口
@@ -107,6 +130,6 @@ type getLoginReq {
 service admin-api {
 	// 获取登录日志
 	@handler getLogin
-	get /system/getLogin (getLoginReq)
+	get /system/getLogin (getLoginReq) returns (getLoginResp)
 }
 

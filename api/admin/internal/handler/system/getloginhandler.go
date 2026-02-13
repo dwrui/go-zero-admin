@@ -17,6 +17,11 @@ import (
 func GetLoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.GetLoginReq
+		//解析参数
+		if err := ga.ResData(r, &req); err != nil {
+			httpx.WriteJson(w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
+			return
+		}
 		l := system.NewGetLoginLogic(r.Context(), svcCtx)
 		resp, err := l.GetLogin(&req)
 		if err != nil {

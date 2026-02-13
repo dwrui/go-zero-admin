@@ -2,6 +2,7 @@ package logservicelogic
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"system/internal/model"
@@ -32,20 +33,25 @@ func (l *GetLoginLogic) GetLogin(in *system.GetLogListRequest) (*system.GetLogLi
 	if err != nil {
 		return nil, err
 	}
+	items, ok := list["items"].([]*model.LoginLogModel)
+	if !ok {
+		return nil, errors.New("数据类型错误")
+	}
 	logList := make([]*system.GetLogData, 0)
-	for _, v := range list["items"].([]*model.LoginLogModel) {
-		fmt.Println(v)
+	for _, v := range items {
 		logList = append(logList, &system.GetLogData{
-			Id:         v.Id,
-			Uid:        v.Uid,
-			AccountId:  v.AccountId,
-			BusinessId: v.BusinessId,
-			Type:       v.Type,
-			Status:     ga.Uint64(v.Status),
-			Des:        v.Des,
-			Ip:         v.Ip,
-			Address:    v.Address,
-			UserAgent:  v.UserAgent,
+			Id:          v.Id,
+			Uid:         v.Uid,
+			AccountId:   v.AccountId,
+			BusinessId:  v.BusinessId,
+			Type:        v.Type,
+			Status:      ga.Uint64(v.Status),
+			Des:         v.Des,
+			Ip:          v.Ip,
+			Address:     v.Address,
+			UserAgent:   v.UserAgent,
+			User:        v.User,
+			CreatedTime: v.CreateTime.Format("2006-01-02 15:04:05"),
 		})
 	}
 	fmt.Println(logList)

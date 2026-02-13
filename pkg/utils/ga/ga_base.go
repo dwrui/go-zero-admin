@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gstr"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"io"
 	"net"
 	"net/http"
@@ -627,6 +628,10 @@ func HideStrInfo(strtype, val string) string {
 //}
 
 func ResData(r *http.Request, data any) error {
+	// 处理GET请求的查询参数
+	if r.Method == http.MethodGet {
+		return httpx.ParseForm(r, data)
+	}
 	// 方法1：手动解析JSON，不验证
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
