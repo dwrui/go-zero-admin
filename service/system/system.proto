@@ -11,7 +11,7 @@ message GetRuleListRequest {}
 // 获取登录响应
 // 登录数据
 message GetRuleListResponse {
-  string data = 1;           // 登录成功后返回的token
+  string data = 1;           
 }
 message SaveRuleRequest{
   uint64 activemenu = 1;
@@ -303,7 +303,7 @@ service AccountService {
 }
 
 
-// 获取登录请求
+// 获取登录日志请求
 message GetLogListRequest {
     uint64 page = 1;
     uint64 page_size = 2;
@@ -340,10 +340,37 @@ message DelLastLoginRequest{
 message DelLastLoginResponse{
 }
 message GetOperationRequest{
-
+  int64 user_name = 1;         // 操作人
+  string ip = 2;             // IP或地址
+  int32 status = 3;          // 状态(可选)
+  int64 time = 4;      // 时间查询
+  int32 page = 5;           // 页码
+  int32 size = 6;      // 每页数量
+}
+message OperationLogData {
+  int64 id = 1;              // 日志ID
+  int64 user_id = 2;        // 用户ID
+  int64 account_id = 3;     // 账号ID
+  int64 business_id = 4;     // 业务ID
+  string type = 5;           // 日志类型
+  string method = 6;         // 请求方法
+  string path = 7;          // 请求路径
+  string ip = 8;            // 请求IP
+  string address = 9;       // IP地址
+  string description = 10;  // 请求描述
+  string req_headers = 11;  // 请求头
+  string req_body = 12;     // 请求体
+  string resp_headers = 13;  // 响应头
+  string resp_body = 14;    // 响应体
+  int32 status = 15;        // 状态
+  int64 duration = 16;      // 耗时
+  int64 created_time = 17;  // 创建时间戳
 }
 message GetOperationResponse{
-  string data = 1;
+  repeated OperationLogData items = 1;//返回数据有值无值时不省略字段
+  uint64 page = 2;
+  uint64 pageSize = 3;
+  uint64 total = 4;
 }
 message DelLastOperationRequest{
 
@@ -354,7 +381,7 @@ message GetOperationDetailRequest{
   uint64 id = 1;
 }
 message GetOperationDetailResponse{
-  string data = 1;
+  OperationLogData data = 1;
 }
 // 定义服务
 service LogService {

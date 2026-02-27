@@ -1,12 +1,12 @@
 package user
 
 import (
+	"admin/grpc-client/user"
 	"admin/internal/svc"
 	_ "admin/internal/types"
 	"context"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/zeromicro/go-zero/core/logx"
-	"user/user"
 )
 
 type GetUserInfoLogic struct {

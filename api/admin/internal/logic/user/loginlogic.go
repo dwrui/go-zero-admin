@@ -1,9 +1,9 @@
 package user
 
 import (
+	"admin/grpc-client/user"
 	"context"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"user/user"
 
 	"admin/internal/svc"
 	"admin/internal/types"

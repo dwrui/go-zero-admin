@@ -3,7 +3,6 @@ package logservicelogic
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"system/internal/model"
 
@@ -54,7 +53,6 @@ func (l *GetLoginLogic) GetLogin(in *system.GetLogListRequest) (*system.GetLogLi
 			CreatedTime: v.CreateTime.Format("2006-01-02 15:04:05"),
 		})
 	}
-	fmt.Println(logList)
 	return &system.GetLogListResponse{
 		Items:    logList,
 		Page:     ga.Uint64(list["page"]),

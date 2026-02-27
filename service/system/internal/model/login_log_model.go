@@ -2,12 +2,13 @@ package model
 
 import (
 	"context"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
 	"net"
 	"system/internal/svc"
 	"system/system"
 	"time"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
 )
 
 type LoginLogModel struct {
@@ -51,7 +52,7 @@ func GetLoginLogList(ctx context.Context, svcCtx *svc.ServiceContext, req *syste
 			whereMap.Set("log.ip", req.Ip)
 		}
 	}
-	if req.Status != 0 {
+	if req.Status == 0 || req.Status == 1 {
 		whereMap.Set("log.status", req.Status)
 	}
 	if req.CreateTime != "" {

@@ -3,7 +3,7 @@ module admin
 go 1.25.0
 
 require (
-	github.com/dwrui/go-zero-admin/pkg v0.0.0-20260122103455-eddebdd9265e
+	github.com/dwrui/go-zero-admin/pkg v0.0.0-20260213083806-a893267d030b
 	github.com/zeromicro/go-zero v1.9.3
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.36.5
@@ -18,6 +18,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
+	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect

@@ -1,15 +1,17 @@
 package svc
 
 import (
+	logclient "admin/grpc-client/apilog"
+	"admin/grpc-client/auth"
 	"admin/grpc-client/common"
+	"admin/grpc-client/system"
+	"admin/grpc-client/user"
 	"admin/internal/config"
-	"auth/auth"
 	"context"
+	"net/http"
+
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/zrpc"
-	"net/http"
-	"system/system"
-	"user/user"
 )
 
 type ServiceContext struct {
@@ -22,6 +24,7 @@ type ServiceContext struct {
 	SystemRoleClient    system.RoleServiceClient
 	SystemRuleClient    system.RuleServiceClient
 	SystemLogClient     system.LogServiceClient
+	LogClient           logclient.LogServiceClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -34,6 +37,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	authConn := zrpc.MustNewClient(createRpcClientConf(c.AuthEtcd))
 	//系统模块 client链接
 	systemConn := zrpc.MustNewClient(createRpcClientConf(c.SystemEtcd))
+	//log client链接
+	logConn := zrpc.MustNewClient(createRpcClientConf(c.ApiLogEtcd))
 	return &ServiceContext{
 		Config:              c,
 		CommonClient:        common.NewCommonServiceClient(commonConn.Conn()),
@@ -44,6 +49,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		SystemRoleClient:    system.NewRoleServiceClient(systemConn.Conn()),
 		SystemRuleClient:    system.NewRuleServiceClient(systemConn.Conn()),
 		SystemLogClient:     system.NewLogServiceClient(systemConn.Conn()),
+		LogClient:           logclient.NewLogServiceClient(logConn.Conn()),
 	}
 }
 

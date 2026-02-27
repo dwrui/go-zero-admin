@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gstr"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"io"
 	"net"
 	"net/http"
@@ -14,6 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gstr"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 // 判断元素是否存在数组中
@@ -48,11 +49,43 @@ func IsContainStr(items []string, item string) bool {
 
 // 获取ip函数
 func GetIp(r *http.Request) string {
-	reqIP := r.Header.Get("X-Forwarded-For")
-	if reqIP == "::1" {
-		reqIP = "127.0.0.1"
+	// 1. 优先检查 X-Forwarded-For
+	if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+		// 取第一个IP
+		if idx := strings.Index(ip, ","); idx != -1 {
+			ip = strings.TrimSpace(ip[:idx])
+		}
+		// 处理本地地址
+		if ip == "::1" || ip == "" {
+			return "127.0.0.1"
+		}
+		return ip
 	}
-	return reqIP
+
+	// 2. 检查 X-Real-IP（Nginx常用）
+	if ip := r.Header.Get("X-Real-IP"); ip != "" {
+		if ip == "::1" {
+			return "127.0.0.1"
+		}
+		return ip
+	}
+
+	// 3. 使用 RemoteAddr
+	ip := r.RemoteAddr
+	if ip != "" {
+		// 去除端口号
+		if idx := strings.LastIndex(ip, ":"); idx != -1 {
+			ip = ip[:idx]
+		}
+		// 处理本地地址
+		if ip == "::1" || ip == "" {
+			return "127.0.0.1"
+		}
+		return ip
+	}
+
+	// 默认返回本地IP
+	return "127.0.0.1"
 }
 
 // 获取本地ip
@@ -283,13 +316,13 @@ func GetTreeToList(list []Map, field string) []Map {
 	for _, v := range list {
 		var children []Map
 		if childrendata, ok := v["children"]; ok && childrendata != nil {
-			switch childrendata.(type) {
+			switch childrendata := childrendata.(type) {
 			case []interface{}:
-				for _, cv := range childrendata.([]interface{}) {
+				for _, cv := range childrendata {
 					children = append(children, cv.(Map))
 				}
 			case []Map:
-				children = childrendata.([]Map)
+				children = childrendata
 			}
 		} else {
 			children = nil

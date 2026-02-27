@@ -4,10 +4,10 @@
 package system
 
 import (
+	"admin/grpc-client/system"
 	"admin/internal/types"
 	"context"
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"system/system"
 
 	"admin/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"

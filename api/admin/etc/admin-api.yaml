@@ -17,6 +17,14 @@ SystemEtcd:
   Hosts:
     - 127.0.0.1:2379
   Key: system.rpc
+ApiLogEtcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: apilog.rpc
+LogExcludePaths:
+  - /api/admin/user/login
+  - /v1/common/getMenu
+  - /v1/common/getQuick
 # RPC客户端统一配置
 RpcClient:
   NonBlock: true

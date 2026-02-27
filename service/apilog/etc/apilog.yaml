@@ -1,0 +1,22 @@
+Name: apilog.rpc
+ListenOn: 0.0.0.0:8886
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: apilog.rpc
+mysql:
+  Host: 127.0.0.1
+  Port: 3306
+  Database: go_zero_admin
+  Username: go_zero_admin
+  Password: go_zero_admin
+  Charset: utf8mb4
+  TablePrefix: ga_
+# 添加日志配置
+Log:
+  ServiceName: apilog-service
+  Mode: file        # 改为 file 模式，同时输出到文件和控制台
+  Path: ../../logs/apilog      # 日志文件保存路径
+  Level: info       # 日志级别
+  KeepDays: 7       # 保留7天
+  Compress: false   # 不压缩旧日志

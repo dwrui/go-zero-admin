@@ -1,9 +1,7 @@
 package middleware
 
 import (
-	"admin/internal/config"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,14 +9,20 @@ import (
 	"sync"
 	"time"
 
+	logclient "admin/grpc-client/apilog"
+	"admin/internal/config"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/jwt"
+	"github.com/dwrui/go-zero-admin/pkg/utils/plugin"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/json"
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
 // CustomLogger 自定义日志中间件
 type CustomLogger struct {
 	conf         config.Config
-	redisClient  *redis.Redis
+	logClient    logclient.LogServiceClient
 	logChan      chan *LogData
 	excludePaths map[string]bool
 	workerWg     sync.WaitGroup
@@ -28,35 +32,36 @@ type CustomLogger struct {
 
 // LogData 日志数据结构
 type LogData struct {
-	UserID      int64     `json:"user_id"`
-	AccountID   int64     `json:"account_id"`
-	BusinessID  int64     `json:"business_id"`
-	Method      string    `json:"method"`
-	Path        string    `json:"path"`
-	IP          string    `json:"ip"`
-	UserAgent   string    `json:"user_agent"`
-	Status      int       `json:"status"`
-	Duration    int64     `json:"duration"` // 毫秒
-	RequestBody string    `json:"request_body"`
-	Response    string    `json:"response"`
-	Error       string    `json:"error"`
-	CreatedTime time.Time `json:"created_time"`
+	UserID      int64     `json:"user_id"`      //用户ID
+	AccountID   int64     `json:"account_id"`   //账号ID
+	BusinessID  int64     `json:"business_id"`  //业务ID
+	Type        string    `json:"type"`         //日志类型 admin后台日志 adminpro总后台日志
+	Method      string    `json:"method"`       //请求方法
+	Path        string    `json:"path"`         //请求路径
+	IP          string    `json:"ip"`           //请求IP
+	Address     string    `json:"address"`      //根据ip获取的地址
+	ReqHeaders  string    `json:"req_headers"`  //请求头
+	ReqBody     string    `json:"req_body"`     //请求体
+	RespHeaders string    `json:"resp_headers"` //响应头
+	RespBody    string    `json:"resp_body"`    //响应体
+	Status      int       `json:"status"`       //1成功0失败
+	Duration    int64     `json:"duration"`     // 耗时
+	CreatedTime time.Time `json:"created_time"` // 创建时间
 }
 
 // NewCustomLogger 创建自定义日志中间件
-func NewCustomLogger(conf config.Config, redisClient *redis.Redis) *CustomLogger {
+func NewCustomLogger(conf config.Config, logClient logclient.LogServiceClient) *CustomLogger {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// 需要排除的接口路径
-	excludePaths := map[string]bool{
-		"/v1/common/getCaptcha": true, // 验证码接口不记录
-		"/v1/common/getMenu":    true, // 菜单接口
-		"/v1/common/getQuick":   true, // 快捷方式接口
+	// 从配置中读取需要排除的接口路径
+	excludePaths := make(map[string]bool)
+	for _, path := range conf.LogExcludePaths {
+		excludePaths[path] = true
 	}
 
 	logger := &CustomLogger{
 		conf:         conf,
-		redisClient:  redisClient,
+		logClient:    logClient,
 		logChan:      make(chan *LogData, 1000), // 缓冲通道
 		excludePaths: excludePaths,
 		ctx:          ctx,
@@ -112,11 +117,10 @@ func (l *CustomLogger) Middleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// 执行下一个处理函数
-		var errMsg string
 		func() {
 			defer func() {
 				if err := recover(); err != nil {
-					errMsg = fmt.Sprintf("panic: %v", err)
+					fmt.Sprintf("panic: %v", err)
 					wrappedWriter.statusCode = http.StatusInternalServerError
 				}
 			}()
@@ -131,31 +135,45 @@ func (l *CustomLogger) Middleware(next http.HandlerFunc) http.HandlerFunc {
 		if token := r.Header.Get("Authorization"); token != "" {
 			// 这里可以根据token解析用户信息
 			// 简化处理，实际需要调用认证服务
-			userInfo := l.parseToken(token)
+			jwtSecret := jwt.JwtConfig{
+				AccessSecret: l.conf.Auth.AccessSecret,
+				AccessExpire: l.conf.Auth.AccessExpire,
+			}
+			userInfo, err := jwt.ParseToken(jwtSecret, token)
+			if err != nil {
+				logx.Errorf("ParseToken error: %v", err)
+			}
 			if userInfo != nil {
-				userID = userInfo.UserID
-				accountID = userInfo.AccountID
-				businessID = userInfo.BusinessID
+				userID = ga.Int64(userInfo.UserId)
+				accountID = ga.Int64(userInfo.UserId)
+				businessID = ga.Int64(userInfo.BusinessId)
 			}
 		}
-
+		fmt.Println(ga.GetIp(r))
+		address, err := plugin.NewIpRegion(ga.GetIp(r))
+		if err != nil {
+			address = ""
+		}
+		req_str, _ := json.Marshal(r.Header)
+		rep_str, _ := json.Marshal(wrappedWriter.Header())
 		// 构建日志数据
 		logData := &LogData{
 			UserID:      userID,
 			AccountID:   accountID,
 			BusinessID:  businessID,
+			Type:        "admin",
 			Method:      r.Method,
 			Path:        r.URL.Path,
-			IP:          l.getClientIP(r),
-			UserAgent:   r.UserAgent(),
+			IP:          ga.GetIp(r),
+			Address:     address,
+			ReqHeaders:  ga.String(req_str),
+			ReqBody:     requestBody,
+			RespHeaders: ga.String(rep_str),
+			RespBody:    string(wrappedWriter.body),
 			Status:      wrappedWriter.statusCode,
 			Duration:    duration,
-			RequestBody: requestBody,
-			Response:    string(wrappedWriter.body),
-			Error:       errMsg,
 			CreatedTime: time.Now(),
 		}
-
 		// 异步发送到日志通道
 		select {
 		case l.logChan <- logData:
@@ -218,51 +236,11 @@ func (w *responseWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-// getClientIP 获取客户端IP
-func (l *CustomLogger) getClientIP(r *http.Request) string {
-	// 优先检查X-Forwarded-For
-	xff := r.Header.Get("X-Forwarded-For")
-	if xff != "" {
-		ips := strings.Split(xff, ",")
-		if len(ips) > 0 {
-			return strings.TrimSpace(ips[0])
-		}
-	}
-
-	// 检查X-Real-IP
-	xri := r.Header.Get("X-Real-IP")
-	if xri != "" {
-		return xri
-	}
-
-	// 最后使用RemoteAddr
-	ip := r.RemoteAddr
-	if idx := strings.LastIndex(ip, ":"); idx != -1 {
-		ip = ip[:idx]
-	}
-	return ip
-}
-
 // UserInfo 用户信息
 type UserInfo struct {
 	UserID     int64
 	AccountID  int64
 	BusinessID int64
-}
-
-// parseToken 解析token获取用户信息（简化版）
-func (l *CustomLogger) parseToken(token string) *UserInfo {
-	// 这里应该调用认证服务解析token
-	// 简化处理，返回模拟数据
-	if strings.HasPrefix(token, "Bearer ") {
-		// 实际应该调用认证服务
-		return &UserInfo{
-			UserID:     1,
-			AccountID:  1,
-			BusinessID: 1,
-		}
-	}
-	return nil
 }
 
 // startLogWorkers 启动日志处理工作池
@@ -322,26 +300,35 @@ func (l *CustomLogger) processLogBatch(batch []*LogData) {
 	if len(batch) == 0 {
 		return
 	}
+	// 批量调用Log RPC服务
+	for _, logData := range batch {
 
-	// 将日志数据转换为JSON
-	logJSON, err := json.Marshal(batch)
-	if err != nil {
-		logx.Errorf("Failed to marshal log batch: %v", err)
-		return
+		// 转换为Log RPC请求
+		req := &logclient.OperationLogRequest{
+			UserId:      logData.UserID,
+			AccountId:   logData.AccountID,
+			BusinessId:  logData.BusinessID,
+			Type:        logData.Type,
+			Method:      logData.Method,
+			Path:        logData.Path,
+			Ip:          logData.IP,
+			Address:     logData.Address,
+			ReqHeaders:  logData.ReqHeaders,
+			ReqBody:     logData.ReqBody,
+			RespHeaders: logData.RespHeaders,
+			RespBody:    logData.RespBody,
+			Status:      int32(logData.Status),
+			Duration:    logData.Duration,
+		}
+
+		// 调用Log RPC服务
+		_, err := l.logClient.AddOperationLog(l.ctx, req)
+		fmt.Println(logData.Path)
+		fmt.Println(err)
+		if err != nil {
+			logx.Errorf("Failed to add operation log: %v", err)
+		}
 	}
-
-	// 使用Redis队列异步存储（或调用日志服务）
-	key := fmt.Sprintf("api:logs:%s", time.Now().Format("20060102"))
-
-	// 将日志推送到Redis列表
-	_, err = l.redisClient.Lpush(key, string(logJSON))
-	if err != nil {
-		logx.Errorf("Failed to push logs to Redis: %v", err)
-		return
-	}
-
-	// 设置过期时间（7天）
-	_ = l.redisClient.Expire(key, 7*24*3600)
 
 	logx.Infof("Successfully processed %d logs", len(batch))
 }

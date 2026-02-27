@@ -1,17 +1,20 @@
 package main
 
 import (
-	"admin/internal/config"
-	"admin/internal/handler"
-	"admin/internal/svc"
 	"flag"
 	"fmt"
-	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/rest"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"admin/internal/config"
+	"admin/internal/handler"
+	"admin/internal/middleware"
+	"admin/internal/svc"
+
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/rest"
 )
 
 var configFile = flag.String("f", "etc/admin-api.yaml", "the config file")
@@ -25,6 +28,13 @@ func main() {
 	defer server.Stop()
 
 	ctx := svc.NewServiceContext(c)
+	// 创建自定义日志中间件
+	logger := middleware.NewCustomLogger(c, ctx.LogClient)
+	defer logger.Stop()
+	// 添加日志中间件
+	server.Use(func(next http.HandlerFunc) http.HandlerFunc {
+		return logger.Middleware(next)
+	})
 	handler.RegisterHandlers(server, ctx)
 	// 添加静态文件服务
 	if c.Static.Dir != "" {

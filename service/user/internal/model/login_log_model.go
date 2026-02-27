@@ -2,10 +2,11 @@ package model
 
 import (
 	"context"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"github.com/dwrui/go-zero-admin/pkg/utils/plugin"
 	"time"
 	"user/internal/svc"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/plugin"
 )
 
 type LoginLogModel struct {

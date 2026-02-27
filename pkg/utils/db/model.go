@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gconv"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gconv"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
 )
 
 // Model 链式查询构建器
@@ -1965,20 +1966,6 @@ func reflectConvertToInterfaceSlice(values interface{}) []interface{} {
 	}
 
 	return result
-}
-
-// parseConditionString 解析条件字符串，提取字段名和操作符
-func parseConditionString(conditionStr string) (field, condPattern string, isComplexCondition bool) {
-	// 检查是否包含问号
-	if strings.Contains(conditionStr, "?") {
-		// 包含问号，认为是复杂条件
-		// 直接使用整个字符串作为条件
-		return "", conditionStr, true
-	} else {
-		// 不包含问号，认为是简单条件
-		// 返回字段名，条件留空
-		return conditionStr, "", false
-	}
 }
 
 // getConditionArgs 处理条件值，转换为[]interface{}
