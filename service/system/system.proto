@@ -6,12 +6,26 @@ package system;
 
 // golang 包名
 option go_package = "./system";
-// 获取登录请求
+
 message GetRuleListRequest {}
-// 获取登录响应
-// 登录数据
+message RuleListData{
+    string component = 1;
+    string create_time = 2;
+    string icon = 3;
+    uint64 id = 4;
+    string locale = 5;
+    string path = 6;
+    string permission = 7;
+    uint64 pid = 8;
+    string spacer = 9;
+    uint64 status = 10;
+    string title = 11;
+    uint64 type = 12;
+    uint64 weigh = 13;
+    repeated RuleListData children = 14;
+}
 message GetRuleListResponse {
-  string data = 1;           
+  repeated RuleListData data = 1;
 }
 message SaveRuleRequest{
   uint64 activemenu = 1;

@@ -4,6 +4,7 @@ import (
 	logclient "admin/grpc-client/apilog"
 	"admin/grpc-client/auth"
 	"admin/grpc-client/common"
+	"admin/grpc-client/configcenter"
 	"admin/grpc-client/system"
 	"admin/grpc-client/user"
 	"admin/internal/config"
@@ -25,6 +26,8 @@ type ServiceContext struct {
 	SystemRuleClient    system.RuleServiceClient
 	SystemLogClient     system.LogServiceClient
 	LogClient           logclient.LogServiceClient
+	ConfigCenterClient  configcenter.ConfigCategoryServiceClient
+	ConfigItemClient    configcenter.ConfigItemServiceClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -39,6 +42,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	systemConn := zrpc.MustNewClient(createRpcClientConf(c.SystemEtcd))
 	//log client链接
 	logConn := zrpc.MustNewClient(createRpcClientConf(c.ApiLogEtcd))
+	//configcenter client链接
+	configCenterConn := zrpc.MustNewClient(createRpcClientConf(c.ConfigCenterEtcd))
 	return &ServiceContext{
 		Config:              c,
 		CommonClient:        common.NewCommonServiceClient(commonConn.Conn()),
@@ -50,6 +55,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		SystemRuleClient:    system.NewRuleServiceClient(systemConn.Conn()),
 		SystemLogClient:     system.NewLogServiceClient(systemConn.Conn()),
 		LogClient:           logclient.NewLogServiceClient(logConn.Conn()),
+		ConfigCenterClient:  configcenter.NewConfigCategoryServiceClient(configCenterConn.Conn()),
+		ConfigItemClient:    configcenter.NewConfigItemServiceClient(configCenterConn.Conn()),
 	}
 }
 

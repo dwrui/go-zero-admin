@@ -3,8 +3,122 @@
 
 package types
 
+type ConfigCategoryData struct {
+	Id           uint64 `json:"id"`
+	CategoryKey  string `json:"category_key"`
+	CategoryName string `json:"category_name"`
+	Description  string `json:"description"`
+	SortOrder    int32  `json:"sort_order"`
+	IsSystem     int32  `json:"is_system"`
+	CreateTime   string `json:"create_time"`
+	UpdateTime   string `json:"update_time"`
+}
+
+type ConfigItemData struct {
+	Id             uint64             `json:"id"`
+	CategoryKey    string             `json:"category_key"`
+	ConfigKey      string             `json:"config_key"`
+	ConfigName     string             `json:"config_name"`
+	ConfigType     string             `json:"config_type"`
+	ConfigValue    string             `json:"config_value"`
+	DefaultValue   string             `json:"default_value"`
+	Description    string             `json:"description"`
+	Options        []ConfigOptionItem `json:"options"`
+	ValidationRule string             `json:"validation_rule"`
+	Placeholder    string             `json:"placeholder"`
+	IsRequired     int32              `json:"is_required"`
+	IsSecret       int32              `json:"is_secret"`
+	SortOrder      int32              `json:"sort_order"`
+	Status         int32              `json:"status"`
+	CreatedTime    string             `json:"created_time"`
+	UpdatedTime    string             `json:"updated_time"`
+}
+
+type ConfigOptionItem struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+}
+
+type CreateCategoryReq struct {
+	CategoryKey  string `json:"category_key" validate:"required"`
+	CategoryName string `json:"category_name" validate:"required"`
+	Description  string `json:"description"`
+	SortOrder    int32  `json:"sort_order"`
+}
+
+type CreateConfigReq struct {
+	CategoryKey    string `json:"category_key" validate:"required"`
+	ConfigKey      string `json:"config_key" validate:"required"`
+	ConfigName     string `json:"config_name" validate:"required"`
+	ConfigType     string `json:"config_type" validate:"required"`
+	ConfigValue    string `json:"config_value"`
+	DefaultValue   string `json:"default_value"`
+	Description    string `json:"description"`
+	Options        string `json:"options"`
+	ValidationRule string `json:"validation_rule"`
+	Placeholder    string `json:"placeholder"`
+	IsRequired     int32  `json:"is_required"`
+	IsSecret       int32  `json:"is_secret"`
+	SortOrder      int32  `json:"sort_order"`
+	Status         int32  `json:"status"`
+}
+
+type DeleteCategoryReq struct {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DeleteConfigReq struct {
+	Id uint64 `json:"id" validate:"required"`
+}
+
 type GetCaptchaReq struct {
 	CaptchaType string `json:"type" validate:"required"`
+}
+
+type GetCategoryDetailReq struct {
+	Id uint64 `form:"id" validate:"required"`
+}
+
+type GetCategoryListReq struct {
+	CategoryKey  string `form:"category_key,optional"`
+	CategoryName string `form:"category_name,optional"`
+	Page         int32  `form:"page,optional"`
+	PageSize     int32  `form:"page_size,optional"`
+}
+
+type GetCategoryListResp struct {
+	Items    []ConfigCategoryData `json:"items"`
+	Total    uint64               `json:"total"`
+	Page     uint64               `json:"page"`
+	PageSize uint64               `json:"page_size"`
+}
+
+type GetConfigByCategoryReq struct {
+	CategoryKey string `form:"category_key" validate:"required"`
+}
+
+type GetConfigDetailReq struct {
+	Id uint64 `form:"id" validate:"required"`
+}
+
+type GetConfigListReq struct {
+	CategoryKey string `form:"category_key,optional"`
+	ConfigKey   string `form:"config_key,optional"`
+	ConfigName  string `form:"config_name,optional"`
+	Status      int32  `form:"status,optional"`
+	Page        int32  `form:"page,optional"`
+	PageSize    int32  `form:"page_size,optional"`
+}
+
+type GetConfigListResp struct {
+	Items    []ConfigItemData `json:"items"`
+	Total    uint64           `json:"total"`
+	Page     uint64           `json:"page"`
+	PageSize uint64           `json:"page_size"`
+}
+
+type GetConfigValueReq struct {
+	CategoryKey string `form:"category_key" validate:"required"`
 }
 
 type GetLogData struct {
@@ -34,6 +148,28 @@ type LoginReq struct {
 	Captcha  string `json:"captcha" validate:"required"`
 }
 
+type RuleListData struct {
+	Component  string         `json:"component"`
+	CreateTime string         `json:"create_time"`
+	Icon       string         `json:"icon"`
+	Id         uint64         `json:"id"`
+	Locale     string         `json:"locale"`
+	Path       string         `json:"path"`
+	Permission string         `json:"permission"`
+	Pid        uint64         `json:"pid"`
+	Spacer     string         `json:"spacer"`
+	Status     uint64         `json:"status"`
+	Title      string         `json:"title"`
+	Type       uint64         `json:"type"`
+	Weigh      uint64         `json:"weigh"`
+	Children   []RuleListData `json:"children"`
+}
+
+type SaveConfigValueReq struct {
+	CategoryKey  string            `json:"category_key" validate:"required"`
+	ConfigValues map[string]string `json:"config_values" validate:"required"`
+}
+
 type SaveQuickReq struct {
 	Icon    string `json:"icon" validate:"required"`
 	Id      uint64 `json:"id"`
@@ -41,6 +177,36 @@ type SaveQuickReq struct {
 	PathUrl string `json:"path_url" validate:"required"`
 	ReqType uint64 `json:"type"`
 	Weigh   uint64 `json:"weigh"`
+}
+
+type UpdateCategoryReq struct {
+	Id           uint64 `json:"id" validate:"required"`
+	CategoryName string `json:"category_name" validate:"required"`
+	Description  string `json:"description"`
+	SortOrder    int32  `json:"sort_order"`
+}
+
+type UpdateConfigReq struct {
+	Id             uint64 `json:"id" validate:"required"`
+	CategoryKey    string `json:"category_key" validate:"required"`
+	ConfigKey      string `json:"config_key" validate:"required"`
+	ConfigName     string `json:"config_name" validate:"required"`
+	ConfigType     string `json:"config_type" validate:"required"`
+	ConfigValue    string `json:"config_value"`
+	DefaultValue   string `json:"default_value"`
+	Description    string `json:"description"`
+	Options        string `json:"options"`
+	ValidationRule string `json:"validation_rule"`
+	Placeholder    string `json:"placeholder"`
+	IsRequired     int32  `json:"is_required"`
+	IsSecret       int32  `json:"is_secret"`
+	SortOrder      int32  `json:"sort_order"`
+	Status         int32  `json:"status"`
+}
+
+type UpdateConfigStatusReq struct {
+	Id     uint64 `json:"id" validate:"required"`
+	Status int32  `json:"status" validate:"required"`
 }
 
 type GetLoginReq struct {
@@ -57,4 +223,11 @@ type GetLoginResp struct {
 	Total    uint64       `json:"total"`
 	Page     uint64       `json:"page"`
 	PageSize uint64       `json:"pageSize"`
+}
+
+type GetRuleListReq struct {
+}
+
+type GetRuleListResp struct {
+	Data []RuleListData `json:"data"`
 }

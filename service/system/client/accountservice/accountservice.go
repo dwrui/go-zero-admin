@@ -59,7 +59,9 @@ type (
 	GetRuleParentResponse      = system.GetRuleParentResponse
 	IsAccountExistRequest      = system.IsAccountExistRequest
 	IsAccountExistResponse     = system.IsAccountExistResponse
+	OperationLogData           = system.OperationLogData
 	RoleData                   = system.RoleData
+	RuleListData               = system.RuleListData
 	SaveAccountRequest         = system.SaveAccountRequest
 	SaveAccountResponse        = system.SaveAccountResponse
 	SaveDeptRequest            = system.SaveDeptRequest

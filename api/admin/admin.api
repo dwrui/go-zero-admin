@@ -120,6 +120,29 @@ type getLoginResp {
 	PageSize uint64       `json:"pageSize"`
 }
 
+type getRuleListReq {}
+
+type RuleListData {
+	Component  string         `json:"component"`
+	CreateTime string         `json:"create_time"`
+	Icon       string         `json:"icon"`
+	Id         uint64         `json:"id"`
+	Locale     string         `json:"locale"`
+	Path       string         `json:"path"`
+	Permission string         `json:"permission"`
+	Pid        uint64         `json:"pid"`
+	Spacer     string         `json:"spacer"`
+	Status     uint64         `json:"status"`
+	Title      string         `json:"title"`
+	Type       uint64         `json:"type"`
+	Weigh      uint64         `json:"weigh"`
+	Children   []RuleListData `json:"children"`
+}
+
+type getRuleListResp {
+	Data []RuleListData `json:"data"`
+}
+
 //需要验证的接口
 @server (
 	jwt:     Auth
@@ -131,5 +154,238 @@ service admin-api {
 	// 获取登录日志
 	@handler getLogin
 	get /system/getLogin (getLoginReq) returns (getLoginResp)
+
+	@handler getRuleList
+	get /system/getRuleList (getRuleListReq) returns (getRuleListResp)
+}
+
+//配置中心管理
+// 配置分类相关
+@server (
+	jwt:     Auth
+	prefix:  /api/admin
+	group:   config
+	timeout: 3s
+)
+service admin-api {
+	// 获取配置分类列表
+	@handler GetCategoryList
+	get /config/categoryList (GetCategoryListReq) returns (GetCategoryListResp)
+
+	// 获取所有配置分类
+	@handler GetCategoryAll
+	get /config/categoryAll
+
+	// 获取配置分类详情
+	@handler GetCategoryDetail
+	get /config/categoryDetail (GetCategoryDetailReq)
+
+	// 创建配置分类
+	@handler CreateCategory
+	post /config/createCategory (CreateCategoryReq)
+
+	// 更新配置分类
+	@handler UpdateCategory
+	post /config/updateCategory (UpdateCategoryReq)
+
+	// 删除配置分类
+	@handler DeleteCategory
+	post /config/deleteCategory (DeleteCategoryReq)
+}
+
+// 配置项相关
+@server (
+	jwt:     Auth
+	prefix:  /api/admin
+	group:   config
+	timeout: 3s
+)
+service admin-api {
+	// 获取配置项列表
+	@handler GetConfigList
+	get /config/getConfigList (GetConfigListReq) returns (GetConfigListResp)
+
+	// 根据分类获取配置项
+	@handler GetConfigByCategory
+	get /config/getConfigByCategory (GetConfigByCategoryReq)
+
+	// 获取配置项详情
+	@handler GetConfigDetail
+	get /config/getConfigDetail (GetConfigDetailReq)
+
+	// 创建配置项
+	@handler CreateConfig
+	post /config/createConfig (CreateConfigReq)
+
+	// 更新配置项
+	@handler UpdateConfig
+	post /config/updateConfig (UpdateConfigReq)
+
+	// 删除配置项
+	@handler DeleteConfig
+	post /config/deleteConfig (DeleteConfigReq)
+
+	// 更新配置项状态
+	@handler UpdateConfigStatus
+	post /config/updateConfigStatus (UpdateConfigStatusReq)
+
+	// 保存配置值
+	@handler SaveConfigValue
+	post /config/saveConfigValue (SaveConfigValueReq)
+
+	// 获取配置值
+	@handler GetConfigValue
+	get /config/getConfigValue (GetConfigValueReq)
+}
+
+// 配置分类请求和响应类型
+type GetCategoryListReq {
+	categoryKey  string `form:"category_key,optional"`
+	categoryName string `form:"category_name,optional"`
+	page         int32  `form:"page,optional"`
+	pageSize     int32  `form:"page_size,optional"`
+}
+
+type ConfigCategoryData {
+	id           uint64 `json:"id"`
+	categoryKey  string `json:"category_key"`
+	categoryName string `json:"category_name"`
+	description  string `json:"description"`
+	sortOrder    int32  `json:"sort_order"`
+	isSystem     int32  `json:"is_system"`
+	createTime   string `json:"create_time"`
+	updateTime   string `json:"update_time"`
+}
+
+type GetCategoryListResp {
+	items    []ConfigCategoryData `json:"items"`
+	total    uint64               `json:"total"`
+	page     uint64               `json:"page"`
+	pageSize uint64               `json:"page_size"`
+}
+
+type GetCategoryDetailReq {
+	id uint64 `form:"id" validate:"required"`
+}
+
+type CreateCategoryReq {
+	categoryKey  string `json:"category_key" validate:"required"`
+	categoryName string `json:"category_name" validate:"required"`
+	description  string `json:"description"`
+	sortOrder    int32  `json:"sort_order"`
+}
+
+type UpdateCategoryReq {
+	id           uint64 `json:"id" validate:"required"`
+	categoryName string `json:"category_name" validate:"required"`
+	description  string `json:"description"`
+	sortOrder    int32  `json:"sort_order"`
+}
+
+type DeleteCategoryReq {
+	id uint64 `json:"id" validate:"required"`
+}
+
+// 配置项请求和响应类型
+type GetConfigListReq {
+	categoryKey string `form:"category_key,optional"`
+	configKey   string `form:"config_key,optional"`
+	configName  string `form:"config_name,optional"`
+	status      int32  `form:"status,optional"`
+	page        int32  `form:"page,optional"`
+	pageSize    int32  `form:"page_size,optional"`
+}
+
+type ConfigOptionItem {
+	label string `json:"label"`
+	value string `json:"value"`
+}
+
+type ConfigItemData {
+	id             uint64             `json:"id"`
+	categoryKey    string             `json:"category_key"`
+	configKey      string             `json:"config_key"`
+	configName     string             `json:"config_name"`
+	configType     string             `json:"config_type"`
+	configValue    string             `json:"config_value"`
+	defaultValue   string             `json:"default_value"`
+	description    string             `json:"description"`
+	options        []ConfigOptionItem `json:"options"`
+	validationRule string             `json:"validation_rule"`
+	placeholder    string             `json:"placeholder"`
+	isRequired     int32              `json:"is_required"`
+	isSecret       int32              `json:"is_secret"`
+	sortOrder      int32              `json:"sort_order"`
+	status         int32              `json:"status"`
+	createdTime    string             `json:"created_time"`
+	updatedTime    string             `json:"updated_time"`
+}
+
+type GetConfigListResp {
+	items    []ConfigItemData `json:"items"`
+	total    uint64           `json:"total"`
+	page     uint64           `json:"page"`
+	pageSize uint64           `json:"page_size"`
+}
+
+type GetConfigByCategoryReq {
+	categoryKey string `form:"category_key" validate:"required"`
+}
+
+type GetConfigDetailReq {
+	id uint64 `form:"id" validate:"required"`
+}
+
+type CreateConfigReq {
+	categoryKey    string `json:"category_key" validate:"required"`
+	configKey      string `json:"config_key" validate:"required"`
+	configName     string `json:"config_name" validate:"required"`
+	configType     string `json:"config_type" validate:"required"`
+	configValue    string `json:"config_value"`
+	defaultValue   string `json:"default_value"`
+	description    string `json:"description"`
+	options        string `json:"options"`
+	validationRule string `json:"validation_rule"`
+	placeholder    string `json:"placeholder"`
+	isRequired     int32  `json:"is_required"`
+	isSecret       int32  `json:"is_secret"`
+	sortOrder      int32  `json:"sort_order"`
+	status         int32  `json:"status"`
+}
+
+type UpdateConfigReq {
+	id             uint64 `json:"id" validate:"required"`
+	categoryKey    string `json:"category_key" validate:"required"`
+	configKey      string `json:"config_key" validate:"required"`
+	configName     string `json:"config_name" validate:"required"`
+	configType     string `json:"config_type" validate:"required"`
+	configValue    string `json:"config_value"`
+	defaultValue   string `json:"default_value"`
+	description    string `json:"description"`
+	options        string `json:"options"`
+	validationRule string `json:"validation_rule"`
+	placeholder    string `json:"placeholder"`
+	isRequired     int32  `json:"is_required"`
+	isSecret       int32  `json:"is_secret"`
+	sortOrder      int32  `json:"sort_order"`
+	status         int32  `json:"status"`
+}
+
+type DeleteConfigReq {
+	id uint64 `json:"id" validate:"required"`
+}
+
+type UpdateConfigStatusReq {
+	id     uint64 `json:"id" validate:"required"`
+	status int32  `json:"status" validate:"required"`
+}
+
+type SaveConfigValueReq {
+	categoryKey  string            `json:"category_key" validate:"required"`
+	configValues map[string]string `json:"config_values" validate:"required"`
+}
+
+type GetConfigValueReq {
+	categoryKey string `form:"category_key" validate:"required"`
 }
 

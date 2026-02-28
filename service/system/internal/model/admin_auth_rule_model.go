@@ -3,9 +3,10 @@ package model
 import (
 	"context"
 	"database/sql"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"system/internal/svc"
 	"system/system"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 )
 
 type AdminAuthRuleModel struct {
@@ -34,7 +35,7 @@ type AdminAuthRuleModel struct {
 	Activemenu         uint64         `db:"activemenu"`         // 高亮设置的菜单项 0=否1=是
 	Noaffix            uint64         `db:"noaffix"`            // 如果设置为true，标签将不会添加到tab-bar中 0=否1=是
 	Onlypage           uint64         `db:"onlypage"`           // 独立页面不需layout和登录，如登录页、数据大屏
-	Createtime         sql.NullTime   `db:"createtime"`         // 创建时间
+	Createtime         sql.NullTime   `db:"create_time"`        // 创建时间
 }
 
 func GetRuleAll(ctx context.Context, svcCtx *svc.ServiceContext, field string, order string) ([]*AdminAuthRuleModel, error) {

@@ -267,9 +267,71 @@ func StringToJSON(val interface{}) interface{} {
 	}
 }
 
+//// tool-获取树状数组
+//func GetTreeArray(list []map[string]interface{}, pid int64, itemprefix string) List {
+//	return getTreeArrayWithVisited(list, pid, itemprefix, make(map[int64]bool))
+//}
+//
+//// 带循环检测的树状数组获取函数
+//func getTreeArrayWithVisited(list []map[string]interface{}, pid int64, itemprefix string, visited map[int64]bool) List {
+//	// 检查是否已经访问过当前节点，防止循环引用
+//	if visited[pid] {
+//		return List{} // 如果已经访问过，返回空列表避免死循环
+//	}
+//
+//	// 标记当前节点为已访问
+//	visited[pid] = true
+//	childs := ToolFar(list, pid) //获取pid下的所有数据
+//	var chridnum List
+//	if childs != nil {
+//		var number int = 1
+//		var total int = len(childs)
+//		for _, v := range childs {
+//			j := ""
+//			k := ""
+//			if number == total {
+//				j += "└"
+//				k = ""
+//				if itemprefix != "" {
+//					k = "&nbsp;"
+//				}
+//
+//			} else {
+//				j += "├"
+//				k = ""
+//				if itemprefix != "" {
+//					k = "│"
+//				}
+//			}
+//			spacer := ""
+//			if itemprefix != "" {
+//				spacer = itemprefix + j
+//			}
+//			v["spacer"] = gvar.New(spacer)
+//			// 创建新的 visited 副本，避免不同分支之间的干扰
+//			newVisited := make(map[int64]bool)
+//			for k, v := range visited {
+//				newVisited[k] = v
+//			}
+//
+//			children := gvar.New(getTreeArrayWithVisited(list, Int64(v["id"]), itemprefix+k+"&nbsp;", newVisited))
+//			if children != nil {
+//				v["children"] = children
+//			} else {
+//				v["children"] = gvar.New(Slice{})
+//			}
+//			chridnum = append(chridnum, v)
+//			number++
+//		}
+//	}
+//	// 取消标记当前节点，允许在其他分支中再次访问
+//	delete(visited, pid)
+//
+//	return chridnum
+//}
+
 // tool-获取树状数组
 func GetTreeArray(list []map[string]interface{}, pid int64, itemprefix string) List {
-
 	childs := ToolFar(list, pid) //获取pid下的所有数据
 	var chridnum List
 	if childs != nil {
@@ -296,12 +358,12 @@ func GetTreeArray(list []map[string]interface{}, pid int64, itemprefix string) L
 			if itemprefix != "" {
 				spacer = itemprefix + j
 			}
-			v["spacer"] = gvar.New(spacer)
-			children := gvar.New(GetTreeArray(list, Int64(v["id"]), itemprefix+k+"&nbsp;"))
+			v["spacer"] = spacer
+			children := GetTreeArray(list, Int64(v["id"]), itemprefix+k+"&nbsp;")
 			if children != nil {
 				v["children"] = children
 			} else {
-				v["children"] = gvar.New(Slice{})
+				v["children"] = Slice{}
 			}
 			chridnum = append(chridnum, v)
 			number++

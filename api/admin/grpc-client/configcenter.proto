@@ -1,0 +1,224 @@
+syntax = "proto3";
+
+package configcenter;
+
+option go_package = "./configcenter";
+
+message ConfigCategoryData {
+  uint64 id = 1;
+  string category_key = 2;
+  string category_name = 3;
+  string description = 4;
+  int32 sort_order = 5;
+  int32 is_system = 6;
+  string create_time = 7;
+  string update_time = 8;
+}
+
+message GetCategoryListRequest {
+  string category_key = 1;
+  string category_name = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetCategoryListResponse {
+  repeated ConfigCategoryData items = 1;
+  uint64 total = 2;
+  uint64 page = 3;
+  uint64 page_size = 4;
+}
+
+message GetCategoryAllRequest {}
+
+message GetCategoryAllResponse {
+  repeated ConfigCategoryData items = 1;
+}
+
+message GetCategoryDetailRequest {
+  uint64 id = 1;
+}
+
+message GetCategoryDetailResponse {
+  ConfigCategoryData data = 1;
+}
+
+message CreateCategoryRequest {
+  string category_key = 1;
+  string category_name = 2;
+  string description = 3;
+  int32 sort_order = 4;
+}
+
+message CreateCategoryResponse {
+  uint64 id = 1;
+}
+
+message UpdateCategoryRequest {
+  uint64 id = 1;
+  string category_name = 2;
+  string description = 3;
+  int32 sort_order = 4;
+}
+
+message UpdateCategoryResponse {}
+
+message DeleteCategoryRequest {
+  uint64 id = 1;
+}
+
+message DeleteCategoryResponse {}
+
+service ConfigCategoryService {
+  rpc GetList(GetCategoryListRequest) returns (GetCategoryListResponse);
+  rpc GetAll(GetCategoryAllRequest) returns (GetCategoryAllResponse);
+  rpc GetDetail(GetCategoryDetailRequest) returns (GetCategoryDetailResponse);
+  rpc Create(CreateCategoryRequest) returns (CreateCategoryResponse);
+  rpc Update(UpdateCategoryRequest) returns (UpdateCategoryResponse);
+  rpc Delete(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+}
+
+message ConfigOptionItem {
+  string label = 1;
+  string value = 2;
+}
+
+message ConfigItemData {
+  uint64 id = 1;
+  string category_key = 2;
+  string config_key = 3;
+  string config_name = 4;
+  string config_type = 5;
+  string config_value = 6;
+  string default_value = 7;
+  string description = 8;
+  repeated ConfigOptionItem options = 9;
+  string validation_rule = 10;
+  string placeholder = 11;
+  int32 is_required = 12;
+  int32 is_secret = 13;
+  int32 sort_order = 14;
+  int32 status = 15;
+  string created_time = 16;
+  string updated_time = 17;
+}
+
+message GetConfigListRequest {
+  string category_key = 1;
+  string config_key = 2;
+  string config_name = 3;
+  int32 status = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message GetConfigListResponse {
+  repeated ConfigItemData items = 1;
+  uint64 total = 2;
+  uint64 page = 3;
+  uint64 page_size = 4;
+}
+
+message GetConfigByCategoryRequest {
+  string category_key = 1;
+}
+
+message GetConfigByCategoryResponse {
+  string category_name = 1;
+  string category_description = 2;
+  repeated ConfigItemData items = 3;
+}
+
+message GetConfigDetailRequest {
+  uint64 id = 1;
+}
+
+message GetConfigDetailResponse {
+  ConfigItemData data = 1;
+}
+
+message CreateConfigRequest {
+  string category_key = 1;
+  string config_key = 2;
+  string config_name = 3;
+  string config_type = 4;
+  string config_value = 5;
+  string default_value = 6;
+  string description = 7;
+  string options = 8;
+  string validation_rule = 9;
+  string placeholder = 10;
+  int32 is_required = 11;
+  int32 is_secret = 12;
+  int32 sort_order = 13;
+  int32 status = 14;
+}
+
+message CreateConfigResponse {
+  uint64 id = 1;
+}
+
+message UpdateConfigRequest {
+  uint64 id = 1;
+  string category_key = 2;
+  string config_key = 3;
+  string config_name = 4;
+  string config_type = 5;
+  string config_value = 6;
+  string default_value = 7;
+  string description = 8;
+  string options = 9;
+  string validation_rule = 10;
+  string placeholder = 11;
+  int32 is_required = 12;
+  int32 is_secret = 13;
+  int32 sort_order = 14;
+  int32 status = 15;
+}
+
+message UpdateConfigResponse {}
+
+message DeleteConfigRequest {
+  uint64 id = 1;
+}
+
+message DeleteConfigResponse {}
+
+message UpdateConfigStatusRequest {
+  uint64 id = 1;
+  int32 status = 2;
+}
+
+message UpdateConfigStatusResponse {}
+
+message SaveConfigValueRequest {
+  string category_key = 1;
+  map<string, string> config_values = 2;
+}
+
+message SaveConfigValueResponse {}
+
+message GetConfigValueRequest {
+  string category_key = 1;
+}
+
+message ConfigValueItem {
+  string config_key = 1;
+  string config_value = 2;
+}
+
+message GetConfigValueResponse {
+  repeated ConfigValueItem items = 1;
+}
+
+service ConfigItemService {
+  rpc GetList(GetConfigListRequest) returns (GetConfigListResponse);
+  rpc GetByCategory(GetConfigByCategoryRequest) returns (GetConfigByCategoryResponse);
+  rpc GetDetail(GetConfigDetailRequest) returns (GetConfigDetailResponse);
+  rpc Create(CreateConfigRequest) returns (CreateConfigResponse);
+  rpc Update(UpdateConfigRequest) returns (UpdateConfigResponse);
+  rpc Delete(DeleteConfigRequest) returns (DeleteConfigResponse);
+  rpc UpdateStatus(UpdateConfigStatusRequest) returns (UpdateConfigStatusResponse);
+  rpc SaveValue(SaveConfigValueRequest) returns (SaveConfigValueResponse);
+  rpc GetValue(GetConfigValueRequest) returns (GetConfigValueResponse);
+}

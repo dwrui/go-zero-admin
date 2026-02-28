@@ -32,21 +32,21 @@ type CustomLogger struct {
 
 // LogData 日志数据结构
 type LogData struct {
-	UserID      int64     `json:"user_id"`      //用户ID
-	AccountID   int64     `json:"account_id"`   //账号ID
-	BusinessID  int64     `json:"business_id"`  //业务ID
-	Type        string    `json:"type"`         //日志类型 admin后台日志 adminpro总后台日志
-	Method      string    `json:"method"`       //请求方法
-	Path        string    `json:"path"`         //请求路径
-	IP          string    `json:"ip"`           //请求IP
-	Address     string    `json:"address"`      //根据ip获取的地址
-	ReqHeaders  string    `json:"req_headers"`  //请求头
-	ReqBody     string    `json:"req_body"`     //请求体
-	RespHeaders string    `json:"resp_headers"` //响应头
-	RespBody    string    `json:"resp_body"`    //响应体
-	Status      int       `json:"status"`       //1成功0失败
-	Duration    int64     `json:"duration"`     // 耗时
-	CreatedTime time.Time `json:"created_time"` // 创建时间
+	UserID      int64  `json:"user_id"`      //用户ID
+	AccountID   int64  `json:"account_id"`   //账号ID
+	BusinessID  int64  `json:"business_id"`  //业务ID
+	Type        string `json:"type"`         //日志类型 admin后台日志 adminpro总后台日志
+	Method      string `json:"method"`       //请求方法
+	Path        string `json:"path"`         //请求路径
+	IP          string `json:"ip"`           //请求IP
+	Address     string `json:"address"`      //根据ip获取的地址
+	ReqHeaders  string `json:"req_headers"`  //请求头
+	ReqBody     string `json:"req_body"`     //请求体
+	RespHeaders string `json:"resp_headers"` //响应头
+	RespBody    string `json:"resp_body"`    //响应体
+	Status      int    `json:"status"`       //1成功0失败
+	Duration    int64  `json:"duration"`     // 耗时
+	CreateTime  string `json:"create_time"`  // 创建时间
 }
 
 // NewCustomLogger 创建自定义日志中间件
@@ -172,7 +172,7 @@ func (l *CustomLogger) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			RespBody:    string(wrappedWriter.body),
 			Status:      wrappedWriter.statusCode,
 			Duration:    duration,
-			CreatedTime: time.Now(),
+			CreateTime:  time.Now().Format("2006-01-02 15:04:05"),
 		}
 		// 异步发送到日志通道
 		select {
@@ -323,8 +323,6 @@ func (l *CustomLogger) processLogBatch(batch []*LogData) {
 
 		// 调用Log RPC服务
 		_, err := l.logClient.AddOperationLog(l.ctx, req)
-		fmt.Println(logData.Path)
-		fmt.Println(err)
 		if err != nil {
 			logx.Errorf("Failed to add operation log: %v", err)
 		}

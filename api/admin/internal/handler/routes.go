@@ -8,6 +8,7 @@ import (
 	"time"
 
 	common "admin/internal/handler/common"
+	config "admin/internal/handler/config"
 	system "admin/internal/handler/system"
 	user "admin/internal/handler/user"
 	"admin/internal/svc"
@@ -55,8 +56,104 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{
 				Method:  http.MethodGet,
+				Path:    "/config/categoryAll",
+				Handler: config.GetCategoryAllHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/config/categoryDetail",
+				Handler: config.GetCategoryDetailHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/config/categoryList",
+				Handler: config.GetCategoryListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/createCategory",
+				Handler: config.CreateCategoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/deleteCategory",
+				Handler: config.DeleteCategoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/updateCategory",
+				Handler: config.UpdateCategoryHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/createConfig",
+				Handler: config.CreateConfigHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/deleteConfig",
+				Handler: config.DeleteConfigHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/config/getConfigByCategory",
+				Handler: config.GetConfigByCategoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/config/getConfigDetail",
+				Handler: config.GetConfigDetailHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/config/getConfigList",
+				Handler: config.GetConfigListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/config/getConfigValue",
+				Handler: config.GetConfigValueHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/saveConfigValue",
+				Handler: config.SaveConfigValueHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/updateConfig",
+				Handler: config.UpdateConfigHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/updateConfigStatus",
+				Handler: config.UpdateConfigStatusHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
 				Path:    "/system/getLogin",
 				Handler: system.GetLoginHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/system/getRuleList",
+				Handler: system.GetRuleListHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

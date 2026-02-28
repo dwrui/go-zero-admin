@@ -21,6 +21,10 @@ ApiLogEtcd:
   Hosts:
     - 127.0.0.1:2379
   Key: apilog.rpc
+ConfigCenterEtcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: configcenter.rpc
 LogExcludePaths:
   - /api/admin/user/login
   - /v1/common/getMenu
