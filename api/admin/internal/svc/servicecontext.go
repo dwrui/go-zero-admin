@@ -25,6 +25,7 @@ type ServiceContext struct {
 	SystemRoleClient    system.RoleServiceClient
 	SystemRuleClient    system.RuleServiceClient
 	SystemLogClient     system.LogServiceClient
+	SystemDeptClient    system.DeptServiceClient
 	LogClient           logclient.LogServiceClient
 	ConfigCenterClient  configcenter.ConfigCategoryServiceClient
 	ConfigItemClient    configcenter.ConfigItemServiceClient
@@ -54,6 +55,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		SystemRoleClient:    system.NewRoleServiceClient(systemConn.Conn()),
 		SystemRuleClient:    system.NewRuleServiceClient(systemConn.Conn()),
 		SystemLogClient:     system.NewLogServiceClient(systemConn.Conn()),
+		SystemDeptClient:    system.NewDeptServiceClient(systemConn.Conn()),
 		LogClient:           logclient.NewLogServiceClient(logConn.Conn()),
 		ConfigCenterClient:  configcenter.NewConfigCategoryServiceClient(configCenterConn.Conn()),
 		ConfigItemClient:    configcenter.NewConfigItemServiceClient(configCenterConn.Conn()),

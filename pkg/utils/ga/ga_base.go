@@ -535,9 +535,9 @@ func GetMenuChildrenArray(pdata List, parent_id int64, pid_file string) List {
 		if Int64(v[pid_file]) == parent_id {
 			children := GetMenuChildrenArray(pdata, Int64(v["id"]), pid_file)
 			if children != nil {
-				v["children"] = gvar.New(children)
+				v["children"] = children
 			} else {
-				v["children"] = gvar.New(Slice{})
+				v["children"] = Slice{}
 			}
 			returnList = append(returnList, v)
 		}
@@ -733,6 +733,9 @@ func ResData(r *http.Request, data any) error {
 		return errors.New("读取请求失败")
 	}
 	defer r.Body.Close()
+	if string(body) == "" {
+		return nil
+	}
 	if err := json.Unmarshal(body, &data); err != nil {
 		return errors.New("请求参数格式不合法,请核对参数格式")
 	}

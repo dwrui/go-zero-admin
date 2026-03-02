@@ -9,23 +9,30 @@ import (
 	"admin/internal/logic/dept"
 	"admin/internal/svc"
 	"admin/internal/types"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"google.golang.org/grpc/status"
 )
 
 func GetDeptParentHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.GetDeptParentReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
+		//解析参数
+		if err := ga.ResData(r, &req); err != nil {
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
 			return
 		}
-
 		l := dept.NewGetDeptParentLogic(r.Context(), svcCtx)
 		resp, err := l.GetDeptParent(&req)
 		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
+			if st, ok := status.FromError(err); ok {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+			} else {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
+			}
 		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Success().SetData(resp.Data))
 		}
 	}
 }

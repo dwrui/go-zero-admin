@@ -144,11 +144,10 @@ message SaveDeptRequest{
   uint64 id = 1;
   uint64 account_id = 2;
   string name = 3;
-  uint64 status = 4;
-  uint64 business_id = 5;
-  uint64 pid = 6;
-  string remark = 7;
-  uint64 weigh = 8;
+  uint64 business_id = 4;
+  uint64 pid = 5;
+  string remark = 6;
+  uint64 weigh = 7;
 }
 message SaveDeptResponse{
   uint64 id = 1;

@@ -9,23 +9,38 @@ import (
 	"admin/internal/logic/dept"
 	"admin/internal/svc"
 	"admin/internal/types"
+	validate "admin/internal/validate/system"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"google.golang.org/grpc/status"
 )
 
 func UpStatusDeptHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.UpStatusDeptReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
+		var err error
+		//解析参数
+		if e := ga.ResData(r, &req); e != nil {
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(e.Error()))
+			return
+		}
+		//验证参数
+		if msg := validate.UpStatusDeptValidate(req); msg != "" {
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(msg))
 			return
 		}
 
 		l := dept.NewUpStatusDeptLogic(r.Context(), svcCtx)
-		resp, err := l.UpStatusDept(&req)
+		_, err = l.UpStatusDept(&req)
 		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
+			if st, ok := status.FromError(err); ok {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))
+			} else {
+				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
+			}
 		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
+			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Success())
 		}
 	}
 }

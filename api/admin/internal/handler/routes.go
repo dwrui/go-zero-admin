@@ -183,7 +183,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{
 				Method:  http.MethodGet,
-				Path:    "/rule/getLogin",
+				Path:    "/log/getLogin",
 				Handler: log.GetLoginHandler(serverCtx),
 			},
 		},

@@ -2,9 +2,9 @@ package deptservicelogic
 
 import (
 	"context"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gconv"
 	"system/internal/model"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 
 	"system/internal/svc"
 	"system/system"
@@ -34,20 +34,47 @@ func (l *GetParentLogic) GetParent(in *system.GetDeptParentRequest) (*system.Get
 	if len(parentList) > 0 {
 		newList := make([]map[string]interface{}, 0)
 		for _, val := range parentList {
-			newList = append(newList, gconv.Map(val))
-		}
-		menuLists := ga.GetMenuChildrenArray(newList, 0, "pid")
-		var list []*system.DeptParentData
-		for _, v := range menuLists {
-			list = append(list, &system.DeptParentData{
-				Id:       ga.Uint64(v["id"]),
-				Name:     ga.String(v["name"]),
-				Pid:      ga.Uint64(v["pid"]),
-				Children: v["children"].([]*system.DeptParentData),
+			newList = append(newList, ga.Map{
+				"id":          val.Id,
+				"pid":         val.Pid,
+				"name":        val.Name,
+				"account_id":  val.AccountId,
+				"weigh":       val.Weigh,
+				"status":      val.Status,
+				"remark":      val.Remark,
+				"business_id": val.BusinessId,
+				"create_time": val.CreateTime.Time.Format("2006-01-02 15:04:05"),
 			})
 		}
+		menuLists := ga.GetMenuChildrenArray(newList, 0, "pid")
+
+		var convertToDeptData func(menuList map[string]interface{}) *system.DeptParentData
+		convertToDeptData = func(menuList map[string]interface{}) *system.DeptParentData {
+			// 处理children字段，从gvar.Var中提取实际数据
+			var children []*system.DeptParentData
+			if childrenData := menuList["children"]; childrenData != nil {
+				// 直接使用ga.Interfaces函数提取数据
+				childrenInterfaces := ga.Interfaces(childrenData)
+				for _, childInterface := range childrenInterfaces {
+					if childMap, ok := childInterface.(map[string]interface{}); ok {
+						children = append(children, convertToDeptData(childMap))
+					}
+				}
+			}
+
+			return &system.DeptParentData{
+				Id:       ga.Uint64(menuList["id"]),
+				Name:     ga.String(menuList["name"]),
+				Pid:      ga.Uint64(menuList["pid"]),
+				Children: children,
+			}
+		}
+		var endList []*system.DeptParentData
+		for _, val := range menuLists {
+			endList = append(endList, convertToDeptData(val))
+		}
 		return &system.GetDeptParentResponse{
-			Data: list,
+			Data: endList,
 		}, nil
 	}
 	return &system.GetDeptParentResponse{}, nil

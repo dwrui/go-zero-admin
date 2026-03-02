@@ -295,14 +295,11 @@ type GetDeptListResp {
 }
 
 type SaveDeptReq {
-	Id         uint64 `json:"id"`
-	AccountId  uint64 `json:"account_id"`
-	Name       string `json:"name" validate:"required"`
-	Status     uint64 `json:"status"`
-	BusinessId uint64 `json:"business_id"`
-	Pid        uint64 `json:"pid"`
-	Remark     string `json:"remark"`
-	Weigh      uint64 `json:"weigh"`
+	Id     uint64 `json:"id"`
+	Name   string `json:"name" validate:"required"`
+	Pid    uint64 `json:"pid"`
+	Remark string `json:"remark"`
+	Weigh  uint64 `json:"weigh"`
 }
 
 type SaveDeptResp {
@@ -311,7 +308,7 @@ type SaveDeptResp {
 
 type UpStatusDeptReq {
 	Id     uint64 `json:"id" validate:"required"`
-	Status uint64 `json:"status" validate:"required"`
+	Status uint64 `json:"status"`
 }
 
 type UpStatusDeptResp {}
@@ -322,9 +319,7 @@ type DelDeptReq {
 
 type DelDeptResp {}
 
-type GetDeptParentReq {
-	BusinessId uint64 `form:"business_id" validate:"required"`
-}
+type GetDeptParentReq {}
 
 type DeptParentData {
 	Id       uint64           `json:"id"`
@@ -376,7 +371,7 @@ service admin-api {
 service admin-api {
 	// 获取登录日志
 	@handler getLogin
-	get /rule/getLogin (getLoginReq) returns (getLoginResp)
+	get /log/getLogin (getLoginReq) returns (getLoginResp)
 }
 
 //配置中心管理

@@ -39,6 +39,7 @@ type Model struct {
 	incData       map[string]interface{} // 自增数据
 	decData       map[string]interface{} // 自减数据
 	hasDeleteTime *bool                  // 缓存表是否有delete_time字段（nil表示未检测）
+	primaryKey    string                 // 缓存表的主键
 }
 
 // convertToMap 将任意类型转换为map[string]interface{}
@@ -1088,7 +1089,10 @@ func (qb *Model) Insert(ctx context.Context, data ...interface{}) *QueryResult {
 			args:  nil,
 		}
 	}
-
+	//如果没有create_time字段，添加默认值
+	if _, ok := qb.data["create_time"]; !ok {
+		qb.data["create_time"] = time.Now().Format("2006-01-02 15:04:05")
+	}
 	var sql strings.Builder
 	var args []interface{}
 
@@ -1168,7 +1172,6 @@ func (qb *Model) Save(ctx context.Context, data ...interface{}) *QueryResult {
 			args:  nil,
 		}
 	}
-
 	var sql strings.Builder
 	var args []interface{}
 
@@ -1184,7 +1187,6 @@ func (qb *Model) Save(ctx context.Context, data ...interface{}) *QueryResult {
 		placeholders = append(placeholders, "?")
 		args = append(args, qb.data[field])
 	}
-
 	sql.WriteString(strings.Join(fields, ", "))
 	sql.WriteString(") VALUES (")
 	sql.WriteString(strings.Join(placeholders, ", "))
@@ -1241,7 +1243,12 @@ func (qb *Model) InsertAll(ctx context.Context, data interface{}) *QueryResult {
 			args:  nil,
 		}
 	}
-
+	//如果没有默认字段，添加默认值
+	for _, dataMap := range dataMaps {
+		if _, ok := dataMap["create_time"]; !ok {
+			dataMap["create_time"] = time.Now().Format("2006-01-02 15:04:05")
+		}
+	}
 	var sql strings.Builder
 	var args []interface{}
 
@@ -1325,7 +1332,6 @@ func (qb *Model) Update(ctx context.Context, data ...interface{}) *QueryResult {
 			args:  nil,
 		}
 	}
-
 	// 合并所有更新数据
 	updateData := make(map[string]interface{})
 
@@ -1977,4 +1983,8 @@ func getConditionArgs(value interface{}) []interface{} {
 
 	// 使用convertToInterfaceSlice函数处理各种类型的切片
 	return convertToInterfaceSlice(value)
+}
+func (qb *Model) SetPrimaryKey(key string) *Model {
+	qb.primaryKey = key
+	return qb
 }

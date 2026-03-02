@@ -6,6 +6,7 @@ package dept
 import (
 	"context"
 
+	"admin/grpc-client/system"
 	"admin/internal/svc"
 	"admin/internal/types"
 
@@ -27,7 +28,13 @@ func NewUpStatusDeptLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpSt
 }
 
 func (l *UpStatusDeptLogic) UpStatusDept(req *types.UpStatusDeptReq) (resp *types.UpStatusDeptResp, err error) {
-	// todo: add your logic here and delete this line
-
-	return
+	rpcReq := &system.UpStatusDeptRequest{
+		Id:     req.Id,
+		Status: req.Status,
+	}
+	_, err = l.svcCtx.SystemDeptClient.UpState(l.ctx, rpcReq)
+	if err != nil {
+		return nil, err
+	}
+	return &types.UpStatusDeptResp{}, nil
 }

@@ -168,7 +168,6 @@ type GetDeptListResp struct {
 }
 
 type GetDeptParentReq struct {
-	BusinessId uint64 `form:"business_id" validate:"required"`
 }
 
 type GetDeptParentResp struct {
@@ -272,14 +271,11 @@ type SaveConfigValueReq struct {
 }
 
 type SaveDeptReq struct {
-	Id         uint64 `json:"id"`
-	AccountId  uint64 `json:"account_id"`
-	Name       string `json:"name" validate:"required"`
-	Status     uint64 `json:"status"`
-	BusinessId uint64 `json:"business_id"`
-	Pid        uint64 `json:"pid"`
-	Remark     string `json:"remark"`
-	Weigh      uint64 `json:"weigh"`
+	Id     uint64 `json:"id"`
+	Name   string `json:"name" validate:"required"`
+	Pid    uint64 `json:"pid"`
+	Remark string `json:"remark"`
+	Weigh  uint64 `json:"weigh"`
 }
 
 type SaveDeptResp struct {
@@ -326,7 +322,7 @@ type SaveRuleResp struct {
 
 type UpStatusDeptReq struct {
 	Id     uint64 `json:"id" validate:"required"`
-	Status uint64 `json:"status" validate:"required"`
+	Status uint64 `json:"status"`
 }
 
 type UpStatusDeptResp struct {

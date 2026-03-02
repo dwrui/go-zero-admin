@@ -1367,11 +1367,10 @@ type SaveDeptRequest struct {
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	AccountId     uint64                 `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Status        uint64                 `protobuf:"varint,4,opt,name=status,proto3" json:"status,omitempty"`
-	BusinessId    uint64                 `protobuf:"varint,5,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
-	Pid           uint64                 `protobuf:"varint,6,opt,name=pid,proto3" json:"pid,omitempty"`
-	Remark        string                 `protobuf:"bytes,7,opt,name=remark,proto3" json:"remark,omitempty"`
-	Weigh         uint64                 `protobuf:"varint,8,opt,name=weigh,proto3" json:"weigh,omitempty"`
+	BusinessId    uint64                 `protobuf:"varint,4,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
+	Pid           uint64                 `protobuf:"varint,5,opt,name=pid,proto3" json:"pid,omitempty"`
+	Remark        string                 `protobuf:"bytes,6,opt,name=remark,proto3" json:"remark,omitempty"`
+	Weigh         uint64                 `protobuf:"varint,7,opt,name=weigh,proto3" json:"weigh,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1425,13 +1424,6 @@ func (x *SaveDeptRequest) GetName() string {
 		return x.Name
 	}
 	return ""
-}
-
-func (x *SaveDeptRequest) GetStatus() uint64 {
-	if x != nil {
-		return x.Status
-	}
-	return 0
 }
 
 func (x *SaveDeptRequest) GetBusinessId() uint64 {
@@ -4165,18 +4157,17 @@ const file_system_proto_rawDesc = "" +
 	" \x01(\x04R\x05weigh\x12,\n" +
 	"\bchildren\x18\v \x03(\v2\x10.system.DeptDataR\bchildren\";\n" +
 	"\x13GetDeptListResponse\x12$\n" +
-	"\x04data\x18\x01 \x03(\v2\x10.system.DeptDataR\x04data\"\xcd\x01\n" +
+	"\x04data\x18\x01 \x03(\v2\x10.system.DeptDataR\x04data\"\xb5\x01\n" +
 	"\x0fSaveDeptRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x02 \x01(\x04R\taccountId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\x04R\x06status\x12\x1f\n" +
-	"\vbusiness_id\x18\x05 \x01(\x04R\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1f\n" +
+	"\vbusiness_id\x18\x04 \x01(\x04R\n" +
 	"businessId\x12\x10\n" +
-	"\x03pid\x18\x06 \x01(\x04R\x03pid\x12\x16\n" +
-	"\x06remark\x18\a \x01(\tR\x06remark\x12\x14\n" +
-	"\x05weigh\x18\b \x01(\x04R\x05weigh\"\"\n" +
+	"\x03pid\x18\x05 \x01(\x04R\x03pid\x12\x16\n" +
+	"\x06remark\x18\x06 \x01(\tR\x06remark\x12\x14\n" +
+	"\x05weigh\x18\a \x01(\x04R\x05weigh\"\"\n" +
 	"\x10SaveDeptResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\"=\n" +
 	"\x13UpStatusDeptRequest\x12\x0e\n" +

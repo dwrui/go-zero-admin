@@ -2,11 +2,13 @@ package deptservicelogic
 
 import (
 	"context"
+	"fmt"
 	"system/internal/model"
-
 	"system/internal/svc"
 	"system/system"
+	"time"
 
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -26,7 +28,20 @@ func NewSaveLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SaveLogic {
 
 func (l *SaveLogic) Save(in *system.SaveDeptRequest) (*system.SaveDeptResponse, error) {
 	// todo: add your logic here and delete this line
-	id, err := model.SaveDept(l.ctx, l.svcCtx, in)
+	dataMap := ga.Map{}
+	dataMap["id"] = in.Id
+	dataMap["name"] = in.Name
+	dataMap["account_id"] = in.AccountId
+	dataMap["business_id"] = in.BusinessId
+	dataMap["weigh"] = in.Weigh
+	dataMap["pid"] = in.Pid
+	dataMap["remark"] = in.Remark
+	if in.Id == 0 {
+		dataMap["create_time"] = time.Now().Format("2006-01-02 15:04:05")
+	}
+	fmt.Println(dataMap)
+	fmt.Println(in)
+	id, err := model.SaveDept(l.ctx, l.svcCtx, dataMap)
 	if err != nil {
 		return nil, err
 	}

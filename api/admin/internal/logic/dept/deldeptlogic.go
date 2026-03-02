@@ -6,6 +6,7 @@ package dept
 import (
 	"context"
 
+	"admin/grpc-client/system"
 	"admin/internal/svc"
 	"admin/internal/types"
 
@@ -27,7 +28,12 @@ func NewDelDeptLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DelDeptLo
 }
 
 func (l *DelDeptLogic) DelDept(req *types.DelDeptReq) (resp *types.DelDeptResp, err error) {
-	// todo: add your logic here and delete this line
-
-	return
+	rpcReq := &system.DelDeptRequest{
+		Id: req.Id,
+	}
+	_, err = l.svcCtx.SystemDeptClient.Del(l.ctx, rpcReq)
+	if err != nil {
+		return nil, err
+	}
+	return &types.DelDeptResp{}, nil
 }
