@@ -727,15 +727,14 @@ func ResData(r *http.Request, data any) error {
 	if r.Method == http.MethodGet {
 		return httpx.ParseForm(r, data)
 	}
-	// 方法1：手动解析JSON，不验证
+	//手动解析JSON
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return errors.New("读取请求失败")
 	}
 	defer r.Body.Close()
-
 	if err := json.Unmarshal(body, &data); err != nil {
-		return errors.New("JSON解析失败")
+		return errors.New("请求参数格式不合法,请核对参数格式")
 	}
 	return nil
 }

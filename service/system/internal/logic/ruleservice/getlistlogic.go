@@ -2,7 +2,6 @@ package ruleservicelogic
 
 import (
 	"context"
-	"fmt"
 	"system/internal/model"
 
 	"system/internal/svc"
@@ -52,7 +51,7 @@ func (l *GetListLogic) GetList(in *system.GetRuleListRequest) (*system.GetRuleLi
 			"component":   val.Component,
 			"weigh":       val.Weigh,
 			"status":      val.Status,
-			"create_time": val.Createtime.Time.Format("2006-01-02 15:04:05"), // 处理sql.NullTime类型
+			"create_time": val.CreateTime.Time.Format("2006-01-02 15:04:05"), // 处理sql.NullTime类型
 		}
 		newList = append(newList, item)
 	}
@@ -93,7 +92,6 @@ func (l *GetListLogic) GetList(in *system.GetRuleListRequest) (*system.GetRuleLi
 	for _, menuList := range menuLists {
 		menuListEnd = append(menuListEnd, convertToRuleListData(menuList))
 	}
-	fmt.Println("menuList", menuListEnd)
 	return &system.GetRuleListResponse{
 		Data: menuListEnd,
 	}, nil

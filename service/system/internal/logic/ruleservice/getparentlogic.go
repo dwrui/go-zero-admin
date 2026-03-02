@@ -2,10 +2,10 @@ package ruleservicelogic
 
 import (
 	"context"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gconv"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/json"
 	"system/internal/model"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/json"
 
 	"system/internal/svc"
 	"system/system"
@@ -40,10 +40,28 @@ func (l *GetParentLogic) GetParent(in *system.GetRuleParentRequest) (*system.Get
 		if val.Title == "" {
 			val.Title = val.Locale
 		}
-		newList = append(newList, gconv.Map(val))
+		newList = append(newList, ga.Map{
+			"id":          val.Id,
+			"title":       val.Title,
+			"locale":      val.Locale,
+			"icon":        val.Icon,
+			"permission":  val.Permission,
+			"path":        val.Path,
+			"component":   val.Component,
+			"weigh":       val.Weigh,
+			"status":      val.Status,
+			"create_time": val.CreateTime.Time.Format("2006-01-02 15:04:05"), // 处理sql.NullTime类型
+			"type":        val.Type,
+			"uid":         val.Uid,
+			"pid":         val.Pid,
+		})
 	}
 	menuLists := ga.GetMenuChildrenArray(newList, 0, "pid")
-	menuListJson, _ := json.Marshal(menuLists)
+	list := ga.Map{
+		"tree": menuLists,
+		"list": newList,
+	}
+	menuListJson, _ := json.Marshal(list)
 	return &system.GetRuleParentResponse{
 		Data: ga.String(menuListJson),
 	}, nil

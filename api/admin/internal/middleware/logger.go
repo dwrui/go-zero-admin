@@ -149,7 +149,6 @@ func (l *CustomLogger) Middleware(next http.HandlerFunc) http.HandlerFunc {
 				businessID = ga.Int64(userInfo.BusinessId)
 			}
 		}
-		fmt.Println(ga.GetIp(r))
 		address, err := plugin.NewIpRegion(ga.GetIp(r))
 		if err != nil {
 			address = ""

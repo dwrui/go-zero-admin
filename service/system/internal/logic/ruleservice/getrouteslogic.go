@@ -2,9 +2,11 @@ package ruleservicelogic
 
 import (
 	"context"
+	"fmt"
+	"system/internal/model"
+
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/json"
-	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -33,6 +35,8 @@ func (l *GetRoutesLogic) GetRoutes(in *system.GetRoutesRequest) (*system.GetRout
 		return nil, err
 	}
 	ruleJson, _ := json.Marshal(rule)
+	fmt.Println(rule)
+	fmt.Println(ruleJson)
 	return &system.GetRoutesResponse{
 		Data: ga.String(ruleJson),
 	}, nil

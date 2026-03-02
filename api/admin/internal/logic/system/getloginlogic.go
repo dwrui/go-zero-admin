@@ -28,7 +28,6 @@ func NewGetLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetLogin
 }
 
 func (l *GetLoginLogic) GetLogin(req *types.GetLoginReq) (any, error) {
-	// todo: add your logic here and delete this line
 	if req.Page == 0 {
 		req.Page = 1
 	}
@@ -47,15 +46,30 @@ func (l *GetLoginLogic) GetLogin(req *types.GetLoginReq) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if resp.Total == 0 {
-		return &types.GetLoginResp{
-			Total:    0,
-			Page:     req.Page,
-			PageSize: req.PageSize,
-			Items:    []types.GetLogData{},
-		}, nil
-	} else {
-		return resp, nil
+
+	items := make([]types.GetLogData, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		items = append(items, types.GetLogData{
+			Id:         item.Id,
+			Uid:        item.Uid,
+			AccountId:  item.AccountId,
+			BusinessId: item.BusinessId,
+			Type:       item.Type,
+			Status:     item.Status,
+			Des:        item.Des,
+			Ip:         item.Ip,
+			Address:    item.Address,
+			UserAgent:  item.UserAgent,
+			ErrorMsg:   item.ErrorMsg,
+			CreateTime: item.CreatedTime,
+			User:       item.User,
+		})
 	}
 
+	return &types.GetLoginResp{
+		Items:    items,
+		Total:    resp.Total,
+		Page:     resp.Page,
+		PageSize: resp.PageSize,
+	}, nil
 }

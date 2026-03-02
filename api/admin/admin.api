@@ -143,6 +143,94 @@ type getRuleListResp {
 	Data []RuleListData `json:"data"`
 }
 
+type SaveRuleReq {
+	Activemenu         uint64 `json:"activemenu"`
+	Component          string `json:"component"`
+	Des                string `json:"des"`
+	Hidechildreninmenu uint64 `json:"hidechildreninmenu"`
+	Hideinmenu         uint64 `json:"hideinmenu"`
+	Icon               string `json:"icon"`
+	Id                 uint64 `json:"id"`
+	Isext              uint64 `json:"isext"`
+	Keepalive          uint64 `json:"keepalive"`
+	Locale             string `json:"locale"`
+	Noaffix            uint64 `json:"noaffix"`
+	Onlypage           uint64 `json:"onlypage"`
+	Path               string `json:"path"`
+	Permission         string `json:"permission"`
+	Pid                uint64 `json:"pid"`
+	Redirect           string `json:"redirect"`
+	Requiresauth       uint64 `json:"requiresauth"`
+	Routename          string `json:"routename"`
+	Routepath          string `json:"routepath"`
+	Title              string `json:"title"`
+	Ruletype           uint64 `json:"type"`
+	Weigh              uint64 `json:"weigh"`
+}
+
+type SaveRuleResp {
+	id uint64 `json:"id"`
+}
+
+type UpStatusRuleReq {
+	id     uint64 `json:"id" validate:"required"`
+	status uint64 `json:"status" validate:"required"`
+}
+
+type UpStatusRuleResp {}
+
+type DelRuleReq {
+	id uint64 `json:"id" validate:"required"`
+}
+
+type DelRuleResp {}
+
+type GetRuleContentReq {
+	id uint64 `form:"id" validate:"required"`
+}
+
+type GetRuleContentResp {
+	Activemenu         uint64 `json:"activemenu"`
+	Component          string `json:"component"`
+	Des                string `json:"des"`
+	Hidechildreninmenu uint64 `json:"hidechildreninmenu"`
+	Hideinmenu         uint64 `json:"hideinmenu"`
+	Icon               string `json:"icon"`
+	Id                 uint64 `json:"id"`
+	Isext              uint64 `json:"isext"`
+	Keepalive          uint64 `json:"keepalive"`
+	Locale             string `json:"locale"`
+	Noaffix            uint64 `json:"noaffix"`
+	Onlypage           uint64 `json:"onlypage"`
+	Path               string `json:"path"`
+	Permission         string `json:"permission"`
+	Pid                uint64 `json:"pid"`
+	Redirect           string `json:"redirect"`
+	Requiresauth       uint64 `json:"requiresauth"`
+	Routename          string `json:"routename"`
+	Routepath          string `json:"routepath"`
+	Title              string `json:"title"`
+	Ruletype           uint64 `json:"type"`
+	Weigh              uint64 `json:"weigh"`
+	CreateTime         string `json:"create_time"`
+	Status             uint64 `json:"status"`
+	Uid                uint64 `json:"uid"`
+}
+
+type GetRuleParentReq {
+	id uint64 `form:"id" validate:"required"`
+}
+
+type GetRuleParentResp {
+	data string `json:"data"`
+}
+
+type GetRoutesReq {}
+
+type GetRoutesResp {
+	data string `json:"data"`
+}
+
 //需要验证的接口
 @server (
 	jwt:     Auth
@@ -155,8 +243,33 @@ service admin-api {
 	@handler getLogin
 	get /system/getLogin (getLoginReq) returns (getLoginResp)
 
+	//获取路由列表
 	@handler getRuleList
-	get /system/getRuleList (getRuleListReq) returns (getRuleListResp)
+	get /system/getList (getRuleListReq) returns (getRuleListResp)
+
+	//保存路由
+	@handler saveRule
+	post /system/save (SaveRuleReq) returns (SaveRuleResp)
+
+	//更新路由状态
+	@handler upStatusRule
+	post /system/upStatus (UpStatusRuleReq) returns (UpStatusRuleResp)
+
+	//删除路由
+	@handler delRule
+	post /system/del (DelRuleReq) returns (DelRuleResp)
+
+	//获取路由详情
+	@handler getRuleContent
+	get /system/getContent (GetRuleContentReq) returns (GetRuleContentResp)
+
+	//获取路由父级
+	@handler getRuleParent
+	get /system/getParent (GetRuleParentReq) returns (GetRuleParentResp)
+
+	//获取所有路由地址
+	@handler getRoutes
+	get /system/getRoutes (GetRoutesReq) returns (GetRoutesResp)
 }
 
 //配置中心管理

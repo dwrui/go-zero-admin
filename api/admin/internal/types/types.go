@@ -63,6 +63,13 @@ type CreateConfigReq struct {
 	Status         int32  `json:"status"`
 }
 
+type DelRuleReq struct {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DelRuleResp struct {
+}
+
 type DeleteCategoryReq struct {
 	Id uint64 `json:"id" validate:"required"`
 }
@@ -141,6 +148,53 @@ type GetMenuReq struct {
 	RouteId uint64 `json:"route_id"`
 }
 
+type GetRoutesReq struct {
+}
+
+type GetRoutesResp struct {
+	Data string `json:"data"`
+}
+
+type GetRuleContentReq struct {
+	Id uint64 `form:"id" validate:"required"`
+}
+
+type GetRuleContentResp struct {
+	Activemenu         uint64 `json:"activemenu"`
+	Component          string `json:"component"`
+	Des                string `json:"des"`
+	Hidechildreninmenu uint64 `json:"hidechildreninmenu"`
+	Hideinmenu         uint64 `json:"hideinmenu"`
+	Icon               string `json:"icon"`
+	Id                 uint64 `json:"id"`
+	Isext              uint64 `json:"isext"`
+	Keepalive          uint64 `json:"keepalive"`
+	Locale             string `json:"locale"`
+	Noaffix            uint64 `json:"noaffix"`
+	Onlypage           uint64 `json:"onlypage"`
+	Path               string `json:"path"`
+	Permission         string `json:"permission"`
+	Pid                uint64 `json:"pid"`
+	Redirect           string `json:"redirect"`
+	Requiresauth       uint64 `json:"requiresauth"`
+	Routename          string `json:"routename"`
+	Routepath          string `json:"routepath"`
+	Title              string `json:"title"`
+	Ruletype           uint64 `json:"type"`
+	Weigh              uint64 `json:"weigh"`
+	CreateTime         string `json:"create_time"`
+	Status             uint64 `json:"status"`
+	Uid                uint64 `json:"uid"`
+}
+
+type GetRuleParentReq struct {
+	Id uint64 `form:"id" validate:"required"`
+}
+
+type GetRuleParentResp struct {
+	Data string `json:"data"`
+}
+
 type LoginReq struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
@@ -177,6 +231,43 @@ type SaveQuickReq struct {
 	PathUrl string `json:"path_url" validate:"required"`
 	ReqType uint64 `json:"type"`
 	Weigh   uint64 `json:"weigh"`
+}
+
+type SaveRuleReq struct {
+	Activemenu         uint64 `json:"activemenu"`
+	Component          string `json:"component"`
+	Des                string `json:"des"`
+	Hidechildreninmenu uint64 `json:"hidechildreninmenu"`
+	Hideinmenu         uint64 `json:"hideinmenu"`
+	Icon               string `json:"icon"`
+	Id                 uint64 `json:"id"`
+	Isext              uint64 `json:"isext"`
+	Keepalive          uint64 `json:"keepalive"`
+	Locale             string `json:"locale"`
+	Noaffix            uint64 `json:"noaffix"`
+	Onlypage           uint64 `json:"onlypage"`
+	Path               string `json:"path"`
+	Permission         string `json:"permission"`
+	Pid                uint64 `json:"pid"`
+	Redirect           string `json:"redirect"`
+	Requiresauth       uint64 `json:"requiresauth"`
+	Routename          string `json:"routename"`
+	Routepath          string `json:"routepath"`
+	Title              string `json:"title"`
+	Ruletype           uint64 `json:"type"`
+	Weigh              uint64 `json:"weigh"`
+}
+
+type SaveRuleResp struct {
+	Id uint64 `json:"id"`
+}
+
+type UpStatusRuleReq struct {
+	Id     uint64 `json:"id" validate:"required"`
+	Status uint64 `json:"status" validate:"required"`
+}
+
+type UpStatusRuleResp struct {
 }
 
 type UpdateCategoryReq struct {

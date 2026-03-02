@@ -146,14 +146,44 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodPost,
+				Path:    "/system/del",
+				Handler: system.DelRuleHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/system/getContent",
+				Handler: system.GetRuleContentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/system/getList",
+				Handler: system.GetRuleListHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/system/getLogin",
 				Handler: system.GetLoginHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/system/getRuleList",
-				Handler: system.GetRuleListHandler(serverCtx),
+				Path:    "/system/getParent",
+				Handler: system.GetRuleParentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/system/getRoutes",
+				Handler: system.GetRoutesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/system/save",
+				Handler: system.SaveRuleHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/system/upStatus",
+				Handler: system.UpStatusRuleHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

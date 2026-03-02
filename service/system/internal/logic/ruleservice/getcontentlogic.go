@@ -2,8 +2,9 @@ package ruleservicelogic
 
 import (
 	"context"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"system/internal/model"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 
 	"system/internal/svc"
 	"system/system"
@@ -26,14 +27,14 @@ func NewGetContentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCon
 }
 
 func (l *GetContentLogic) GetContent(in *system.GetRuleContentRequest) (*system.GetRuleContentResponse, error) {
-	rule, err := model.GetRuleOne(l.ctx, l.svcCtx, "activemenu,component,create_time,des,hidechildreninmenu,hideinmenu,icon,id,isext,keepalive,locale,noaffix,onlypage,path,permission,pid,redirect,requiresauth,routename,routepath,status,title,type,uid,weigh", in.Id)
+	rule, err := model.GetRuleOne(l.ctx, l.svcCtx, "activemenu,component,create_time,des,hidechildreninmenu,hideinmenu,icon,id,isext,keepalive,locale,noaffix,onlypage,path,permission,pid,redirect,requiresauth,routename,routepath,status,title,type as rule_type,uid,weigh", in.Id)
 	if err != nil {
 		return nil, err
 	}
 	return &system.GetRuleContentResponse{
 		Activemenu:         rule.Activemenu,
 		Component:          rule.Component,
-		CreateTime:         ga.String(rule.Createtime),
+		CreateTime:         ga.String(rule.CreateTime.Time.Format("2006-01-02 15:04:05")),
 		Des:                rule.Des,
 		Hidechildreninmenu: rule.Hidechildreninmenu,
 		Hideinmenu:         rule.Hideinmenu,

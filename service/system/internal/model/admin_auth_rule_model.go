@@ -35,7 +35,7 @@ type AdminAuthRuleModel struct {
 	Activemenu         uint64         `db:"activemenu"`         // 高亮设置的菜单项 0=否1=是
 	Noaffix            uint64         `db:"noaffix"`            // 如果设置为true，标签将不会添加到tab-bar中 0=否1=是
 	Onlypage           uint64         `db:"onlypage"`           // 独立页面不需layout和登录，如登录页、数据大屏
-	Createtime         sql.NullTime   `db:"create_time"`        // 创建时间
+	CreateTime         sql.NullTime   `db:"create_time"`        // 创建时间
 }
 
 func GetRuleAll(ctx context.Context, svcCtx *svc.ServiceContext, field string, order string) ([]*AdminAuthRuleModel, error) {
@@ -46,11 +46,11 @@ func GetRuleAll(ctx context.Context, svcCtx *svc.ServiceContext, field string, o
 	}
 	return rule, nil
 }
-func GetRuleOne(ctx context.Context, svcCtx *svc.ServiceContext, field string, id uint64) (*AdminAuthRuleModel, error) {
-	var rule *AdminAuthRuleModel
-	resp := svcCtx.DB.Model("admin_auth_rule").Where("id", id).Fields(field).Find(ctx, &rule)
+func GetRuleOne(ctx context.Context, svcCtx *svc.ServiceContext, field string, id uint64) (AdminAuthRuleModel, error) {
+	var rule AdminAuthRuleModel
+	resp := svcCtx.DB.Model("admin_auth_rule").Where("id = ?", id).Fields(field).Find(ctx, &rule)
 	if resp.GetError() != nil {
-		return nil, resp.GetError()
+		return AdminAuthRuleModel{}, resp.GetError()
 	}
 	return rule, nil
 }
@@ -64,8 +64,7 @@ func GetRuleOne(ctx context.Context, svcCtx *svc.ServiceContext, field string, i
 * @return error
  */
 func SaveRule(ctx context.Context, svcCtx *svc.ServiceContext, data *system.SaveRuleRequest) (uint64, error) {
-	var adminAuthRule AdminAuthRuleModel
-	resp := svcCtx.DB.Model("admin_auth_rule").Data(data).Save(ctx, &adminAuthRule)
+	resp := svcCtx.DB.Model("admin_auth_rule").Data(data).Save(ctx)
 	if resp.GetError() != nil {
 		return 0, resp.GetError()
 	}
@@ -94,11 +93,12 @@ func GetParentAll(ctx context.Context, svcCtx *svc.ServiceContext, whereIn ga.Sl
 	return rule, nil
 }
 
-func GetRoutesAll(ctx context.Context, svcCtx *svc.ServiceContext) ([]*AdminAuthRuleModel, error) {
-	var rule []*AdminAuthRuleModel
+func GetRoutesAll(ctx context.Context, svcCtx *svc.ServiceContext) ([]string, error) {
+	var paths []string
 	resp := svcCtx.DB.Model("admin_auth_rule").Where("path != ?", "").Column(ctx, "path")
 	if resp.GetError() != nil {
 		return nil, resp.GetError()
 	}
-	return rule, nil
+
+	return paths, nil
 }
