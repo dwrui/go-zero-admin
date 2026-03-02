@@ -9,7 +9,10 @@ import (
 
 	common "admin/internal/handler/common"
 	config "admin/internal/handler/config"
-	system "admin/internal/handler/system"
+	config_category "admin/internal/handler/config_category"
+	dept "admin/internal/handler/dept"
+	log "admin/internal/handler/log"
+	rule "admin/internal/handler/rule"
 	user "admin/internal/handler/user"
 	"admin/internal/svc"
 
@@ -45,44 +48,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/common/saveQuick",
 				Handler: common.SaveQuickHandler(serverCtx),
-			},
-		},
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
-		rest.WithPrefix("/api/admin"),
-		rest.WithTimeout(3000*time.Millisecond),
-	)
-
-	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodGet,
-				Path:    "/config/categoryAll",
-				Handler: config.GetCategoryAllHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/config/categoryDetail",
-				Handler: config.GetCategoryDetailHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/config/categoryList",
-				Handler: config.GetCategoryListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/config/createCategory",
-				Handler: config.CreateCategoryHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/config/deleteCategory",
-				Handler: config.DeleteCategoryHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/config/updateCategory",
-				Handler: config.UpdateCategoryHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
@@ -146,48 +111,127 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
-				Method:  http.MethodPost,
-				Path:    "/system/del",
-				Handler: system.DelRuleHandler(serverCtx),
+				Method:  http.MethodGet,
+				Path:    "/config/categoryAll",
+				Handler: config_category.GetCategoryAllHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/system/getContent",
-				Handler: system.GetRuleContentHandler(serverCtx),
+				Path:    "/config/categoryDetail",
+				Handler: config_category.GetCategoryDetailHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/system/getList",
-				Handler: system.GetRuleListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/system/getLogin",
-				Handler: system.GetLoginHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/system/getParent",
-				Handler: system.GetRuleParentHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/system/getRoutes",
-				Handler: system.GetRoutesHandler(serverCtx),
+				Path:    "/config/categoryList",
+				Handler: config_category.GetCategoryListHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/system/save",
-				Handler: system.SaveRuleHandler(serverCtx),
+				Path:    "/config/createCategory",
+				Handler: config_category.CreateCategoryHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/system/upStatus",
-				Handler: system.UpStatusRuleHandler(serverCtx),
+				Path:    "/config/deleteCategory",
+				Handler: config_category.DeleteCategoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/config/updateCategory",
+				Handler: config_category.UpdateCategoryHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithPrefix("/api/admin"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/dept/del",
+				Handler: dept.DelDeptHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/dept/getList",
+				Handler: dept.GetDeptListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/dept/getParent",
+				Handler: dept.GetDeptParentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/dept/save",
+				Handler: dept.SaveDeptHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/dept/upStatus",
+				Handler: dept.UpStatusDeptHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin/system"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/rule/getLogin",
+				Handler: log.GetLoginHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin/system"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/rule/del",
+				Handler: rule.DelRuleHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/rule/getContent",
+				Handler: rule.GetRuleContentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/rule/getList",
+				Handler: rule.GetRuleListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/rule/getParent",
+				Handler: rule.GetRuleParentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/rule/getRoutes",
+				Handler: rule.GetRoutesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/rule/save",
+				Handler: rule.SaveRuleHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/rule/upStatus",
+				Handler: rule.UpStatusRuleHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin/system"),
 		rest.WithTimeout(3000*time.Millisecond),
 	)
 

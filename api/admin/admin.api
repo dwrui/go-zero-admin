@@ -174,7 +174,7 @@ type SaveRuleResp {
 
 type UpStatusRuleReq {
 	id     uint64 `json:"id" validate:"required"`
-	status uint64 `json:"status" validate:"required"`
+	status uint64 `json:"status"`
 }
 
 type UpStatusRuleResp {}
@@ -234,42 +234,149 @@ type GetRoutesResp {
 //需要验证的接口
 @server (
 	jwt:     Auth
-	prefix:  /api/admin
-	group:   system
+	prefix:  /api/admin/system
+	group:   rule
+	timeout: 3s
+)
+service admin-api {
+	//获取路由列表
+	@handler getRuleList
+	get /rule/getList (getRuleListReq) returns (getRuleListResp)
+
+	//保存路由
+	@handler saveRule
+	post /rule/save (SaveRuleReq) returns (SaveRuleResp)
+
+	//更新路由状态
+	@handler upStatusRule
+	post /rule/upStatus (UpStatusRuleReq) returns (UpStatusRuleResp)
+
+	//删除路由
+	@handler delRule
+	post /rule/del (DelRuleReq) returns (DelRuleResp)
+
+	//获取路由详情
+	@handler getRuleContent
+	get /rule/getContent (GetRuleContentReq) returns (GetRuleContentResp)
+
+	//获取路由父级
+	@handler getRuleParent
+	get /rule/getParent (GetRuleParentReq) returns (GetRuleParentResp)
+
+	//获取所有路由地址
+	@handler getRoutes
+	get /rule/getRoutes (GetRoutesReq) returns (GetRoutesResp)
+}
+
+// 部门管理相关接口
+type GetDeptListReq {
+	businessId uint64 `form:"business_id,optional"`
+	name       string `form:"name,optional"`
+	status     uint64 `form:"status,optional"`
+	createTime string `form:"create_time,optional"`
+}
+
+type DeptData {
+	Id         uint64     `json:"id"`
+	BusinessId uint64     `json:"business_id"`
+	AccountId  uint64     `json:"account_id"`
+	Name       string     `json:"name"`
+	Pid        uint64     `json:"pid"`
+	Weigh      uint64     `json:"weigh"`
+	Status     uint64     `json:"status"`
+	Remark     string     `json:"remark"`
+	CreateTime string     `json:"create_time"`
+	Spacer     string     `json:"spacer"`
+	Children   []DeptData `json:"children"`
+}
+
+type GetDeptListResp {
+	Data []DeptData `json:"data"`
+}
+
+type SaveDeptReq {
+	Id         uint64 `json:"id"`
+	AccountId  uint64 `json:"account_id"`
+	Name       string `json:"name" validate:"required"`
+	Status     uint64 `json:"status"`
+	BusinessId uint64 `json:"business_id"`
+	Pid        uint64 `json:"pid"`
+	Remark     string `json:"remark"`
+	Weigh      uint64 `json:"weigh"`
+}
+
+type SaveDeptResp {
+	Id uint64 `json:"id"`
+}
+
+type UpStatusDeptReq {
+	Id     uint64 `json:"id" validate:"required"`
+	Status uint64 `json:"status" validate:"required"`
+}
+
+type UpStatusDeptResp {}
+
+type DelDeptReq {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DelDeptResp {}
+
+type GetDeptParentReq {
+	BusinessId uint64 `form:"business_id" validate:"required"`
+}
+
+type DeptParentData {
+	Id       uint64           `json:"id"`
+	Name     string           `json:"name"`
+	Pid      uint64           `json:"pid"`
+	Children []DeptParentData `json:"children"`
+}
+
+type GetDeptParentResp {
+	Data []DeptParentData `json:"data"`
+}
+
+//需要验证的接口
+@server (
+	jwt:     Auth
+	prefix:  /api/admin/system
+	group:   dept
+	timeout: 3s
+)
+service admin-api {
+	// 获取部门列表
+	@handler getDeptList
+	get /dept/getList (GetDeptListReq) returns (GetDeptListResp)
+
+	// 保存部门
+	@handler saveDept
+	post /dept/save (SaveDeptReq) returns (SaveDeptResp)
+
+	// 更新部门状态
+	@handler upStatusDept
+	post /dept/upStatus (UpStatusDeptReq) returns (UpStatusDeptResp)
+
+	// 删除部门
+	@handler delDept
+	post /dept/del (DelDeptReq) returns (DelDeptResp)
+
+	// 获取部门父级
+	@handler getDeptParent
+	get /dept/getParent (GetDeptParentReq) returns (GetDeptParentResp)
+}
+
+//需要验证的接口
+@server (
+	jwt:     Auth
+	prefix:  /api/admin/system
+	group:   log
 	timeout: 3s
 )
 service admin-api {
 	// 获取登录日志
 	@handler getLogin
-	get /system/getLogin (getLoginReq) returns (getLoginResp)
-
-	//获取路由列表
-	@handler getRuleList
-	get /system/getList (getRuleListReq) returns (getRuleListResp)
-
-	//保存路由
-	@handler saveRule
-	post /system/save (SaveRuleReq) returns (SaveRuleResp)
-
-	//更新路由状态
-	@handler upStatusRule
-	post /system/upStatus (UpStatusRuleReq) returns (UpStatusRuleResp)
-
-	//删除路由
-	@handler delRule
-	post /system/del (DelRuleReq) returns (DelRuleResp)
-
-	//获取路由详情
-	@handler getRuleContent
-	get /system/getContent (GetRuleContentReq) returns (GetRuleContentResp)
-
-	//获取路由父级
-	@handler getRuleParent
-	get /system/getParent (GetRuleParentReq) returns (GetRuleParentResp)
-
-	//获取所有路由地址
-	@handler getRoutes
-	get /system/getRoutes (GetRoutesReq) returns (GetRoutesResp)
+	get /rule/getLogin (getLoginReq) returns (getLoginResp)
 }
 
 //配置中心管理
@@ -277,7 +384,7 @@ service admin-api {
 @server (
 	jwt:     Auth
 	prefix:  /api/admin
-	group:   config
+	group:   config_category
 	timeout: 3s
 )
 service admin-api {

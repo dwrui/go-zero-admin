@@ -49,7 +49,7 @@ func DelRuleValidate(req types.DelRuleReq) string {
 	validator := ga.Validator()
 	messages := map[string]interface{}{
 		"id": map[string]string{
-			"required": "参数或格式错误",
+			"required": "参数错误",
 		},
 	}
 	validator.SetMessages(messages)

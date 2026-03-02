@@ -63,6 +63,13 @@ type CreateConfigReq struct {
 	Status         int32  `json:"status"`
 }
 
+type DelDeptReq struct {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DelDeptResp struct {
+}
+
 type DelRuleReq struct {
 	Id uint64 `json:"id" validate:"required"`
 }
@@ -76,6 +83,27 @@ type DeleteCategoryReq struct {
 
 type DeleteConfigReq struct {
 	Id uint64 `json:"id" validate:"required"`
+}
+
+type DeptData struct {
+	Id         uint64     `json:"id"`
+	BusinessId uint64     `json:"business_id"`
+	AccountId  uint64     `json:"account_id"`
+	Name       string     `json:"name"`
+	Pid        uint64     `json:"pid"`
+	Weigh      uint64     `json:"weigh"`
+	Status     uint64     `json:"status"`
+	Remark     string     `json:"remark"`
+	CreateTime string     `json:"create_time"`
+	Spacer     string     `json:"spacer"`
+	Children   []DeptData `json:"children"`
+}
+
+type DeptParentData struct {
+	Id       uint64           `json:"id"`
+	Name     string           `json:"name"`
+	Pid      uint64           `json:"pid"`
+	Children []DeptParentData `json:"children"`
 }
 
 type GetCaptchaReq struct {
@@ -126,6 +154,25 @@ type GetConfigListResp struct {
 
 type GetConfigValueReq struct {
 	CategoryKey string `form:"category_key" validate:"required"`
+}
+
+type GetDeptListReq struct {
+	BusinessId uint64 `form:"business_id,optional"`
+	Name       string `form:"name,optional"`
+	Status     uint64 `form:"status,optional"`
+	CreateTime string `form:"create_time,optional"`
+}
+
+type GetDeptListResp struct {
+	Data []DeptData `json:"data"`
+}
+
+type GetDeptParentReq struct {
+	BusinessId uint64 `form:"business_id" validate:"required"`
+}
+
+type GetDeptParentResp struct {
+	Data []DeptParentData `json:"data"`
 }
 
 type GetLogData struct {
@@ -224,6 +271,21 @@ type SaveConfigValueReq struct {
 	ConfigValues map[string]string `json:"config_values" validate:"required"`
 }
 
+type SaveDeptReq struct {
+	Id         uint64 `json:"id"`
+	AccountId  uint64 `json:"account_id"`
+	Name       string `json:"name" validate:"required"`
+	Status     uint64 `json:"status"`
+	BusinessId uint64 `json:"business_id"`
+	Pid        uint64 `json:"pid"`
+	Remark     string `json:"remark"`
+	Weigh      uint64 `json:"weigh"`
+}
+
+type SaveDeptResp struct {
+	Id uint64 `json:"id"`
+}
+
 type SaveQuickReq struct {
 	Icon    string `json:"icon" validate:"required"`
 	Id      uint64 `json:"id"`
@@ -262,9 +324,17 @@ type SaveRuleResp struct {
 	Id uint64 `json:"id"`
 }
 
-type UpStatusRuleReq struct {
+type UpStatusDeptReq struct {
 	Id     uint64 `json:"id" validate:"required"`
 	Status uint64 `json:"status" validate:"required"`
+}
+
+type UpStatusDeptResp struct {
+}
+
+type UpStatusRuleReq struct {
+	Id     uint64 `json:"id" validate:"required"`
+	Status uint64 `json:"status"`
 }
 
 type UpStatusRuleResp struct {
