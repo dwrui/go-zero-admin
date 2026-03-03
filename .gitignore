@@ -4,3 +4,4 @@ go.sum
 go.work.sum
 logs/
 .gitignore
+**/*.exe

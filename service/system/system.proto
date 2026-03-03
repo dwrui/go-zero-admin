@@ -219,16 +219,15 @@ message SaveRoleRequest{
   uint64 account_id = 1;
   string btns = 2;
   uint64 business_id = 3;
-  string create_time = 4;
-  uint64 data_access = 5;
-  uint64 id = 6;
-  string menu = 7;
-  string name = 8;
-  uint64 pid = 9;
-  string remark = 10;
-  string rules = 11;
-  uint64 status = 12;
-  uint64 weigh = 13;
+  uint64 data_access = 4;
+  uint64 id = 5;
+  string menu = 6;
+  string name = 7;
+  uint64 pid = 8;
+  string remark = 9;
+  string rules = 10;
+  uint64 status = 11;
+  uint64 weigh = 12;
 }
 message SaveRoleResponse{
   uint64 id = 1;

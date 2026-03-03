@@ -2112,16 +2112,15 @@ type SaveRoleRequest struct {
 	AccountId     uint64                 `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	Btns          string                 `protobuf:"bytes,2,opt,name=btns,proto3" json:"btns,omitempty"`
 	BusinessId    uint64                 `protobuf:"varint,3,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
-	CreateTime    string                 `protobuf:"bytes,4,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	DataAccess    uint64                 `protobuf:"varint,5,opt,name=data_access,json=dataAccess,proto3" json:"data_access,omitempty"`
-	Id            uint64                 `protobuf:"varint,6,opt,name=id,proto3" json:"id,omitempty"`
-	Menu          string                 `protobuf:"bytes,7,opt,name=menu,proto3" json:"menu,omitempty"`
-	Name          string                 `protobuf:"bytes,8,opt,name=name,proto3" json:"name,omitempty"`
-	Pid           uint64                 `protobuf:"varint,9,opt,name=pid,proto3" json:"pid,omitempty"`
-	Remark        string                 `protobuf:"bytes,10,opt,name=remark,proto3" json:"remark,omitempty"`
-	Rules         string                 `protobuf:"bytes,11,opt,name=rules,proto3" json:"rules,omitempty"`
-	Status        uint64                 `protobuf:"varint,12,opt,name=status,proto3" json:"status,omitempty"`
-	Weigh         uint64                 `protobuf:"varint,13,opt,name=weigh,proto3" json:"weigh,omitempty"`
+	DataAccess    uint64                 `protobuf:"varint,4,opt,name=data_access,json=dataAccess,proto3" json:"data_access,omitempty"`
+	Id            uint64                 `protobuf:"varint,5,opt,name=id,proto3" json:"id,omitempty"`
+	Menu          string                 `protobuf:"bytes,6,opt,name=menu,proto3" json:"menu,omitempty"`
+	Name          string                 `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	Pid           uint64                 `protobuf:"varint,8,opt,name=pid,proto3" json:"pid,omitempty"`
+	Remark        string                 `protobuf:"bytes,9,opt,name=remark,proto3" json:"remark,omitempty"`
+	Rules         string                 `protobuf:"bytes,10,opt,name=rules,proto3" json:"rules,omitempty"`
+	Status        uint64                 `protobuf:"varint,11,opt,name=status,proto3" json:"status,omitempty"`
+	Weigh         uint64                 `protobuf:"varint,12,opt,name=weigh,proto3" json:"weigh,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2175,13 +2174,6 @@ func (x *SaveRoleRequest) GetBusinessId() uint64 {
 		return x.BusinessId
 	}
 	return 0
-}
-
-func (x *SaveRoleRequest) GetCreateTime() string {
-	if x != nil {
-		return x.CreateTime
-	}
-	return ""
 }
 
 func (x *SaveRoleRequest) GetDataAccess() uint64 {
@@ -4218,26 +4210,24 @@ const file_system_proto_rawDesc = "" +
 	"\bchildren\x18\x0f \x03(\v2\x10.system.RoleDataR\bchildren\"T\n" +
 	"\x13GetRoleListResponse\x12\x17\n" +
 	"\amax_pid\x18\x01 \x01(\x04R\x06maxPid\x12$\n" +
-	"\x04list\x18\x02 \x03(\v2\x10.system.RoleDataR\x04list\"\xcd\x02\n" +
+	"\x04list\x18\x02 \x03(\v2\x10.system.RoleDataR\x04list\"\xac\x02\n" +
 	"\x0fSaveRoleRequest\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x04R\taccountId\x12\x12\n" +
 	"\x04btns\x18\x02 \x01(\tR\x04btns\x12\x1f\n" +
 	"\vbusiness_id\x18\x03 \x01(\x04R\n" +
 	"businessId\x12\x1f\n" +
-	"\vcreate_time\x18\x04 \x01(\tR\n" +
-	"createTime\x12\x1f\n" +
-	"\vdata_access\x18\x05 \x01(\x04R\n" +
+	"\vdata_access\x18\x04 \x01(\x04R\n" +
 	"dataAccess\x12\x0e\n" +
-	"\x02id\x18\x06 \x01(\x04R\x02id\x12\x12\n" +
-	"\x04menu\x18\a \x01(\tR\x04menu\x12\x12\n" +
-	"\x04name\x18\b \x01(\tR\x04name\x12\x10\n" +
-	"\x03pid\x18\t \x01(\x04R\x03pid\x12\x16\n" +
-	"\x06remark\x18\n" +
-	" \x01(\tR\x06remark\x12\x14\n" +
-	"\x05rules\x18\v \x01(\tR\x05rules\x12\x16\n" +
-	"\x06status\x18\f \x01(\x04R\x06status\x12\x14\n" +
-	"\x05weigh\x18\r \x01(\x04R\x05weigh\"\"\n" +
+	"\x02id\x18\x05 \x01(\x04R\x02id\x12\x12\n" +
+	"\x04menu\x18\x06 \x01(\tR\x04menu\x12\x12\n" +
+	"\x04name\x18\a \x01(\tR\x04name\x12\x10\n" +
+	"\x03pid\x18\b \x01(\x04R\x03pid\x12\x16\n" +
+	"\x06remark\x18\t \x01(\tR\x06remark\x12\x14\n" +
+	"\x05rules\x18\n" +
+	" \x01(\tR\x05rules\x12\x16\n" +
+	"\x06status\x18\v \x01(\x04R\x06status\x12\x14\n" +
+	"\x05weigh\x18\f \x01(\x04R\x05weigh\"\"\n" +
 	"\x10SaveRoleResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\"=\n" +
 	"\x13UpStatusRoleRequest\x12\x0e\n" +

@@ -3,12 +3,13 @@ package model
 import (
 	"context"
 	"fmt"
-	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
-	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
 	"strings"
 	"system/internal/svc"
 	"system/system"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gvar"
 )
 
 type AdminAuthRoleModel struct {
@@ -26,7 +27,7 @@ type AdminAuthRoleModel struct {
 	Weigh      int64  `db:"weigh"`       // 排序
 }
 
-func GetRoleList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetRoleListRequest) (ga.List, error) {
+func GetRoleList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetRoleListRequest) (ga.Map, error) {
 	user_role_ids := svcCtx.DB.Model("admin_auth_role_access").Where("uid = ?", req.UserId).Column(ctx, "role_id")
 	var allRoleModel []*AdminAuthRoleModel
 	allRole := svcCtx.DB.Model("admin_auth_role").All(ctx, &allRoleModel)
@@ -57,7 +58,7 @@ func GetRoleList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.Ge
 	}
 	if req.CreateTime != "" {
 		datetime_arr := ga.SplitAndStr(req.CreateTime, ",")
-		whereMap.Set("createtime between ? and ?", ga.Slice{datetime_arr[0] + " 00:00", datetime_arr[1] + " 23:59"})
+		whereMap.Set("create_time between ? and ?", ga.Slice{datetime_arr[0] + " 00:00", datetime_arr[1] + " 23:59"})
 	}
 	var roleList []*AdminAuthRoleModel
 	roleListData := svcCtx.DB.Model("business_auth_role").Where(whereMap).OrderBy("weigh").Select(ctx, &roleList)
@@ -87,7 +88,7 @@ func GetRoleList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.Ge
 	if roleListTree == nil {
 		roleListTree = make([]map[string]interface{}, 0)
 	}
-	return roleListTree, nil
+	return ga.Map{"list": roleListTree, "max_pid": max_role_id}, nil
 }
 
 func getDataAuthor(ctx context.Context, svcCtx *svc.ServiceContext, userId uint64, requestUrl string) (ga.Slice, bool) {
@@ -189,7 +190,7 @@ func GetRoleParent(ctx context.Context, svcCtx *svc.ServiceContext, req *system.
 
 }
 
-func GetRoleMenuList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetMenuListRequest) (ga.List, error) {
+func GetRoleMenuList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetMenuListRequest) (ga.Map, error) {
 	var rule_ids []interface{}
 	MDB := svcCtx.DB.Model("business_auth_rule").Where("status", 0).WhereIn("type", []interface{}{0, 1})
 	if req.Pid == 0 {
@@ -247,22 +248,29 @@ func GetRoleMenuList(ctx context.Context, svcCtx *svc.ServiceContext, req *syste
 			}
 			var valitem []ga.Map
 			valitem = append(valitem, item)
-			val["children"] = gvar.New(valitem)
+			val["children"] = valitem
 			var btnids []interface{}
 			for _, btnid := range childrenMenuList {
 				btnids = append(btnids, btnid.Id)
 			}
-			val["btnids"] = gvar.New(btnids)
+			val["btnids"] = btnids
 		} else if val["pid"] == 0 {
 			//一级菜单获取子级菜单按钮
 			sub_rule_ids := svcCtx.DB.Model("business_auth_rule").Where("pid", val["id"]).Where("status", 0).Where("type !=", 2).Column(ctx, "id")
 			btn_rule_ids := svcCtx.DB.Model("business_auth_rule").Where("status", 0).Where("type", 2).WhereIn("pid", sub_rule_ids.GetData()).Column(ctx, "id")
-			val["btnids"] = gvar.New(btn_rule_ids)
+			val["btnids"] = btn_rule_ids.GetData()
 		}
-		val["checkable"] = gvar.New(true)
+		val["checkable"] = true
 	}
 	menuTreeList := ga.GetMenuChildrenArray(menuListMap, 0, "pid")
-	return menuTreeList, nil
+	if rule_ids != nil {
+		btn_idsdata := svcCtx.DB.Model("business_auth_rule").Where("status", 0).Where("type", 2).WhereIn("id", rule_ids).Column(ctx, "id")
+		return ga.Map{"list": menuTreeList, "btn_rule_ids": btn_idsdata.GetData()}, nil
+	} else {
+		btn_idsdata := svcCtx.DB.Model("business_auth_rule").Where("status", 0).Where("type", 2).Column(ctx, "id")
+		return ga.Map{"list": menuTreeList, "btn_rule_ids": btn_idsdata.GetData()}, nil
+	}
+
 }
 func SaveRole(ctx context.Context, svcCtx *svc.ServiceContext, req *system.SaveRoleRequest) (uint64, error) {
 	if req.Menu != "" && req.Menu != "*" {

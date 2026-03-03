@@ -2,6 +2,7 @@ package roleservicelogic
 
 import (
 	"context"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -25,6 +26,11 @@ func NewSaveLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SaveLogic {
 
 func (l *SaveLogic) Save(in *system.SaveRoleRequest) (*system.SaveRoleResponse, error) {
 	// todo: add your logic here and delete this line
-
-	return &system.SaveRoleResponse{}, nil
+	roleId, err := model.SaveRole(l.ctx, l.svcCtx, in)
+	if err != nil {
+		return nil, err
+	}
+	return &system.SaveRoleResponse{
+		Id: roleId,
+	}, nil
 }

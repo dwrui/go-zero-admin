@@ -2,6 +2,7 @@ package roleservicelogic
 
 import (
 	"context"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -25,6 +26,9 @@ func NewDelLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DelLogic {
 
 func (l *DelLogic) Del(in *system.DelRoleRequest) (*system.DelRoleResponse, error) {
 	// todo: add your logic here and delete this line
-
+	err := model.DeleteRole(l.ctx, l.svcCtx, in)
+	if err != nil {
+		return nil, err
+	}
 	return &system.DelRoleResponse{}, nil
 }

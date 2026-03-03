@@ -2,6 +2,7 @@ package roleservicelogic
 
 import (
 	"context"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -25,6 +26,9 @@ func NewUpStatusLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpStatus
 
 func (l *UpStatusLogic) UpStatus(in *system.UpStatusRoleRequest) (*system.UpStatusRoleResponse, error) {
 	// todo: add your logic here and delete this line
-
+	err := model.UpStatusRole(l.ctx, l.svcCtx, in)
+	if err != nil {
+		return nil, err
+	}
 	return &system.UpStatusRoleResponse{}, nil
 }
