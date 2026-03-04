@@ -12,6 +12,7 @@ import (
 	config_category "admin/internal/handler/config_category"
 	dept "admin/internal/handler/dept"
 	log "admin/internal/handler/log"
+	role "admin/internal/handler/role"
 	rule "admin/internal/handler/rule"
 	user "admin/internal/handler/user"
 	"admin/internal/svc"
@@ -185,6 +186,44 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/log/getLogin",
 				Handler: log.GetLoginHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin/system"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/role/del",
+				Handler: role.DelRoleHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/role/getList",
+				Handler: role.GetRoleListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/role/getMenuList",
+				Handler: role.GetMenuListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/role/getParent",
+				Handler: role.GetRoleParentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/role/save",
+				Handler: role.SaveRoleHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/role/upStatus",
+				Handler: role.UpStatusRoleHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

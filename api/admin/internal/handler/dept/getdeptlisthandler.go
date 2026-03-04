@@ -9,7 +9,6 @@ import (
 	"admin/internal/logic/dept"
 	"admin/internal/svc"
 	"admin/internal/types"
-	validate "admin/internal/validate/system"
 
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -24,12 +23,6 @@ func GetDeptListHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
 			return
 		}
-		//验证参数
-		if msg := validate.GetDeptListValidate(req); msg != "" {
-			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(msg))
-			return
-		}
-
 		l := dept.NewGetDeptListLogic(r.Context(), svcCtx)
 		resp, err := l.GetDeptList(&req)
 		if err != nil {

@@ -2,6 +2,7 @@ package logservicelogic
 
 import (
 	"context"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -24,7 +25,9 @@ func NewDelLastLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DelL
 }
 
 func (l *DelLastLoginLogic) DelLastLogin(in *system.DelLastLoginRequest) (*system.DelLastLoginResponse, error) {
-	// todo: add your logic here and delete this line
-
+	err := model.DeleteLoginLog(l.ctx, l.svcCtx)
+	if err != nil {
+		return nil, err
+	}
 	return &system.DelLastLoginResponse{}, nil
 }

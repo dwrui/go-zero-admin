@@ -9,6 +9,7 @@ import (
 
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gtime"
 )
 
 type LoginLogModel struct {
@@ -78,4 +79,13 @@ func GetLoginLogList(ctx context.Context, svcCtx *svc.ServiceContext, req *syste
 		}
 	}
 	return ga.Map{"items": logList, "total": list.Total, "page": req.Page, "page_size": req.PageSize}, nil
+}
+
+// DeleteLoginLog 删除1个月前的登录日志
+func DeleteLoginLog(ctx context.Context, svcCtx *svc.ServiceContext) error {
+	res := svcCtx.DB.Model("common_sys_login_log").Where("type !=?", "admin").Where("createtime <", gtime.Now().AddDate(0, -1, 0).Format("Y-m-d H:i:s")).Delete(ctx)
+	if res.GetError() != nil {
+		return res.GetError()
+	}
+	return nil
 }

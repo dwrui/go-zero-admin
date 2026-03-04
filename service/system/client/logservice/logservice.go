@@ -78,6 +78,7 @@ type (
 	UpStatusRoleResponse       = system.UpStatusRoleResponse
 	UpStatusRuleRequest        = system.UpStatusRuleRequest
 	UpStatusRuleResponse       = system.UpStatusRuleResponse
+	UserInfo                   = system.UserInfo
 
 	LogService interface {
 		GetLogin(ctx context.Context, in *GetLogListRequest, opts ...grpc.CallOption) (*GetLogListResponse, error)

@@ -2110,11 +2110,11 @@ func (x *GetRoleListResponse) GetList() []*RoleData {
 type SaveRoleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccountId     uint64                 `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	Btns          string                 `protobuf:"bytes,2,opt,name=btns,proto3" json:"btns,omitempty"`
+	Btns          []uint64               `protobuf:"varint,2,rep,packed,name=btns,proto3" json:"btns,omitempty"`
 	BusinessId    uint64                 `protobuf:"varint,3,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
 	DataAccess    uint64                 `protobuf:"varint,4,opt,name=data_access,json=dataAccess,proto3" json:"data_access,omitempty"`
 	Id            uint64                 `protobuf:"varint,5,opt,name=id,proto3" json:"id,omitempty"`
-	Menu          string                 `protobuf:"bytes,6,opt,name=menu,proto3" json:"menu,omitempty"`
+	Menu          []string               `protobuf:"bytes,6,rep,name=menu,proto3" json:"menu,omitempty"`
 	Name          string                 `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
 	Pid           uint64                 `protobuf:"varint,8,opt,name=pid,proto3" json:"pid,omitempty"`
 	Remark        string                 `protobuf:"bytes,9,opt,name=remark,proto3" json:"remark,omitempty"`
@@ -2162,11 +2162,11 @@ func (x *SaveRoleRequest) GetAccountId() uint64 {
 	return 0
 }
 
-func (x *SaveRoleRequest) GetBtns() string {
+func (x *SaveRoleRequest) GetBtns() []uint64 {
 	if x != nil {
 		return x.Btns
 	}
-	return ""
+	return nil
 }
 
 func (x *SaveRoleRequest) GetBusinessId() uint64 {
@@ -2190,11 +2190,11 @@ func (x *SaveRoleRequest) GetId() uint64 {
 	return 0
 }
 
-func (x *SaveRoleRequest) GetMenu() string {
+func (x *SaveRoleRequest) GetMenu() []string {
 	if x != nil {
 		return x.Menu
 	}
-	return ""
+	return nil
 }
 
 func (x *SaveRoleRequest) GetName() string {
@@ -3462,6 +3462,7 @@ func (x *GetLogListResponse) GetTotal() uint64 {
 
 type DelLastLoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3494,6 +3495,13 @@ func (x *DelLastLoginRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use DelLastLoginRequest.ProtoReflect.Descriptor instead.
 func (*DelLastLoginRequest) Descriptor() ([]byte, []int) {
 	return file_system_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *DelLastLoginRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
 }
 
 type DelLastLoginResponse struct {
@@ -3534,12 +3542,14 @@ func (*DelLastLoginResponse) Descriptor() ([]byte, []int) {
 
 type GetOperationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserName      int64                  `protobuf:"varint,1,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"` // 操作人
-	Ip            string                 `protobuf:"bytes,2,opt,name=ip,proto3" json:"ip,omitempty"`                              // IP或地址
-	Status        int32                  `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`                     // 状态(可选)
-	Time          int64                  `protobuf:"varint,4,opt,name=time,proto3" json:"time,omitempty"`                         // 时间查询
-	Page          int32                  `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`                         // 页码
-	Size          int32                  `protobuf:"varint,6,opt,name=size,proto3" json:"size,omitempty"`                         // 每页数量
+	UserName      string                 `protobuf:"bytes,1,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`       // 操作人
+	Ip            string                 `protobuf:"bytes,2,opt,name=ip,proto3" json:"ip,omitempty"`                                   // IP或地址
+	Status        uint32                 `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`                          // 状态(可选)
+	CreateTime    string                 `protobuf:"bytes,4,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"` // 时间查询
+	Page          uint64                 `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`                              // 页码
+	Size          uint64                 `protobuf:"varint,6,opt,name=size,proto3" json:"size,omitempty"`                              // 每页数量
+	UserId        uint64                 `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	BusinessId    uint64                 `protobuf:"varint,8,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3574,11 +3584,11 @@ func (*GetOperationRequest) Descriptor() ([]byte, []int) {
 	return file_system_proto_rawDescGZIP(), []int{57}
 }
 
-func (x *GetOperationRequest) GetUserName() int64 {
+func (x *GetOperationRequest) GetUserName() string {
 	if x != nil {
 		return x.UserName
 	}
-	return 0
+	return ""
 }
 
 func (x *GetOperationRequest) GetIp() string {
@@ -3588,60 +3598,143 @@ func (x *GetOperationRequest) GetIp() string {
 	return ""
 }
 
-func (x *GetOperationRequest) GetStatus() int32 {
+func (x *GetOperationRequest) GetStatus() uint32 {
 	if x != nil {
 		return x.Status
 	}
 	return 0
 }
 
-func (x *GetOperationRequest) GetTime() int64 {
+func (x *GetOperationRequest) GetCreateTime() string {
 	if x != nil {
-		return x.Time
+		return x.CreateTime
 	}
-	return 0
+	return ""
 }
 
-func (x *GetOperationRequest) GetPage() int32 {
+func (x *GetOperationRequest) GetPage() uint64 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *GetOperationRequest) GetSize() int32 {
+func (x *GetOperationRequest) GetSize() uint64 {
 	if x != nil {
 		return x.Size
 	}
 	return 0
 }
 
+func (x *GetOperationRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetOperationRequest) GetBusinessId() uint64 {
+	if x != nil {
+		return x.BusinessId
+	}
+	return 0
+}
+
+type UserInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Avatar        string                 `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserInfo) Reset() {
+	*x = UserInfo{}
+	mi := &file_system_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserInfo) ProtoMessage() {}
+
+func (x *UserInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_system_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
+func (*UserInfo) Descriptor() ([]byte, []int) {
+	return file_system_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *UserInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UserInfo) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *UserInfo) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
+	}
+	return ""
+}
+
+func (x *UserInfo) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
 type OperationLogData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                       // 日志ID
-	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                 // 用户ID
-	AccountId     int64                  `protobuf:"varint,3,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`        // 账号ID
-	BusinessId    int64                  `protobuf:"varint,4,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`     // 业务ID
-	Type          string                 `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`                                    // 日志类型
-	Method        string                 `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`                                // 请求方法
-	Path          string                 `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`                                    // 请求路径
-	Ip            string                 `protobuf:"bytes,8,opt,name=ip,proto3" json:"ip,omitempty"`                                        // 请求IP
-	Address       string                 `protobuf:"bytes,9,opt,name=address,proto3" json:"address,omitempty"`                              // IP地址
-	Description   string                 `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`                     // 请求描述
-	ReqHeaders    string                 `protobuf:"bytes,11,opt,name=req_headers,json=reqHeaders,proto3" json:"req_headers,omitempty"`     // 请求头
-	ReqBody       string                 `protobuf:"bytes,12,opt,name=req_body,json=reqBody,proto3" json:"req_body,omitempty"`              // 请求体
-	RespHeaders   string                 `protobuf:"bytes,13,opt,name=resp_headers,json=respHeaders,proto3" json:"resp_headers,omitempty"`  // 响应头
-	RespBody      string                 `protobuf:"bytes,14,opt,name=resp_body,json=respBody,proto3" json:"resp_body,omitempty"`           // 响应体
-	Status        int32                  `protobuf:"varint,15,opt,name=status,proto3" json:"status,omitempty"`                              // 状态
-	Duration      int64                  `protobuf:"varint,16,opt,name=duration,proto3" json:"duration,omitempty"`                          // 耗时
-	CreatedTime   int64                  `protobuf:"varint,17,opt,name=created_time,json=createdTime,proto3" json:"created_time,omitempty"` // 创建时间戳
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                      // 日志ID
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                // 用户ID
+	AccountId     uint64                 `protobuf:"varint,3,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`       // 账号ID
+	BusinessId    uint64                 `protobuf:"varint,4,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`    // 业务ID
+	Type          string                 `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`                                   // 日志类型
+	Method        string                 `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`                               // 请求方法
+	Path          string                 `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`                                   // 请求路径
+	Ip            string                 `protobuf:"bytes,8,opt,name=ip,proto3" json:"ip,omitempty"`                                       // 请求IP
+	Address       string                 `protobuf:"bytes,9,opt,name=address,proto3" json:"address,omitempty"`                             // IP地址
+	Description   string                 `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`                    // 请求描述
+	ReqHeaders    string                 `protobuf:"bytes,11,opt,name=req_headers,json=reqHeaders,proto3" json:"req_headers,omitempty"`    // 请求头
+	ReqBody       string                 `protobuf:"bytes,12,opt,name=req_body,json=reqBody,proto3" json:"req_body,omitempty"`             // 请求体
+	RespHeaders   string                 `protobuf:"bytes,13,opt,name=resp_headers,json=respHeaders,proto3" json:"resp_headers,omitempty"` // 响应头
+	RespBody      string                 `protobuf:"bytes,14,opt,name=resp_body,json=respBody,proto3" json:"resp_body,omitempty"`          // 响应体
+	Status        uint32                 `protobuf:"varint,15,opt,name=status,proto3" json:"status,omitempty"`                             // 状态
+	Duration      float64                `protobuf:"fixed64,16,opt,name=duration,proto3" json:"duration,omitempty"`                        // 耗时
+	CreateTime    string                 `protobuf:"bytes,17,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`    // 创建时间戳
+	User          *UserInfo              `protobuf:"bytes,18,opt,name=user,proto3" json:"user,omitempty"`                                  // 用户信息
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OperationLogData) Reset() {
 	*x = OperationLogData{}
-	mi := &file_system_proto_msgTypes[58]
+	mi := &file_system_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3653,7 +3746,7 @@ func (x *OperationLogData) String() string {
 func (*OperationLogData) ProtoMessage() {}
 
 func (x *OperationLogData) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[58]
+	mi := &file_system_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3666,31 +3759,31 @@ func (x *OperationLogData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OperationLogData.ProtoReflect.Descriptor instead.
 func (*OperationLogData) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{58}
+	return file_system_proto_rawDescGZIP(), []int{59}
 }
 
-func (x *OperationLogData) GetId() int64 {
+func (x *OperationLogData) GetId() uint64 {
 	if x != nil {
 		return x.Id
 	}
 	return 0
 }
 
-func (x *OperationLogData) GetUserId() int64 {
+func (x *OperationLogData) GetUserId() uint64 {
 	if x != nil {
 		return x.UserId
 	}
 	return 0
 }
 
-func (x *OperationLogData) GetAccountId() int64 {
+func (x *OperationLogData) GetAccountId() uint64 {
 	if x != nil {
 		return x.AccountId
 	}
 	return 0
 }
 
-func (x *OperationLogData) GetBusinessId() int64 {
+func (x *OperationLogData) GetBusinessId() uint64 {
 	if x != nil {
 		return x.BusinessId
 	}
@@ -3767,25 +3860,32 @@ func (x *OperationLogData) GetRespBody() string {
 	return ""
 }
 
-func (x *OperationLogData) GetStatus() int32 {
+func (x *OperationLogData) GetStatus() uint32 {
 	if x != nil {
 		return x.Status
 	}
 	return 0
 }
 
-func (x *OperationLogData) GetDuration() int64 {
+func (x *OperationLogData) GetDuration() float64 {
 	if x != nil {
 		return x.Duration
 	}
 	return 0
 }
 
-func (x *OperationLogData) GetCreatedTime() int64 {
+func (x *OperationLogData) GetCreateTime() string {
 	if x != nil {
-		return x.CreatedTime
+		return x.CreateTime
 	}
-	return 0
+	return ""
+}
+
+func (x *OperationLogData) GetUser() *UserInfo {
+	if x != nil {
+		return x.User
+	}
+	return nil
 }
 
 type GetOperationResponse struct {
@@ -3800,7 +3900,7 @@ type GetOperationResponse struct {
 
 func (x *GetOperationResponse) Reset() {
 	*x = GetOperationResponse{}
-	mi := &file_system_proto_msgTypes[59]
+	mi := &file_system_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3812,7 +3912,7 @@ func (x *GetOperationResponse) String() string {
 func (*GetOperationResponse) ProtoMessage() {}
 
 func (x *GetOperationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[59]
+	mi := &file_system_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3825,7 +3925,7 @@ func (x *GetOperationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOperationResponse.ProtoReflect.Descriptor instead.
 func (*GetOperationResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{59}
+	return file_system_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetOperationResponse) GetItems() []*OperationLogData {
@@ -3858,13 +3958,14 @@ func (x *GetOperationResponse) GetTotal() uint64 {
 
 type DelLastOperationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DelLastOperationRequest) Reset() {
 	*x = DelLastOperationRequest{}
-	mi := &file_system_proto_msgTypes[60]
+	mi := &file_system_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3876,7 +3977,7 @@ func (x *DelLastOperationRequest) String() string {
 func (*DelLastOperationRequest) ProtoMessage() {}
 
 func (x *DelLastOperationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[60]
+	mi := &file_system_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3889,7 +3990,14 @@ func (x *DelLastOperationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelLastOperationRequest.ProtoReflect.Descriptor instead.
 func (*DelLastOperationRequest) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{60}
+	return file_system_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *DelLastOperationRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
 }
 
 type DelLastOperationResponse struct {
@@ -3900,7 +4008,7 @@ type DelLastOperationResponse struct {
 
 func (x *DelLastOperationResponse) Reset() {
 	*x = DelLastOperationResponse{}
-	mi := &file_system_proto_msgTypes[61]
+	mi := &file_system_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3912,7 +4020,7 @@ func (x *DelLastOperationResponse) String() string {
 func (*DelLastOperationResponse) ProtoMessage() {}
 
 func (x *DelLastOperationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[61]
+	mi := &file_system_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3925,7 +4033,7 @@ func (x *DelLastOperationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelLastOperationResponse.ProtoReflect.Descriptor instead.
 func (*DelLastOperationResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{61}
+	return file_system_proto_rawDescGZIP(), []int{62}
 }
 
 type GetOperationDetailRequest struct {
@@ -3937,7 +4045,7 @@ type GetOperationDetailRequest struct {
 
 func (x *GetOperationDetailRequest) Reset() {
 	*x = GetOperationDetailRequest{}
-	mi := &file_system_proto_msgTypes[62]
+	mi := &file_system_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3949,7 +4057,7 @@ func (x *GetOperationDetailRequest) String() string {
 func (*GetOperationDetailRequest) ProtoMessage() {}
 
 func (x *GetOperationDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[62]
+	mi := &file_system_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3962,7 +4070,7 @@ func (x *GetOperationDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOperationDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetOperationDetailRequest) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{62}
+	return file_system_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *GetOperationDetailRequest) GetId() uint64 {
@@ -3974,14 +4082,31 @@ func (x *GetOperationDetailRequest) GetId() uint64 {
 
 type GetOperationDetailResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          *OperationLogData      `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                      // 日志ID
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                // 用户ID
+	AccountId     uint64                 `protobuf:"varint,3,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`       // 账号ID
+	BusinessId    uint64                 `protobuf:"varint,4,opt,name=business_id,json=businessId,proto3" json:"business_id,omitempty"`    // 业务ID
+	Type          string                 `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`                                   // 日志类型
+	Method        string                 `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`                               // 请求方法
+	Path          string                 `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`                                   // 请求路径
+	Ip            string                 `protobuf:"bytes,8,opt,name=ip,proto3" json:"ip,omitempty"`                                       // 请求IP
+	Address       string                 `protobuf:"bytes,9,opt,name=address,proto3" json:"address,omitempty"`                             // IP地址
+	Description   string                 `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`                    // 请求描述
+	ReqHeaders    string                 `protobuf:"bytes,11,opt,name=req_headers,json=reqHeaders,proto3" json:"req_headers,omitempty"`    // 请求头
+	ReqBody       string                 `protobuf:"bytes,12,opt,name=req_body,json=reqBody,proto3" json:"req_body,omitempty"`             // 请求体
+	RespHeaders   string                 `protobuf:"bytes,13,opt,name=resp_headers,json=respHeaders,proto3" json:"resp_headers,omitempty"` // 响应头
+	RespBody      string                 `protobuf:"bytes,14,opt,name=resp_body,json=respBody,proto3" json:"resp_body,omitempty"`          // 响应体
+	Status        uint32                 `protobuf:"varint,15,opt,name=status,proto3" json:"status,omitempty"`                             // 状态
+	Duration      float64                `protobuf:"fixed64,16,opt,name=duration,proto3" json:"duration,omitempty"`                        // 耗时
+	CreateTime    string                 `protobuf:"bytes,17,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`    // 创建时间戳
+	Username      string                 `protobuf:"bytes,18,opt,name=username,proto3" json:"username,omitempty"`                          // 操作员
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetOperationDetailResponse) Reset() {
 	*x = GetOperationDetailResponse{}
-	mi := &file_system_proto_msgTypes[63]
+	mi := &file_system_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3993,7 +4118,7 @@ func (x *GetOperationDetailResponse) String() string {
 func (*GetOperationDetailResponse) ProtoMessage() {}
 
 func (x *GetOperationDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_system_proto_msgTypes[63]
+	mi := &file_system_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4006,14 +4131,133 @@ func (x *GetOperationDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOperationDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetOperationDetailResponse) Descriptor() ([]byte, []int) {
-	return file_system_proto_rawDescGZIP(), []int{63}
+	return file_system_proto_rawDescGZIP(), []int{64}
 }
 
-func (x *GetOperationDetailResponse) GetData() *OperationLogData {
+func (x *GetOperationDetailResponse) GetId() uint64 {
 	if x != nil {
-		return x.Data
+		return x.Id
 	}
-	return nil
+	return 0
+}
+
+func (x *GetOperationDetailResponse) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetOperationDetailResponse) GetAccountId() uint64 {
+	if x != nil {
+		return x.AccountId
+	}
+	return 0
+}
+
+func (x *GetOperationDetailResponse) GetBusinessId() uint64 {
+	if x != nil {
+		return x.BusinessId
+	}
+	return 0
+}
+
+func (x *GetOperationDetailResponse) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetReqHeaders() string {
+	if x != nil {
+		return x.ReqHeaders
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetReqBody() string {
+	if x != nil {
+		return x.ReqBody
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetRespHeaders() string {
+	if x != nil {
+		return x.RespHeaders
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetRespBody() string {
+	if x != nil {
+		return x.RespBody
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetStatus() uint32 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *GetOperationDetailResponse) GetDuration() float64 {
+	if x != nil {
+		return x.Duration
+	}
+	return 0
+}
+
+func (x *GetOperationDetailResponse) GetCreateTime() string {
+	if x != nil {
+		return x.CreateTime
+	}
+	return ""
+}
+
+func (x *GetOperationDetailResponse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
 }
 
 var File_system_proto protoreflect.FileDescriptor
@@ -4214,13 +4458,13 @@ const file_system_proto_rawDesc = "" +
 	"\x0fSaveRoleRequest\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x04R\taccountId\x12\x12\n" +
-	"\x04btns\x18\x02 \x01(\tR\x04btns\x12\x1f\n" +
+	"\x04btns\x18\x02 \x03(\x04R\x04btns\x12\x1f\n" +
 	"\vbusiness_id\x18\x03 \x01(\x04R\n" +
 	"businessId\x12\x1f\n" +
 	"\vdata_access\x18\x04 \x01(\x04R\n" +
 	"dataAccess\x12\x0e\n" +
 	"\x02id\x18\x05 \x01(\x04R\x02id\x12\x12\n" +
-	"\x04menu\x18\x06 \x01(\tR\x04menu\x12\x12\n" +
+	"\x04menu\x18\x06 \x03(\tR\x04menu\x12\x12\n" +
 	"\x04name\x18\a \x01(\tR\x04name\x12\x10\n" +
 	"\x03pid\x18\b \x01(\x04R\x03pid\x12\x16\n" +
 	"\x06remark\x18\t \x01(\tR\x06remark\x12\x14\n" +
@@ -4308,22 +4552,32 @@ const file_system_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x12.system.GetLogDataR\x05items\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x04R\x04page\x12\x1a\n" +
 	"\bpageSize\x18\x03 \x01(\x04R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x04R\x05total\"\x15\n" +
-	"\x13DelLastLoginRequest\"\x16\n" +
-	"\x14DelLastLoginResponse\"\x96\x01\n" +
+	"\x05total\x18\x04 \x01(\x04R\x05total\"%\n" +
+	"\x13DelLastLoginRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\"\x16\n" +
+	"\x14DelLastLoginResponse\"\xdd\x01\n" +
 	"\x13GetOperationRequest\x12\x1b\n" +
-	"\tuser_name\x18\x01 \x01(\x03R\buserName\x12\x0e\n" +
+	"\tuser_name\x18\x01 \x01(\tR\buserName\x12\x0e\n" +
 	"\x02ip\x18\x02 \x01(\tR\x02ip\x12\x16\n" +
-	"\x06status\x18\x03 \x01(\x05R\x06status\x12\x12\n" +
-	"\x04time\x18\x04 \x01(\x03R\x04time\x12\x12\n" +
-	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x12\n" +
-	"\x04size\x18\x06 \x01(\x05R\x04size\"\xda\x03\n" +
+	"\x06status\x18\x03 \x01(\rR\x06status\x12\x1f\n" +
+	"\vcreate_time\x18\x04 \x01(\tR\n" +
+	"createTime\x12\x12\n" +
+	"\x04page\x18\x05 \x01(\x04R\x04page\x12\x12\n" +
+	"\x04size\x18\x06 \x01(\x04R\x04size\x12\x17\n" +
+	"\auser_id\x18\a \x01(\x04R\x06userId\x12\x1f\n" +
+	"\vbusiness_id\x18\b \x01(\x04R\n" +
+	"businessId\"n\n" +
+	"\bUserInfo\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x16\n" +
+	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x1a\n" +
+	"\bnickname\x18\x04 \x01(\tR\bnickname\"\xfe\x03\n" +
 	"\x10OperationLogData\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x1d\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x03 \x01(\x03R\taccountId\x12\x1f\n" +
-	"\vbusiness_id\x18\x04 \x01(\x03R\n" +
+	"account_id\x18\x03 \x01(\x04R\taccountId\x12\x1f\n" +
+	"\vbusiness_id\x18\x04 \x01(\x04R\n" +
 	"businessId\x12\x12\n" +
 	"\x04type\x18\x05 \x01(\tR\x04type\x12\x16\n" +
 	"\x06method\x18\x06 \x01(\tR\x06method\x12\x12\n" +
@@ -4337,20 +4591,45 @@ const file_system_proto_rawDesc = "" +
 	"\breq_body\x18\f \x01(\tR\areqBody\x12!\n" +
 	"\fresp_headers\x18\r \x01(\tR\vrespHeaders\x12\x1b\n" +
 	"\tresp_body\x18\x0e \x01(\tR\brespBody\x12\x16\n" +
-	"\x06status\x18\x0f \x01(\x05R\x06status\x12\x1a\n" +
-	"\bduration\x18\x10 \x01(\x03R\bduration\x12!\n" +
-	"\fcreated_time\x18\x11 \x01(\x03R\vcreatedTime\"\x8c\x01\n" +
+	"\x06status\x18\x0f \x01(\rR\x06status\x12\x1a\n" +
+	"\bduration\x18\x10 \x01(\x01R\bduration\x12\x1f\n" +
+	"\vcreate_time\x18\x11 \x01(\tR\n" +
+	"createTime\x12$\n" +
+	"\x04user\x18\x12 \x01(\v2\x10.system.UserInfoR\x04user\"\x8c\x01\n" +
 	"\x14GetOperationResponse\x12.\n" +
 	"\x05items\x18\x01 \x03(\v2\x18.system.OperationLogDataR\x05items\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x04R\x04page\x12\x1a\n" +
 	"\bpageSize\x18\x03 \x01(\x04R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x04R\x05total\"\x19\n" +
-	"\x17DelLastOperationRequest\"\x1a\n" +
+	"\x05total\x18\x04 \x01(\x04R\x05total\")\n" +
+	"\x17DelLastOperationRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\"\x1a\n" +
 	"\x18DelLastOperationResponse\"+\n" +
 	"\x19GetOperationDetailRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id\"J\n" +
-	"\x1aGetOperationDetailResponse\x12,\n" +
-	"\x04data\x18\x01 \x01(\v2\x18.system.OperationLogDataR\x04data2\xe4\x03\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\"\xfe\x03\n" +
+	"\x1aGetOperationDetailResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x03 \x01(\x04R\taccountId\x12\x1f\n" +
+	"\vbusiness_id\x18\x04 \x01(\x04R\n" +
+	"businessId\x12\x12\n" +
+	"\x04type\x18\x05 \x01(\tR\x04type\x12\x16\n" +
+	"\x06method\x18\x06 \x01(\tR\x06method\x12\x12\n" +
+	"\x04path\x18\a \x01(\tR\x04path\x12\x0e\n" +
+	"\x02ip\x18\b \x01(\tR\x02ip\x12\x18\n" +
+	"\aaddress\x18\t \x01(\tR\aaddress\x12 \n" +
+	"\vdescription\x18\n" +
+	" \x01(\tR\vdescription\x12\x1f\n" +
+	"\vreq_headers\x18\v \x01(\tR\n" +
+	"reqHeaders\x12\x19\n" +
+	"\breq_body\x18\f \x01(\tR\areqBody\x12!\n" +
+	"\fresp_headers\x18\r \x01(\tR\vrespHeaders\x12\x1b\n" +
+	"\tresp_body\x18\x0e \x01(\tR\brespBody\x12\x16\n" +
+	"\x06status\x18\x0f \x01(\rR\x06status\x12\x1a\n" +
+	"\bduration\x18\x10 \x01(\x01R\bduration\x12\x1f\n" +
+	"\vcreate_time\x18\x11 \x01(\tR\n" +
+	"createTime\x12\x1a\n" +
+	"\busername\x18\x12 \x01(\tR\busername2\xe4\x03\n" +
 	"\vRuleService\x12B\n" +
 	"\aGetList\x12\x1a.system.GetRuleListRequest\x1a\x1b.system.GetRuleListResponse\x129\n" +
 	"\x04Save\x12\x17.system.SaveRuleRequest\x1a\x18.system.SaveRuleResponse\x12E\n" +
@@ -4401,7 +4680,7 @@ func file_system_proto_rawDescGZIP() []byte {
 	return file_system_proto_rawDescData
 }
 
-var file_system_proto_msgTypes = make([]protoimpl.MessageInfo, 65)
+var file_system_proto_msgTypes = make([]protoimpl.MessageInfo, 66)
 var file_system_proto_goTypes = []any{
 	(*GetRuleListRequest)(nil),         // 0: system.GetRuleListRequest
 	(*RuleListData)(nil),               // 1: system.RuleListData
@@ -4461,13 +4740,14 @@ var file_system_proto_goTypes = []any{
 	(*DelLastLoginRequest)(nil),        // 55: system.DelLastLoginRequest
 	(*DelLastLoginResponse)(nil),       // 56: system.DelLastLoginResponse
 	(*GetOperationRequest)(nil),        // 57: system.GetOperationRequest
-	(*OperationLogData)(nil),           // 58: system.OperationLogData
-	(*GetOperationResponse)(nil),       // 59: system.GetOperationResponse
-	(*DelLastOperationRequest)(nil),    // 60: system.DelLastOperationRequest
-	(*DelLastOperationResponse)(nil),   // 61: system.DelLastOperationResponse
-	(*GetOperationDetailRequest)(nil),  // 62: system.GetOperationDetailRequest
-	(*GetOperationDetailResponse)(nil), // 63: system.GetOperationDetailResponse
-	nil,                                // 64: system.GetLogData.UserEntry
+	(*UserInfo)(nil),                   // 58: system.UserInfo
+	(*OperationLogData)(nil),           // 59: system.OperationLogData
+	(*GetOperationResponse)(nil),       // 60: system.GetOperationResponse
+	(*DelLastOperationRequest)(nil),    // 61: system.DelLastOperationRequest
+	(*DelLastOperationResponse)(nil),   // 62: system.DelLastOperationResponse
+	(*GetOperationDetailRequest)(nil),  // 63: system.GetOperationDetailRequest
+	(*GetOperationDetailResponse)(nil), // 64: system.GetOperationDetailResponse
+	nil,                                // 65: system.GetLogData.UserEntry
 }
 var file_system_proto_depIdxs = []int32{
 	1,  // 0: system.RuleListData.children:type_name -> system.RuleListData
@@ -4479,10 +4759,10 @@ var file_system_proto_depIdxs = []int32{
 	28, // 6: system.RoleData.children:type_name -> system.RoleData
 	28, // 7: system.GetRoleListResponse.list:type_name -> system.RoleData
 	28, // 8: system.GetRoleParentResponse.list:type_name -> system.RoleData
-	64, // 9: system.GetLogData.user:type_name -> system.GetLogData.UserEntry
+	65, // 9: system.GetLogData.user:type_name -> system.GetLogData.UserEntry
 	53, // 10: system.GetLogListResponse.items:type_name -> system.GetLogData
-	58, // 11: system.GetOperationResponse.items:type_name -> system.OperationLogData
-	58, // 12: system.GetOperationDetailResponse.data:type_name -> system.OperationLogData
+	58, // 11: system.OperationLogData.user:type_name -> system.UserInfo
+	59, // 12: system.GetOperationResponse.items:type_name -> system.OperationLogData
 	0,  // 13: system.RuleService.GetList:input_type -> system.GetRuleListRequest
 	3,  // 14: system.RuleService.Save:input_type -> system.SaveRuleRequest
 	5,  // 15: system.RuleService.UpStatus:input_type -> system.UpStatusRuleRequest
@@ -4510,8 +4790,8 @@ var file_system_proto_depIdxs = []int32{
 	52, // 37: system.LogService.GetLogin:input_type -> system.GetLogListRequest
 	55, // 38: system.LogService.DelLastLogin:input_type -> system.DelLastLoginRequest
 	57, // 39: system.LogService.GetOperation:input_type -> system.GetOperationRequest
-	60, // 40: system.LogService.DelLastOperation:input_type -> system.DelLastOperationRequest
-	62, // 41: system.LogService.GetOperationDetail:input_type -> system.GetOperationDetailRequest
+	61, // 40: system.LogService.DelLastOperation:input_type -> system.DelLastOperationRequest
+	63, // 41: system.LogService.GetOperationDetail:input_type -> system.GetOperationDetailRequest
 	2,  // 42: system.RuleService.GetList:output_type -> system.GetRuleListResponse
 	4,  // 43: system.RuleService.Save:output_type -> system.SaveRuleResponse
 	6,  // 44: system.RuleService.UpStatus:output_type -> system.UpStatusRuleResponse
@@ -4538,9 +4818,9 @@ var file_system_proto_depIdxs = []int32{
 	51, // 65: system.AccountService.Isaccountexist:output_type -> system.IsAccountExistResponse
 	54, // 66: system.LogService.GetLogin:output_type -> system.GetLogListResponse
 	56, // 67: system.LogService.DelLastLogin:output_type -> system.DelLastLoginResponse
-	59, // 68: system.LogService.GetOperation:output_type -> system.GetOperationResponse
-	61, // 69: system.LogService.DelLastOperation:output_type -> system.DelLastOperationResponse
-	63, // 70: system.LogService.GetOperationDetail:output_type -> system.GetOperationDetailResponse
+	60, // 68: system.LogService.GetOperation:output_type -> system.GetOperationResponse
+	62, // 69: system.LogService.DelLastOperation:output_type -> system.DelLastOperationResponse
+	64, // 70: system.LogService.GetOperationDetail:output_type -> system.GetOperationDetailResponse
 	42, // [42:71] is the sub-list for method output_type
 	13, // [13:42] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
@@ -4559,7 +4839,7 @@ func file_system_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_system_proto_rawDesc), len(file_system_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   65,
+			NumMessages:   66,
 			NumExtensions: 0,
 			NumServices:   5,
 		},

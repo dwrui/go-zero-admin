@@ -78,6 +78,7 @@ type (
 	UpStatusRoleResponse       = system.UpStatusRoleResponse
 	UpStatusRuleRequest        = system.UpStatusRuleRequest
 	UpStatusRuleResponse       = system.UpStatusRuleResponse
+	UserInfo                   = system.UserInfo
 
 	RuleService interface {
 		GetList(ctx context.Context, in *GetRuleListRequest, opts ...grpc.CallOption) (*GetRuleListResponse, error)

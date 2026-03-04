@@ -2,7 +2,6 @@ package deptservicelogic
 
 import (
 	"context"
-	"fmt"
 	"system/internal/model"
 	"system/internal/svc"
 	"system/system"
@@ -39,8 +38,6 @@ func (l *SaveLogic) Save(in *system.SaveDeptRequest) (*system.SaveDeptResponse, 
 	if in.Id == 0 {
 		dataMap["create_time"] = time.Now().Format("2006-01-02 15:04:05")
 	}
-	fmt.Println(dataMap)
-	fmt.Println(in)
 	id, err := model.SaveDept(l.ctx, l.svcCtx, dataMap)
 	if err != nil {
 		return nil, err

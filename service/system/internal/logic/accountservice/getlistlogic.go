@@ -24,7 +24,6 @@ func NewGetListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetListLo
 }
 
 func (l *GetListLogic) GetList(in *system.GetRoleListRequest) (*system.GetRoleListResponse, error) {
-	// todo: add your logic here and delete this line
 
 	return &system.GetRoleListResponse{}, nil
 }

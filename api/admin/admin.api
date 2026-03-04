@@ -361,6 +361,118 @@ service admin-api {
 	get /dept/getParent (GetDeptParentReq) returns (GetDeptParentResp)
 }
 
+// 角色管理相关接口
+type GetRoleListReq {
+	Name       string `form:"name,optional"`
+	Status     uint64 `form:"status,optional"`
+	CreateTime string `form:"create_time,optional"`
+}
+
+type RoleData {
+	AccountId  uint64     `json:"account_id"`
+	Btns       string     `json:"btns"`
+	BusinessId uint64     `json:"business_id"`
+	CreateTime string     `json:"create_time"`
+	DataAccess uint64     `json:"data_access"`
+	Id         uint64     `json:"id"`
+	Menu       string     `json:"menu"`
+	Name       string     `json:"name"`
+	Pid        uint64     `json:"pid"`
+	Remark     string     `json:"remark"`
+	Rules      string     `json:"rules"`
+	Spacer     string     `json:"spacer"`
+	Status     uint64     `json:"status"`
+	Weigh      uint64     `json:"weigh"`
+	Children   []RoleData `json:"children"`
+}
+
+type GetRoleListResp {
+	MaxPid uint64     `json:"max_pid"`
+	List   []RoleData `json:"list"`
+}
+
+type SaveRoleReq {
+	Id         uint64      `json:"id"`
+	Name       string      `json:"name" validate:"required"`
+	Pid        uint64      `json:"pid"`
+	Status     uint64      `json:"status,default=1"`
+	Weigh      uint64      `json:"weigh"`
+	Remark     string      `json:"remark"`
+	Rules      string      `json:"rules"`
+	Menu       interface{} `json:"menu"`
+	Btns       []uint64    `json:"btns"`
+	DataAccess uint64      `json:"data_access"`
+}
+
+type SaveRoleResp {
+	Id uint64 `json:"id"`
+}
+
+type UpStatusRoleReq {
+	Id     uint64 `json:"id" validate:"required"`
+	Status uint64 `json:"status" validate:"oneof=0 1"`
+}
+
+type UpStatusRoleResp {}
+
+type DelRoleReq {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DelRoleResp {}
+
+type GetRoleParentReq {
+	Id         uint64 `form:"id" validate:"required"`
+	RequestUrl string `form:"request_url,optional"`
+	UserId     uint64 `form:"user_id,optional"`
+}
+
+type GetRoleParentResp {
+	List []RoleData `json:"list"`
+}
+
+type GetMenuListReq {
+	Pid    uint64 `form:"pid,optional"`
+	UserId uint64 `form:"user_id,optional"`
+}
+
+type GetMenuListResp {
+	Data string `json:"data"`
+}
+
+//需要验证的接口
+@server (
+	jwt:     Auth
+	prefix:  /api/admin/system
+	group:   role
+	timeout: 3s
+)
+service admin-api {
+	// 获取角色列表
+	@handler getRoleList
+	get /role/getList (GetRoleListReq) returns (GetRoleListResp)
+
+	// 保存角色
+	@handler saveRole
+	post /role/save (SaveRoleReq) returns (SaveRoleResp)
+
+	// 更新角色状态
+	@handler upStatusRole
+	post /role/upStatus (UpStatusRoleReq) returns (UpStatusRoleResp)
+
+	// 删除角色
+	@handler delRole
+	post /role/del (DelRoleReq) returns (DelRoleResp)
+
+	// 获取角色父级
+	@handler getRoleParent
+	get /role/getParent (GetRoleParentReq) returns (GetRoleParentResp)
+
+	// 获取菜单列表
+	@handler getMenuList
+	get /role/getMenuList (GetMenuListReq) returns (GetMenuListResp)
+}
+
 //需要验证的接口
 @server (
 	jwt:     Auth

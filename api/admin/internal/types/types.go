@@ -70,6 +70,13 @@ type DelDeptReq struct {
 type DelDeptResp struct {
 }
 
+type DelRoleReq struct {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DelRoleResp struct {
+}
+
 type DelRuleReq struct {
 	Id uint64 `json:"id" validate:"required"`
 }
@@ -190,8 +197,38 @@ type GetLogData struct {
 	User       map[string]string `json:"user"`
 }
 
+type GetMenuListReq struct {
+	Pid    uint64 `form:"pid,optional"`
+	UserId uint64 `form:"user_id,optional"`
+}
+
+type GetMenuListResp struct {
+	Data string `json:"data"`
+}
+
 type GetMenuReq struct {
 	RouteId uint64 `json:"route_id"`
+}
+
+type GetRoleListReq struct {
+	Name       string `form:"name,optional"`
+	Status     uint64 `form:"status,optional"`
+	CreateTime string `form:"create_time,optional"`
+}
+
+type GetRoleListResp struct {
+	MaxPid uint64     `json:"max_pid"`
+	List   []RoleData `json:"list"`
+}
+
+type GetRoleParentReq struct {
+	Id         uint64 `form:"id" validate:"required"`
+	RequestUrl string `form:"request_url,optional"`
+	UserId     uint64 `form:"user_id,optional"`
+}
+
+type GetRoleParentResp struct {
+	List []RoleData `json:"list"`
 }
 
 type GetRoutesReq struct {
@@ -248,6 +285,24 @@ type LoginReq struct {
 	Captcha  string `json:"captcha" validate:"required"`
 }
 
+type RoleData struct {
+	AccountId  uint64     `json:"account_id"`
+	Btns       string     `json:"btns"`
+	BusinessId uint64     `json:"business_id"`
+	CreateTime string     `json:"create_time"`
+	DataAccess uint64     `json:"data_access"`
+	Id         uint64     `json:"id"`
+	Menu       string     `json:"menu"`
+	Name       string     `json:"name"`
+	Pid        uint64     `json:"pid"`
+	Remark     string     `json:"remark"`
+	Rules      string     `json:"rules"`
+	Spacer     string     `json:"spacer"`
+	Status     uint64     `json:"status"`
+	Weigh      uint64     `json:"weigh"`
+	Children   []RoleData `json:"children"`
+}
+
 type RuleListData struct {
 	Component  string         `json:"component"`
 	CreateTime string         `json:"create_time"`
@@ -291,6 +346,23 @@ type SaveQuickReq struct {
 	Weigh   uint64 `json:"weigh"`
 }
 
+type SaveRoleReq struct {
+	Id         uint64      `json:"id"`
+	Name       string      `json:"name" validate:"required"`
+	Pid        uint64      `json:"pid"`
+	Status     uint64      `json:"status,default=1"`
+	Weigh      uint64      `json:"weigh"`
+	Remark     string      `json:"remark"`
+	Rules      string      `json:"rules"`
+	Menu       interface{} `json:"menu"`
+	Btns       []uint64    `json:"btns"`
+	DataAccess uint64      `json:"data_access"`
+}
+
+type SaveRoleResp struct {
+	Id uint64 `json:"id"`
+}
+
 type SaveRuleReq struct {
 	Activemenu         uint64 `json:"activemenu"`
 	Component          string `json:"component"`
@@ -326,6 +398,14 @@ type UpStatusDeptReq struct {
 }
 
 type UpStatusDeptResp struct {
+}
+
+type UpStatusRoleReq struct {
+	Id     uint64 `json:"id" validate:"required"`
+	Status uint64 `json:"status" validate:"oneof=0 1"`
+}
+
+type UpStatusRoleResp struct {
 }
 
 type UpStatusRuleReq struct {

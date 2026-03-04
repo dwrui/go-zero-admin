@@ -1811,8 +1811,18 @@ func (qb *Model) buildQuery() (string, []interface{}) {
 
 // isSliceEmpty 辅助方法：判断切片是否为空
 func (r *QueryResult) isSliceEmpty(v interface{}) bool {
-	// 这里可以添加更多的反射逻辑来判断不同类型的空值
-	// 简化实现，主要处理常见的切片类型
+	rv := reflect.ValueOf(v)
+	// 处理指针类型
+	for rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			return true // 空指针视为空
+		}
+		rv = rv.Elem()
+	}
+
+	if rv.Kind() == reflect.Slice {
+		return rv.Len() == 0
+	}
 	return false
 }
 

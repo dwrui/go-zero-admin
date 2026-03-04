@@ -94,11 +94,6 @@ func GetRuleListValidate(req types.GetRuleListReq) string {
 	return ""
 }
 
-// GetDeptListValidate 验证获取部门列表请求
-func GetDeptListValidate(req types.GetDeptListReq) string {
-	return ""
-}
-
 // SaveDeptValidate 验证保存部门请求
 func SaveDeptValidate(req types.SaveDeptReq) string {
 	validator := ga.Validator()
@@ -121,9 +116,6 @@ func UpStatusDeptValidate(req types.UpStatusDeptReq) string {
 		"id": map[string]string{
 			"required": "参数错误",
 		},
-		"status": map[string]string{
-			"required": "参数错误",
-		},
 	}
 	validator.SetMessages(messages)
 	if err := validator.ValidateOne(req); err != nil {
@@ -134,6 +126,69 @@ func UpStatusDeptValidate(req types.UpStatusDeptReq) string {
 
 // DelDeptValidate 验证删除部门请求
 func DelDeptValidate(req types.DelDeptReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"id": map[string]string{
+			"required": "参数错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// SaveRoleValidate 验证保存角色请求
+func SaveRoleValidate(req types.SaveRoleReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"name": map[string]string{
+			"required": "请输入角色名称",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// UpStatusRoleValidate 验证更新角色状态请求
+func UpStatusRoleValidate(req types.UpStatusRoleReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"id": map[string]string{
+			"required": "参数错误",
+		},
+		"status": map[string]string{
+			"oneof": "状态值错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// GetParentValidate 验证获取角色父级请求
+func GetParentValidate(req types.GetRoleParentReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"id": map[string]string{
+			"required": "参数错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// DelRoleValidate 验证删除角色请求
+func DelRoleValidate(req types.DelRoleReq) string {
 	validator := ga.Validator()
 	messages := map[string]interface{}{
 		"id": map[string]string{

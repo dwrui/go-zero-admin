@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -102,7 +104,7 @@ func LocalIP() string {
 }
 
 // FindAllChildrenIDs 根据 targetID 切片查找所有下级 ID
-func FindAllChildrenIDs(data []map[string]interface{}, targetIDs []uint64) []uint64 {
+func FindAllChildrenIDs(data []map[string]uint64, targetIDs []uint64) []uint64 {
 	// 用于存储所有下级 ID，避免重复
 	idSet := make(map[uint64]bool)
 
@@ -120,11 +122,11 @@ func FindAllChildrenIDs(data []map[string]interface{}, targetIDs []uint64) []uin
 }
 
 // findChildrenRecursive 递归查找子级 ID
-func findChildrenRecursive(data []map[string]interface{}, targetID uint64, idSet map[uint64]bool) {
+func findChildrenRecursive(data []map[string]uint64, targetID uint64, idSet map[uint64]bool) {
 	for _, item := range data {
 		// 如果当前项的 pid 匹配 targetID，则记录其 id
-		if pid, ok := item["pid"].(uint64); ok && pid == targetID {
-			id := item["id"].(uint64)
+		if pid, ok := item["pid"]; ok && pid == targetID {
+			id := item["id"]
 			if !idSet[id] {
 				idSet[id] = true
 				// 递归查找该 id 的子级
@@ -170,6 +172,18 @@ func MergeArr(a []*gvar.Var, b []interface{}) []interface{} {
 	}
 	for _, j := range b {
 		arr = append(arr, j)
+	}
+	return arr
+}
+
+// 合并数组-两个数组合并为一个数组
+func MergeArrUint64(a []interface{}, b []interface{}) []uint64 {
+	var arr []uint64
+	for _, i := range a {
+		arr = append(arr, Uint64(i))
+	}
+	for _, j := range b {
+		arr = append(arr, Uint64(j))
 	}
 	return arr
 }
@@ -535,9 +549,7 @@ func GetMenuChildrenArray(pdata List, parent_id int64, pid_file string) List {
 		if Int64(v[pid_file]) == parent_id {
 			children := GetMenuChildrenArray(pdata, Int64(v["id"]), pid_file)
 			if children != nil {
-				v["children"] = children
-			} else {
-				v["children"] = Slice{}
+				v["children"] = gvar.New(children)
 			}
 			returnList = append(returnList, v)
 		}
@@ -739,5 +751,74 @@ func ResData(r *http.Request, data any) error {
 	if err := json.Unmarshal(body, &data); err != nil {
 		return errors.New("请求参数格式不合法,请核对参数格式")
 	}
+	// 设置结构体字段的默认值
+	setDefaultValues(data)
 	return nil
+}
+
+// setDefaultValues 设置结构体字段的默认值
+func setDefaultValues(data any) {
+	val := reflect.ValueOf(data)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
+		return
+	}
+
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+
+		// 检查字段是否可设置
+		if !field.CanSet() {
+			continue
+		}
+
+		// 获取JSON标签
+		jsonTag := fieldType.Tag.Get("json")
+		if jsonTag == "" {
+			continue
+		}
+
+		// 解析JSON标签中的default参数
+		tagParts := strings.Split(jsonTag, ",")
+		for _, part := range tagParts {
+			if strings.HasPrefix(part, "default=") {
+				defaultValue := strings.TrimPrefix(part, "default=")
+				setFieldDefaultValue(field, defaultValue)
+				break
+			}
+		}
+	}
+}
+
+// setFieldDefaultValue 根据字段类型设置默认值
+func setFieldDefaultValue(field reflect.Value, defaultValue string) {
+	// 如果字段已经有值（非零值），则不设置默认值
+	if !field.IsZero() {
+		return
+	}
+
+	switch field.Kind() {
+	case reflect.String:
+		field.SetString(defaultValue)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if val, err := strconv.ParseInt(defaultValue, 10, 64); err == nil {
+			field.SetInt(val)
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if val, err := strconv.ParseUint(defaultValue, 10, 64); err == nil {
+			field.SetUint(val)
+		}
+	case reflect.Float32, reflect.Float64:
+		if val, err := strconv.ParseFloat(defaultValue, 64); err == nil {
+			field.SetFloat(val)
+		}
+	case reflect.Bool:
+		if val, err := strconv.ParseBool(defaultValue); err == nil {
+			field.SetBool(val)
+		}
+	}
 }
