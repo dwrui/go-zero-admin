@@ -3,6 +3,26 @@
 
 package types
 
+type AccountData struct {
+	Id         uint64   `json:"id"`
+	Address    string   `json:"address"`
+	Avatar     string   `json:"avatar"`
+	City       string   `json:"city"`
+	Company    string   `json:"company"`
+	Deptname   string   `json:"deptname"`
+	CreateTime string   `json:"create_time"`
+	DeptId     uint64   `json:"dept_id"`
+	Email      string   `json:"email"`
+	Mobile     string   `json:"mobile"`
+	Name       string   `json:"name"`
+	Remark     string   `json:"remark"`
+	Status     uint64   `json:"status"`
+	Tel        string   `json:"tel"`
+	Username   string   `json:"username"`
+	Roleid     []uint64 `json:"roleid"`
+	Rolename   []string `json:"rolename"`
+}
+
 type ConfigCategoryData struct {
 	Id           uint64 `json:"id"`
 	CategoryKey  string `json:"category_key"`
@@ -61,6 +81,13 @@ type CreateConfigReq struct {
 	IsSecret       int32  `json:"is_secret"`
 	SortOrder      int32  `json:"sort_order"`
 	Status         int32  `json:"status"`
+}
+
+type DelAccountReq struct {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DelAccountResp struct {
 }
 
 type DelDeptReq struct {
@@ -123,6 +150,28 @@ type DeptParentData struct {
 	Name     string           `json:"name"`
 	Pid      uint64           `json:"pid"`
 	Children []DeptParentData `json:"children"`
+}
+
+type GetAccountListReq struct {
+	Name       string `form:"name,optional"`
+	Status     uint64 `form:"status,optional"`
+	CreateTime string `form:"create_time,optional"`
+	Page       uint64 `form:"page,optional,default=1"`
+	PageSize   uint64 `form:"page_size,optional,default=10"`
+}
+
+type GetAccountListResp struct {
+	Items    []AccountData `json:"items"`
+	Page     uint64        `json:"page"`
+	PageSize uint64        `json:"pageSize"`
+	Total    uint64        `json:"total"`
+}
+
+type GetAccountRoleReq struct {
+}
+
+type GetAccountRoleResp struct {
+	List []RoleData `json:"list"`
 }
 
 type GetCaptchaReq struct {
@@ -333,6 +382,14 @@ type GetRuleParentResp struct {
 	Data string `json:"data"`
 }
 
+type IsAccountExistReq struct {
+	Id       uint64 `json:"id,optional"`
+	Username string `json:"username" validate:"required"`
+}
+
+type IsAccountExistResp struct {
+}
+
 type LoginReq struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
@@ -394,6 +451,33 @@ type RuleListData struct {
 	Type       uint64         `json:"type"`
 	Weigh      uint64         `json:"weigh"`
 	Children   []RuleListData `json:"children"`
+}
+
+type SaveAccountReq struct {
+	Id         uint64   `json:"id"`
+	Address    string   `json:"address"`
+	Avatar     string   `json:"avatar"`
+	City       string   `json:"city"`
+	Company    string   `json:"company"`
+	Deptname   string   `json:"deptname"`
+	CreateTime string   `json:"create_time"`
+	DeptId     uint64   `json:"dept_id"`
+	Email      string   `json:"email"`
+	Mobile     string   `json:"mobile"`
+	Name       string   `json:"name" validate:"required"`
+	Remark     string   `json:"remark"`
+	Status     uint64   `json:"status"`
+	Tel        string   `json:"tel"`
+	Username   string   `json:"username" validate:"required"`
+	Roleid     []uint64 `json:"roleid" validate:"required"`
+	Rolename   []string `json:"rolename" validate:"required"`
+	Password   string   `json:"password"`
+	AccountId  uint64   `json:"account_id"`
+	BusinessId uint64   `json:"business_id"`
+}
+
+type SaveAccountResp struct {
+	Id uint64 `json:"id"`
 }
 
 type SaveConfigValueReq struct {
@@ -466,6 +550,14 @@ type SaveRuleReq struct {
 
 type SaveRuleResp struct {
 	Id uint64 `json:"id"`
+}
+
+type UpStatusAccountReq struct {
+	Id     uint64 `json:"id" validate:"required"`
+	Status uint64 `json:"status" validate:"oneof=0 1"`
+}
+
+type UpStatusAccountResp struct {
 }
 
 type UpStatusDeptReq struct {

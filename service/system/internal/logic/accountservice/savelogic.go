@@ -35,7 +35,7 @@ func (l *SaveLogic) Save(in *system.SaveAccountRequest) (*system.SaveAccountResp
 		"avatar":   in.Avatar,
 		"city":     in.City,
 		"company":  in.Company,
-		"deptname": in.Deptname,
+		"dept_id":  in.DeptId,
 		"email":    in.Email,
 		"mobile":   in.Mobile,
 		"name":     in.Name,
@@ -43,13 +43,16 @@ func (l *SaveLogic) Save(in *system.SaveAccountRequest) (*system.SaveAccountResp
 		"status":   in.Status,
 		"tel":      in.Tel,
 		"username": in.Username,
-		"roleid":   in.Roleid,
-		"rolename": in.Rolename,
 		"password": in.Password,
 	}
 	if dataMap["password"] != "" {
 		salt := grand.Str("123456789", 6)
 		mdpass := fmt.Sprintf("%v%v", dataMap["password"], salt)
+		dataMap["password"] = ga.Md5(mdpass)
+		dataMap["salt"] = salt
+	} else {
+		salt := grand.Str("123456789", 6)
+		mdpass := fmt.Sprintf("%v%v", "123456", salt)
 		dataMap["password"] = ga.Md5(mdpass)
 		dataMap["salt"] = salt
 	}

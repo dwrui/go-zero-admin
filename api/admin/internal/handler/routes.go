@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	account "admin/internal/handler/account"
 	common "admin/internal/handler/common"
 	config "admin/internal/handler/config"
 	config_category "admin/internal/handler/config_category"
@@ -21,6 +22,44 @@ import (
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/account/del",
+				Handler: account.DelAccountHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/account/getList",
+				Handler: account.GetAccountListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/account/getRole",
+				Handler: account.GetAccountRoleHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/account/isAccountExist",
+				Handler: account.IsAccountExistHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/account/save",
+				Handler: account.SaveAccountHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/account/upStatus",
+				Handler: account.UpStatusAccountHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/admin/system"),
+		rest.WithTimeout(3000*time.Millisecond),
+	)
+
 	server.AddRoutes(
 		[]rest.Route{
 			{

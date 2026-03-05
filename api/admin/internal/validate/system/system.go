@@ -216,3 +216,90 @@ func GetOperationDetailValidate(req types.GetOperationDetailReq) string {
 	}
 	return ""
 }
+
+// SaveAccountValidate 验证保存账号请求
+func SaveAccountValidate(req types.SaveAccountReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"name": map[string]string{
+			"required": "请输入姓名",
+		},
+		"roleid": map[string]string{
+			"required": "请选择角色",
+		},
+		"rolename": map[string]string{
+			"required": "请选择角色",
+		},
+		"username": map[string]string{
+			"required": "请输入登陆账号",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// UpStatusAccountValidate 验证更新账号状态请求
+func UpStatusAccountValidate(req types.UpStatusAccountReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"id": map[string]string{
+			"required": "参数错误",
+		},
+		"status": map[string]string{
+			"oneof": "状态值错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// DelAccountValidate 验证删除账号请求
+func DelAccountValidate(req types.DelAccountReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"id": map[string]string{
+			"required": "参数错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// GetAccountRoleValidate 验证获取账号角色请求
+func GetAccountRoleValidate(req types.GetAccountRoleReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"user_id": map[string]string{
+			"required": "参数错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// IsAccountExistValidate 验证检查账号是否存在请求
+func IsAccountExistValidate(req types.IsAccountExistReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"username": map[string]string{
+			"required": "参数错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}

@@ -33,7 +33,7 @@ type Model struct {
 	distinct      bool
 	fields        []string
 	sqlFetch      bool                   // 是否只输出SQL不执行查询
-	data          map[string]interface{} // 数据操作字段
+	data          interface{}            // 数据操作字段
 	withTrashed   bool                   // 是否包含软删除数据
 	updateData    map[string]interface{} // 更新数据
 	incData       map[string]interface{} // 自增数据
@@ -156,6 +156,14 @@ func (r *QueryResult) IsEmpty() bool {
 		return len(v) == 0
 	case nil:
 		return true
+	case string:
+		return v == ""
+	case int, int8, int16, int32, int64:
+		return v == 0
+	case uint, uint8, uint16, uint32, uint64:
+		return v == 0
+	case float32, float64:
+		return v == 0
 	default:
 		// 使用反射检查是否为空切片
 		return r.isSliceEmpty(v)
@@ -771,7 +779,7 @@ func (qb *Model) LockInShareMode() *Model {
 // Find 查询单条记录
 func (qb *Model) Find(ctx context.Context, dest interface{}) *QueryResult {
 	qb.Limit(1)
-	query, args := qb.buildQuery()
+	query, args := qb.buildQuery(ctx)
 
 	// 如果设置了SQLFetch，只输出SQL不执行查询
 	if qb.sqlFetch {
@@ -800,7 +808,7 @@ func (qb *Model) Find(ctx context.Context, dest interface{}) *QueryResult {
 
 // Select 查询多条记录
 func (qb *Model) Select(ctx context.Context, dest interface{}) *QueryResult {
-	query, args := qb.buildQuery()
+	query, args := qb.buildQuery(ctx)
 	// 如果设置了SQLFetch，只输出SQL不执行查询
 	if qb.sqlFetch {
 		completeSQL := buildCompleteSQL(query, args)
@@ -861,7 +869,7 @@ func (qb *Model) Paginate(ctx context.Context, page, pageSize int, dest interfac
 	// 手动执行数据查询的SQL打印（当处于SQLFetch模式时）
 	if qb.sqlFetch {
 		// 构建并打印数据查询的SQL
-		query, args := qb.buildQuery()
+		query, args := qb.buildQuery(ctx)
 		completeSQL := buildCompleteSQL(query, args)
 		fmt.Printf("数据查询SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
 
@@ -876,7 +884,6 @@ func (qb *Model) Paginate(ctx context.Context, page, pageSize int, dest interfac
 	}
 
 	total := countResult.data.(int64)
-
 	// 如果总数为0，直接返回空结果
 	if total == 0 {
 		return &PaginateResult{
@@ -912,7 +919,7 @@ func (qb *Model) Paginate(ctx context.Context, page, pageSize int, dest interfac
 // Count 统计数量
 func (qb *Model) Count(ctx context.Context) *QueryResult {
 	qb.fields = []string{"COUNT(*)"}
-	query, args := qb.buildQuery()
+	query, args := qb.buildQuery(ctx)
 
 	// 如果设置了SQLFetch，只输出SQL不执行查询
 	if qb.sqlFetch {
@@ -927,6 +934,10 @@ func (qb *Model) Count(ctx context.Context) *QueryResult {
 	}
 	var count int64
 	err := qb.db.QueryRow(ctx, &count, query, args...)
+	if err != nil && err == sql.ErrNoRows {
+		err = nil
+		count = 0
+	}
 	return &QueryResult{
 		data:  count,
 		err:   err,
@@ -968,7 +979,7 @@ func (qb *Model) Exists(ctx context.Context) *QueryResult {
 // Sum 查询指定字段的合计数
 func (qb *Model) Sum(ctx context.Context, field string) *QueryResult {
 	qb.fields = []string{fmt.Sprintf("SUM(%s)", field)}
-	query, args := qb.buildQuery()
+	query, args := qb.buildQuery(ctx)
 
 	// 如果设置了SQLFetch，只输出SQL不执行查询
 	if qb.sqlFetch {
@@ -1002,7 +1013,7 @@ func (qb *Model) Sum(ctx context.Context, field string) *QueryResult {
 func (qb *Model) Value(ctx context.Context, field string) *QueryResult {
 	qb.fields = []string{field}
 	qb.Limit(1)
-	query, args := qb.buildQuery()
+	query, args := qb.buildQuery(ctx)
 
 	// 如果设置了SQLFetch，只输出SQL不执行查询
 	if qb.sqlFetch {
@@ -1018,6 +1029,10 @@ func (qb *Model) Value(ctx context.Context, field string) *QueryResult {
 
 	var value string
 	err := qb.db.QueryRow(ctx, &value, query, args...)
+	if err != nil && err == sql.ErrNoRows {
+		err = nil
+		value = ""
+	}
 	return &QueryResult{
 		data:  value,
 		err:   err,
@@ -1029,7 +1044,7 @@ func (qb *Model) Value(ctx context.Context, field string) *QueryResult {
 // Column 获取单一字段的所有值 - 使用QueryRows处理多行数据
 func (qb *Model) Column(ctx context.Context, field string, dest interface{}) *QueryResult {
 	qb.fields = []string{field}
-	query, args := qb.buildQuery()
+	query, args := qb.buildQuery(ctx)
 
 	// 如果设置了SQLFetch，只输出SQL不执行查询
 	if qb.sqlFetch {
@@ -1110,6 +1125,9 @@ func (qb *Model) Column(ctx context.Context, field string, dest interface{}) *Qu
 	}
 	// 如果查询出错，返回空结果
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = nil
+		}
 		return &QueryResult{
 			data:  []interface{}{},
 			err:   err,
@@ -1129,9 +1147,17 @@ func (qb *Model) Column(ctx context.Context, field string, dest interface{}) *Qu
 // Data 设置数据操作字段
 func (qb *Model) Data(data interface{}) *Model {
 	if data != nil {
-		dataMap, err := qb.convertToMap(data)
-		if err == nil {
-			qb.data = dataMap
+		// 检查 data 是否是切片类型
+		reflectValue := reflect.ValueOf(data)
+		if reflectValue.Kind() == reflect.Slice {
+			// 如果是切片类型，直接存储
+			qb.data = data
+		} else {
+			// 如果不是切片类型，转换为 map
+			dataMap, err := qb.convertToMap(data)
+			if err == nil {
+				qb.data = dataMap
+			}
 		}
 	}
 	return qb
@@ -1153,7 +1179,7 @@ func (qb *Model) Insert(ctx context.Context, data ...interface{}) *QueryResult {
 		qb.data = dataMap
 	}
 	// 如果没有数据，返回错误
-	if len(qb.data) == 0 {
+	if qb.data == nil {
 		return &QueryResult{
 			data:  nil,
 			err:   fmt.Errorf("no data to insert"),
@@ -1161,9 +1187,15 @@ func (qb *Model) Insert(ctx context.Context, data ...interface{}) *QueryResult {
 			args:  nil,
 		}
 	}
-	//如果没有create_time字段，添加默认值
-	if _, ok := qb.data["create_time"]; !ok {
-		qb.data["create_time"] = time.Now().Format("2006-01-02 15:04:05")
+	// 确保 qb.data 是一个 map
+	dataMap, err := qb.convertToMap(qb.data)
+	if err != nil {
+		return &QueryResult{
+			data:  nil,
+			err:   err,
+			query: "",
+			args:  nil,
+		}
 	}
 	var sql strings.Builder
 	var args []interface{}
@@ -1172,13 +1204,13 @@ func (qb *Model) Insert(ctx context.Context, data ...interface{}) *QueryResult {
 	sql.WriteString(qb.table)
 	sql.WriteString(" (")
 
-	fields := make([]string, 0, len(qb.data))
-	placeholders := make([]string, 0, len(qb.data))
+	fields := make([]string, 0, len(dataMap))
+	placeholders := make([]string, 0, len(dataMap))
 
-	for field := range qb.data {
+	for field := range dataMap {
 		fields = append(fields, field)
 		placeholders = append(placeholders, "?")
-		args = append(args, qb.data[field])
+		args = append(args, dataMap[field])
 	}
 
 	sql.WriteString(strings.Join(fields, ", "))
@@ -1236,7 +1268,26 @@ func (qb *Model) Save(ctx context.Context, data ...interface{}) *QueryResult {
 	}
 
 	// 如果没有数据，返回错误
-	if len(qb.data) == 0 {
+	if qb.data == nil {
+		return &QueryResult{
+			data:  nil,
+			err:   fmt.Errorf("no data to save"),
+			query: "",
+			args:  nil,
+		}
+	}
+	// 确保 qb.data 是一个 map
+	dataMap, err := qb.convertToMap(qb.data)
+	if err != nil {
+		return &QueryResult{
+			data:  nil,
+			err:   err,
+			query: "",
+			args:  nil,
+		}
+	}
+	// 如果没有数据，返回错误
+	if len(dataMap) == 0 {
 		return &QueryResult{
 			data:  nil,
 			err:   fmt.Errorf("no data to save"),
@@ -1251,21 +1302,21 @@ func (qb *Model) Save(ctx context.Context, data ...interface{}) *QueryResult {
 	sql.WriteString(qb.table)
 	sql.WriteString(" (")
 
-	fields := make([]string, 0, len(qb.data))
-	placeholders := make([]string, 0, len(qb.data))
+	fields := make([]string, 0, len(dataMap))
+	placeholders := make([]string, 0, len(dataMap))
 
-	for field := range qb.data {
+	for field := range dataMap {
 		fields = append(fields, field)
 		placeholders = append(placeholders, "?")
-		args = append(args, qb.data[field])
+		args = append(args, dataMap[field])
 	}
 	sql.WriteString(strings.Join(fields, ", "))
 	sql.WriteString(") VALUES (")
 	sql.WriteString(strings.Join(placeholders, ", "))
 	sql.WriteString(") ON DUPLICATE KEY UPDATE ")
 
-	updates := make([]string, 0, len(qb.data))
-	for field := range qb.data {
+	updates := make([]string, 0, len(dataMap))
+	for field := range dataMap {
 		updates = append(updates, fmt.Sprintf("%s = VALUES(%s)", field, field))
 	}
 
@@ -1297,28 +1348,64 @@ func (qb *Model) Save(ctx context.Context, data ...interface{}) *QueryResult {
 }
 
 // InsertAll 批量插入
-func (qb *Model) InsertAll(ctx context.Context, data interface{}) *QueryResult {
-	dataMaps, err := qb.convertToMaps(data)
-	if err != nil {
-		return &QueryResult{
-			data:  nil,
-			err:   err,
-			query: "",
-			args:  nil,
+func (qb *Model) InsertAll(ctx context.Context, data ...interface{}) *QueryResult {
+	var dataMaps []map[string]interface{}
+	var err error
+
+	// 优先使用 qb.data 中的数据
+	if qb.data != nil {
+		// 检查 qb.data 是否是一个切片类型
+		reflectValue := reflect.ValueOf(qb.data)
+		if reflectValue.Kind() == reflect.Slice {
+			// 如果 qb.data 是切片类型，直接使用它
+			dataMaps, err = qb.convertToMaps(qb.data)
+			if err != nil {
+				return &QueryResult{
+					data:  nil,
+					err:   err,
+					query: "",
+					args:  nil,
+				}
+			}
+		} else {
+			// 如果 qb.data 不是切片类型，将其转换为 map 后再添加到切片中
+			dataMap, err := qb.convertToMap(qb.data)
+			if err != nil {
+				return &QueryResult{
+					data:  nil,
+					err:   err,
+					query: "",
+					args:  nil,
+				}
+			}
+			dataMaps = []map[string]interface{}{dataMap}
+		}
+	} else if len(data) > 0 && data[0] != nil {
+		// 如果 qb.data 为空，使用传递的参数
+		// 检查 data[0] 是否是切片类型，如果是，直接使用它
+		reflectValue := reflect.ValueOf(data[0])
+		if reflectValue.Kind() == reflect.Slice {
+			dataMaps, err = qb.convertToMaps(data[0])
+		} else {
+			dataMaps, err = qb.convertToMaps(data)
+		}
+		if err != nil {
+			return &QueryResult{
+				data:  nil,
+				err:   err,
+				query: "",
+				args:  nil,
+			}
 		}
 	}
+
+	// 如果没有数据，返回错误
 	if len(dataMaps) == 0 {
 		return &QueryResult{
 			data:  nil,
 			err:   fmt.Errorf("no data to insert"),
 			query: "",
 			args:  nil,
-		}
-	}
-	//如果没有默认字段，添加默认值
-	for _, dataMap := range dataMaps {
-		if _, ok := dataMap["create_time"]; !ok {
-			dataMap["create_time"] = time.Now().Format("2006-01-02 15:04:05")
 		}
 	}
 	var sql strings.Builder
@@ -1335,6 +1422,7 @@ func (qb *Model) InsertAll(ctx context.Context, data interface{}) *QueryResult {
 	}
 
 	sql.WriteString(strings.Join(fields, ", "))
+	sql.WriteString(") VALUES ")
 	// 创建占位符
 	placeholders := make([]string, len(fields))
 	for i := range placeholders {
@@ -1357,10 +1445,10 @@ func (qb *Model) InsertAll(ctx context.Context, data interface{}) *QueryResult {
 
 	query := sql.String()
 
-	// 如果设置了SQLFetch，只输出SQL不执行查询
+	// 如果设置了 SQLFetch，只输出 SQL 不执行查询
 	if qb.sqlFetch {
 		completeSQL := buildCompleteSQL(query, args)
-		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		fmt.Printf("完整 SQL: %s\n原始 SQL: %s\n参数：%v\n", completeSQL, query, args)
 		return &QueryResult{
 			data:  int64(0),
 			err:   nil,
@@ -1381,8 +1469,9 @@ func (qb *Model) InsertAll(ctx context.Context, data interface{}) *QueryResult {
 // Update 数据更新
 // Update 数据更新
 func (qb *Model) Update(ctx context.Context, data ...interface{}) *QueryResult {
+	var err error
 	// 如果Data没有设置数据，才使用Update参数中的数据
-	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
+	if qb.data == nil && len(data) > 0 && data[0] != nil {
 		dataMap, err := qb.convertToMap(data[0])
 		if err != nil {
 			return &QueryResult{
@@ -1395,14 +1484,49 @@ func (qb *Model) Update(ctx context.Context, data ...interface{}) *QueryResult {
 		qb.data = dataMap
 	}
 
+	// 检查是否有更新数据
+	hasData := false
+	if qb.data != nil {
+		var tempDataMap map[string]interface{}
+		tempDataMap, err = qb.convertToMap(qb.data)
+		if err != nil {
+			return &QueryResult{
+				data:  nil,
+				err:   err,
+				query: "",
+				args:  nil,
+			}
+		}
+		hasData = len(tempDataMap) > 0
+	}
+
+	// 检查是否有其他更新数据
+	hasData = hasData || len(qb.updateData) > 0 || len(qb.incData) > 0 || len(qb.decData) > 0
+
 	// 如果没有数据，返回错误
-	if len(qb.data) == 0 {
+	if !hasData {
 		return &QueryResult{
 			data:  nil,
 			err:   fmt.Errorf("no data to update"),
 			query: "",
 			args:  nil,
 		}
+	}
+
+	// 确保 qb.data 是一个 map
+	var dataMap map[string]interface{}
+	if qb.data != nil {
+		dataMap, err = qb.convertToMap(qb.data)
+		if err != nil {
+			return &QueryResult{
+				data:  nil,
+				err:   err,
+				query: "",
+				args:  nil,
+			}
+		}
+	} else {
+		dataMap = make(map[string]interface{})
 	}
 	// 合并所有更新数据
 	updateData := make(map[string]interface{})
@@ -1412,8 +1536,8 @@ func (qb *Model) Update(ctx context.Context, data ...interface{}) *QueryResult {
 		for k, v := range qb.updateData {
 			updateData[k] = v
 		}
-	} else if len(qb.data) > 0 {
-		for k, v := range qb.data {
+	} else if len(dataMap) > 0 {
+		for k, v := range dataMap {
 			updateData[k] = v
 		}
 	}
@@ -1499,7 +1623,7 @@ func (qb *Model) Update(ctx context.Context, data ...interface{}) *QueryResult {
 // Replace 使用REPLACE INTO语句进行数据库写入
 func (qb *Model) Replace(ctx context.Context, data ...interface{}) *QueryResult {
 	// 如果Data没有设置数据，才使用Replace参数中的数据
-	if len(qb.data) == 0 && len(data) > 0 && data[0] != nil {
+	if qb.data == nil && len(data) > 0 && data[0] != nil {
 		dataMap, err := qb.convertToMap(data[0])
 		if err != nil {
 			return &QueryResult{
@@ -1513,7 +1637,26 @@ func (qb *Model) Replace(ctx context.Context, data ...interface{}) *QueryResult 
 	}
 
 	// 如果没有数据，返回错误
-	if len(qb.data) == 0 {
+	if qb.data == nil {
+		return &QueryResult{
+			data:  nil,
+			err:   fmt.Errorf("no data to replace"),
+			query: "",
+			args:  nil,
+		}
+	}
+	// 确保 qb.data 是一个 map
+	dataMap, err := qb.convertToMap(qb.data)
+	if err != nil {
+		return &QueryResult{
+			data:  nil,
+			err:   err,
+			query: "",
+			args:  nil,
+		}
+	}
+	// 如果没有数据，返回错误
+	if len(dataMap) == 0 {
 		return &QueryResult{
 			data:  nil,
 			err:   fmt.Errorf("no data to replace"),
@@ -1529,13 +1672,13 @@ func (qb *Model) Replace(ctx context.Context, data ...interface{}) *QueryResult 
 	sql.WriteString(qb.table)
 	sql.WriteString(" (")
 
-	fields := make([]string, 0, len(qb.data))
-	placeholders := make([]string, 0, len(qb.data))
+	fields := make([]string, 0, len(dataMap))
+	placeholders := make([]string, 0, len(dataMap))
 
-	for field := range qb.data {
+	for field := range dataMap {
 		fields = append(fields, field)
 		placeholders = append(placeholders, "?")
-		args = append(args, qb.data[field])
+		args = append(args, dataMap[field])
 	}
 
 	sql.WriteString(strings.Join(fields, ", "))
@@ -1760,7 +1903,7 @@ func (qb *Model) Delete(ctx context.Context) *QueryResult {
 
 // buildQuery 构建SQL查询（修改以支持软删除）
 // buildQuery 构建SQL查询（修改：默认不添加软删除过滤，只有WithTrashed时才查询软删除数据）
-func (qb *Model) buildQuery() (string, []interface{}) {
+func (qb *Model) buildQuery(ctx context.Context) (string, []interface{}) {
 	var sql strings.Builder
 	var args []interface{}
 
@@ -1795,37 +1938,37 @@ func (qb *Model) buildQuery() (string, []interface{}) {
 	}
 
 	// WHERE 子句
-	if len(qb.where) > 0 {
+	conditions := make([]string, 0)
+
+	// 处理其他WHERE条件
+	for i, where := range qb.where {
+		if i > 0 || len(conditions) > 0 {
+			conditions = append(conditions, " "+where.operator+" ")
+		}
+		// 如果field为空，表示这是完整条件，只使用cond
+		if where.field == "" {
+			conditions = append(conditions, where.cond)
+		} else {
+			// 简单条件，组合字段名和条件
+			conditions = append(conditions, where.field+" "+where.cond)
+		}
+		args = append(args, where.args...)
+	}
+
+	// 只有未调用WithTrashed且表有delete_time字段时才添加软删除条件
+	if !qb.withTrashed && qb.hasDeleteTimeField(ctx) {
+		if len(conditions) > 0 {
+			deleteCondition := " AND delete_time IS NULL"
+			conditions = append(conditions, deleteCondition)
+		} else {
+			deleteCondition := "delete_time IS NULL"
+			conditions = append(conditions, deleteCondition)
+		}
+	}
+
+	// 如果有条件，添加WHERE子句
+	if len(conditions) > 0 {
 		sql.WriteString(" WHERE ")
-
-		// 只有调用WithTrashed时才包含软删除数据
-		conditions := make([]string, 0)
-
-		// 处理其他WHERE条件
-		// 处理其他WHERE条件
-		for i, where := range qb.where {
-			if i > 0 || len(conditions) > 0 {
-				conditions = append(conditions, " "+where.operator+" ")
-			}
-			// 如果field为空，表示这是完整条件，只使用cond
-			if where.field == "" {
-				conditions = append(conditions, where.cond)
-			} else {
-				// 简单条件，组合字段名和条件
-				conditions = append(conditions, where.field+" "+where.cond)
-			}
-			args = append(args, where.args...)
-		}
-		// 只有未调用WithTrashed且表有delete_time字段时才添加软删除条件
-		if !qb.withTrashed && qb.hasDeleteTimeField(context.Background()) {
-			if len(conditions) > 0 {
-				deleteCondition := " AND delete_time IS NULL"
-				conditions = append(conditions, deleteCondition)
-			} else {
-				deleteCondition := "delete_time IS NULL"
-				conditions = append(conditions, deleteCondition)
-			}
-		}
 		sql.WriteString(strings.Join(conditions, ""))
 	}
 

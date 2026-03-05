@@ -441,6 +441,128 @@ service admin-api {
 	get /role/getMenuList (GetMenuListReq) returns (GetMenuListResp)
 }
 
+// 账号管理相关接口
+type GetAccountListReq {
+	name       string `form:"name,optional"`
+	status     uint64 `form:"status,optional"`
+	createTime string `form:"create_time,optional"`
+	page       uint64 `form:"page,optional,default=1"`
+	pageSize   uint64 `form:"page_size,optional,default=10"`
+}
+
+type AccountData {
+	Id         uint64   `json:"id"`
+	Address    string   `json:"address"`
+	Avatar     string   `json:"avatar"`
+	City       string   `json:"city"`
+	Company    string   `json:"company"`
+	Deptname   string   `json:"deptname"`
+	CreateTime string   `json:"create_time"`
+	DeptId     uint64   `json:"dept_id"`
+	Email      string   `json:"email"`
+	Mobile     string   `json:"mobile"`
+	Name       string   `json:"name"`
+	Remark     string   `json:"remark"`
+	Status     uint64   `json:"status"`
+	Tel        string   `json:"tel"`
+	Username   string   `json:"username"`
+	Roleid     []uint64 `json:"roleid"`
+	Rolename   []string `json:"rolename"`
+}
+
+type GetAccountListResp {
+	Items    []AccountData `json:"items"`
+	Page     uint64        `json:"page"`
+	PageSize uint64        `json:"pageSize"`
+	Total    uint64        `json:"total"`
+}
+
+type SaveAccountReq {
+	Id         uint64   `json:"id"`
+	Address    string   `json:"address"`
+	Avatar     string   `json:"avatar"`
+	City       string   `json:"city"`
+	Company    string   `json:"company"`
+	Deptname   string   `json:"deptname"`
+	CreateTime string   `json:"create_time"`
+	DeptId     uint64   `json:"dept_id"`
+	Email      string   `json:"email"`
+	Mobile     string   `json:"mobile"`
+	Name       string   `json:"name" validate:"required"`
+	Remark     string   `json:"remark"`
+	Status     uint64   `json:"status"`
+	Tel        string   `json:"tel"`
+	Username   string   `json:"username" validate:"required"`
+	Roleid     []uint64 `json:"roleid" validate:"required"`
+	Rolename   []string `json:"rolename" validate:"required"`
+	Password   string   `json:"password"`
+	AccountId  uint64   `json:"account_id"`
+	BusinessId uint64   `json:"business_id"`
+}
+
+type SaveAccountResp {
+	Id uint64 `json:"id"`
+}
+
+type UpStatusAccountReq {
+	Id     uint64 `json:"id" validate:"required"`
+	Status uint64 `json:"status" validate:"oneof=0 1"`
+}
+
+type UpStatusAccountResp {}
+
+type DelAccountReq {
+	Id uint64 `json:"id" validate:"required"`
+}
+
+type DelAccountResp {}
+
+type GetAccountRoleReq {}
+
+type GetAccountRoleResp {
+	List []RoleData `json:"list"`
+}
+
+type IsAccountExistReq {
+	Id       uint64 `json:"id,optional"`
+	Username string `json:"username" validate:"required"`
+}
+
+type IsAccountExistResp {}
+
+//需要验证的接口
+@server (
+	jwt:     Auth
+	prefix:  /api/admin/system
+	group:   account
+	timeout: 3s
+)
+service admin-api {
+	// 获取账号列表
+	@handler getAccountList
+	get /account/getList (GetAccountListReq) returns (GetAccountListResp)
+
+	// 保存账号
+	@handler saveAccount
+	post /account/save (SaveAccountReq) returns (SaveAccountResp)
+
+	// 更新账号状态
+	@handler upStatusAccount
+	post /account/upStatus (UpStatusAccountReq) returns (UpStatusAccountResp)
+
+	// 删除账号
+	@handler delAccount
+	post /account/del (DelAccountReq) returns (DelAccountResp)
+
+	// 获取账号角色
+	@handler getAccountRole
+	get /account/getRole (GetAccountRoleReq) returns (GetAccountRoleResp)
+
+	// 检查账号是否存在
+	@handler isAccountExist
+	post /account/isAccountExist (IsAccountExistReq) returns (IsAccountExistResp)
+}
+
 type getLoginReq {
 	page        uint64 `form:"page,optional,default=1"`
 	pageSize    uint64 `form:"pageSize,optional,default=10"`

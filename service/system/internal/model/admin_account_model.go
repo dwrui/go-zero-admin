@@ -54,15 +54,20 @@ type AdminAccountModelResponse struct {
 
 func GetAccountList(ctx context.Context, svcCtx *svc.ServiceContext, whereMap *gmap.Map, page, size uint64) (ga.Map, error) {
 	var list []*AdminAccountModelResponse
-	resp := svcCtx.DB.Model("common_sys_admin_account").Alias("c").Fields("c.id,c.status,c.name,c.username,c.avatar,c.tel,c.mobile,c.email,c.dept_id,c.remark,c.city,c.address,c.company,c.create_time,d.name as dept_name").LeftJoin("admin_auth_dept", "d", "c.dept_id = d.id").Where(whereMap).Order("id", "desc").Paginate(ctx, ga.Int(page), ga.Int(size), &list)
+
+	resp := svcCtx.DB.Model("admin_account").Alias("c").Fields("c.id,c.status,c.name,c.username,c.avatar,c.tel,c.mobile,c.email,c.dept_id,c.remark,c.city,c.address,c.company,c.create_time,d.name as dept_name").LeftJoin("admin_auth_dept", "d", "c.dept_id = d.id").Where(whereMap).Order("c.id", "desc").Paginate(ctx, ga.Int(page), ga.Int(size), &list)
 	if resp.Error != nil {
 		return nil, resp.Error
 	}
 	for _, v := range list {
-		roleid := svcCtx.DB.Model("business_auth_role_access").Where("uid", v.Id).Column(ctx, "role_id", &[]uint64{})
-		roleName := svcCtx.DB.Model("business_auth_role").Where("id in (?)", roleid).Column(ctx, "name", &[]string{})
-		v.RoleId = roleid.GetData().([]uint64)
-		v.RoleName = roleName.GetData().([]string)
+		roleid := []uint64{}
+		roleName := []string{}
+		roleResp := svcCtx.DB.Model("admin_auth_role_access").Where("uid", v.Id).Column(ctx, "role_id", &roleid)
+		if roleResp.IsNotEmpty() {
+			svcCtx.DB.Model("admin_auth_role").WhereIn("id", roleid).Column(ctx, "name", &roleName)
+		}
+		v.RoleId = roleid
+		v.RoleName = roleName
 	}
 	return ga.Map{
 		"list":  list,
@@ -73,7 +78,7 @@ func GetAccountList(ctx context.Context, svcCtx *svc.ServiceContext, whereMap *g
 }
 
 func SaveAccount(ctx context.Context, svcCtx *svc.ServiceContext, data ga.Map) (uint64, error) {
-	resp := svcCtx.DB.Model("common_sys_admin_account").Save(ctx, data)
+	resp := svcCtx.DB.Model("admin_account").Save(ctx, data)
 	if resp.GetError() != nil {
 		return 0, resp.GetError()
 	}
@@ -82,16 +87,16 @@ func SaveAccount(ctx context.Context, svcCtx *svc.ServiceContext, data ga.Map) (
 
 func AppRoleAccess(ctx context.Context, svg *svc.ServiceContext, roleids []uint64, uid interface{}) {
 	//批量提交
-	svg.DB.Model("business_auth_role_access").Where("uid", uid).Delete(ctx)
+	svg.DB.Model("admin_auth_role_access").Where("uid", uid).Delete(ctx)
 	save_arr := ga.List{}
 	for _, val := range roleids {
 		marr := map[string]interface{}{"uid": uid, "role_id": val}
 		save_arr = append(save_arr, marr)
 	}
-	svg.DB.Model("business_auth_role_access").Data(save_arr).Save(ctx)
+	svg.DB.Model("admin_auth_role_access").Data(save_arr).InsertAll(ctx)
 }
 func UpStatusAccount(ctx context.Context, svg *svc.ServiceContext, id uint64, status uint64) error {
-	resp := svg.DB.Model("common_sys_admin_account").Where("id", id).Update(ctx, ga.Map{"status": status})
+	resp := svg.DB.Model("admin_account").Where("id", id).Update(ctx, ga.Map{"status": status})
 	if resp.GetError() != nil {
 		return resp.GetError()
 	}
@@ -99,7 +104,7 @@ func UpStatusAccount(ctx context.Context, svg *svc.ServiceContext, id uint64, st
 }
 
 func DelAccount(ctx context.Context, svg *svc.ServiceContext, id uint64) error {
-	resp := svg.DB.Model("common_sys_admin_account").Where("id", id).Delete(ctx)
+	resp := svg.DB.Model("admin_account").Where("id = ?", id).Delete(ctx)
 	if resp.GetError() != nil {
 		return resp.GetError()
 	}
