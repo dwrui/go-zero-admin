@@ -10,7 +10,7 @@ info (
 
 //获取验证码
 type GetCaptchaReq {
-	captchaType string `json:"type" validate:"required"`
+	captchaType string `form:"type" validate:"required"`
 }
 
 @server (
@@ -86,38 +86,6 @@ service admin-api {
 	// 获取用户信息
 	@handler getUserInfo
 	get /user/getUserInfo
-}
-
-type getLoginReq {
-	page        uint64 `form:"page,optional"`
-	pageSize    uint64 `form:"pageSize,optional"`
-	user        string `form:"user,optional"`
-	ip          string `form:"ip,optional"`
-	create_time string `form:"create_time,optional"`
-	status      uint64 `form:"status,optional"`
-}
-
-type GetLogData {
-	Id         uint64            `json:"id"`
-	Uid        uint64            `json:"uid"`
-	AccountId  uint64            `json:"account_id"`
-	BusinessId uint64            `json:"business_id"`
-	Type       string            `json:"type"`
-	Status     uint64            `json:"status"`
-	Des        string            `json:"des"`
-	Ip         string            `json:"ip"`
-	Address    string            `json:"address"`
-	UserAgent  string            `json:"user_agent"`
-	ErrorMsg   string            `json:"error_msg"`
-	CreateTime string            `json:"create_time"`
-	User       map[string]string `json:"user"`
-}
-
-type getLoginResp {
-	Items    []GetLogData `json:"items"`
-	Total    uint64       `json:"total"`
-	Page     uint64       `json:"page"`
-	PageSize uint64       `json:"pageSize"`
 }
 
 type getRuleListReq {}
@@ -364,7 +332,7 @@ service admin-api {
 // 角色管理相关接口
 type GetRoleListReq {
 	Name       string `form:"name,optional"`
-	Status     uint64 `form:"status,optional"`
+	Status     uint64 `form:"status,optional,default=1"`
 	CreateTime string `form:"create_time,optional"`
 }
 
@@ -473,6 +441,125 @@ service admin-api {
 	get /role/getMenuList (GetMenuListReq) returns (GetMenuListResp)
 }
 
+type getLoginReq {
+	page        uint64 `form:"page,optional,default=1"`
+	pageSize    uint64 `form:"pageSize,optional,default=10"`
+	user        string `form:"user,optional"`
+	ip          string `form:"ip,optional"`
+	create_time string `form:"create_time,optional"`
+	status      uint64 `form:"status,optional,default=1"`
+}
+
+type GetLogData {
+	Id         uint64            `json:"id"`
+	Uid        uint64            `json:"uid"`
+	AccountId  uint64            `json:"account_id"`
+	BusinessId uint64            `json:"business_id"`
+	Type       string            `json:"type"`
+	Status     uint64            `json:"status"`
+	Des        string            `json:"des"`
+	Ip         string            `json:"ip"`
+	Address    string            `json:"address"`
+	UserAgent  string            `json:"user_agent"`
+	ErrorMsg   string            `json:"error_msg"`
+	CreateTime string            `json:"create_time"`
+	User       map[string]string `json:"user"`
+}
+
+type getLoginResp {
+	Items    []GetLogData `json:"items"`
+	Total    uint64       `json:"total"`
+	Page     uint64       `json:"page"`
+	PageSize uint64       `json:"pageSize"`
+}
+
+//删除登录日志请求
+type DelLastLoginReq {}
+
+type DelLastLoginResp {}
+
+//获取操作日志请求
+type GetOperationReq {
+	user_name   string `form:"user_name,optional"`
+	ip          string `form:"ip,optional"`
+	status      uint32 `form:"status,optional,default=1"`
+	create_time string `form:"create_time,optional"`
+	page        uint64 `form:"page,optional,default=1"`
+	size        uint64 `form:"size,optional,default=10"`
+	user_id     uint64 `form:"user_id,optional"`
+	business_id uint64 `form:"business_id,optional"`
+}
+
+//用户信息
+type UserInfo {
+	name     string `json:"name"`
+	username string `json:"username"`
+	avatar   string `json:"avatar"`
+	nickname string `json:"nickname"`
+}
+
+//操作日志数据
+type OperationLogData {
+	id             uint64   `json:"id"`
+	user_id        uint64   `json:"user_id"`
+	account_id     uint64   `json:"account_id"`
+	business_id    uint64   `json:"business_id"`
+	operation_type string   `json:"type"`
+	method         string   `json:"method"`
+	path           string   `json:"path"`
+	ip             string   `json:"ip"`
+	address        string   `json:"address"`
+	description    string   `json:"description"`
+	req_headers    string   `json:"req_headers"`
+	req_body       string   `json:"req_body"`
+	resp_headers   string   `json:"resp_headers"`
+	resp_body      string   `json:"resp_body"`
+	status         uint32   `json:"status"`
+	duration       float64  `json:"duration"`
+	create_time    string   `json:"create_time"`
+	user           UserInfo `json:"user"`
+}
+
+//获取操作日志响应
+type GetOperationResp {
+	items    []OperationLogData `json:"items"`
+	page     uint64             `json:"page"`
+	pageSize uint64             `json:"pageSize"`
+	total    uint64             `json:"total"`
+}
+
+//删除操作日志请求
+type DelLastOperationReq {}
+
+type DelLastOperationResp {}
+
+//获取操作日志详情请求
+type GetOperationDetailReq {
+	id uint64 `form:"id" validate:"required"`
+}
+
+//获取操作日志详情响应
+type GetOperationDetailResp {
+	id             uint64  `json:"id"`
+	user_id        uint64  `json:"user_id"`
+	account_id     uint64  `json:"account_id"`
+	business_id    uint64  `json:"business_id"`
+	operation_type string  `json:"type"`
+	method         string  `json:"method"`
+	path           string  `json:"path"`
+	ip             string  `json:"ip"`
+	address        string  `json:"address"`
+	description    string  `json:"description"`
+	req_headers    string  `json:"req_headers"`
+	req_body       string  `json:"req_body"`
+	resp_headers   string  `json:"resp_headers"`
+	resp_body      string  `json:"resp_body"`
+	status         uint32  `json:"status"`
+	duration       float64 `json:"duration"`
+	create_time    string  `json:"create_time"`
+	username       string  `json:"username"`
+}
+
 //需要验证的接口
 @server (
 	jwt:     Auth
@@ -484,6 +571,22 @@ service admin-api {
 	// 获取登录日志
 	@handler getLogin
 	get /log/getLogin (getLoginReq) returns (getLoginResp)
+
+	// 删除登录日志
+	@handler delLastLogin
+	post /log/delLastLogin (DelLastLoginReq) returns (DelLastLoginResp)
+
+	// 获取操作日志
+	@handler getOperation
+	get /log/getOperation (GetOperationReq) returns (GetOperationResp)
+
+	// 删除操作日志
+	@handler delLastOperation
+	post /log/delLastOperation (DelLastOperationReq) returns (DelLastOperationResp)
+
+	// 获取操作日志详情
+	@handler getOperationDetail
+	get /log/getOperationDetail (GetOperationDetailReq) returns (GetOperationDetailResp)
 }
 
 //配置中心管理

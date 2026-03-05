@@ -9,27 +9,22 @@ import (
 	"admin/internal/logic/log"
 	"admin/internal/svc"
 	"admin/internal/types"
-	validate "admin/internal/validate/system"
 
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"google.golang.org/grpc/status"
 )
 
-func GetLoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+func DelLastLoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.GetLoginReq
+		var req types.DelLastLoginReq
 		if err := ga.ResData(r, &req); err != nil {
 			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
 			return
 		}
-		if msg := validate.GetLoginValidate(req); msg != "" {
-			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(msg))
-			return
-		}
 
-		l := log.NewGetLoginLogic(r.Context(), svcCtx)
-		resp, err := l.GetLogin(&req)
+		l := log.NewDelLastLoginLogic(r.Context(), svcCtx)
+		resp, err := l.DelLastLogin(&req)
 		if err != nil {
 			if st, ok := status.FromError(err); ok {
 				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))

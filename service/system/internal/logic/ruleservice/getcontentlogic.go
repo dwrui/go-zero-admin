@@ -2,6 +2,7 @@ package ruleservicelogic
 
 import (
 	"context"
+	"fmt"
 	"system/internal/model"
 
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
@@ -28,6 +29,7 @@ func NewGetContentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCon
 
 func (l *GetContentLogic) GetContent(in *system.GetRuleContentRequest) (*system.GetRuleContentResponse, error) {
 	rule, err := model.GetRuleOne(l.ctx, l.svcCtx, "activemenu,component,create_time,des,hidechildreninmenu,hideinmenu,icon,id,isext,keepalive,locale,noaffix,onlypage,path,permission,pid,redirect,requiresauth,routename,routepath,status,title,type as rule_type,uid,weigh", in.Id)
+	fmt.Println("rule", rule)
 	if err != nil {
 		return nil, err
 	}

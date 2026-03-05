@@ -2,6 +2,7 @@ package accountservicelogic
 
 import (
 	"context"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -24,7 +25,9 @@ func NewDelLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DelLogic {
 }
 
 func (l *DelLogic) Del(in *system.DelAccountRequest) (*system.DelAccountResponse, error) {
-	// todo: add your logic here and delete this line
-
+	err := model.DelAccount(l.ctx, l.svcCtx, in.Id)
+	if err != nil {
+		return nil, err
+	}
 	return &system.DelAccountResponse{}, nil
 }

@@ -201,3 +201,18 @@ func DelRoleValidate(req types.DelRoleReq) string {
 	}
 	return ""
 }
+
+// GetOperationDetailValidate 验证获取操作日志详情请求
+func GetOperationDetailValidate(req types.GetOperationDetailReq) string {
+	validator := ga.Validator()
+	messages := map[string]interface{}{
+		"id": map[string]string{
+			"required": "参数错误",
+		},
+	}
+	validator.SetMessages(messages)
+	if err := validator.ValidateOne(req); err != nil {
+		return err.Error()
+	}
+	return ""
+}

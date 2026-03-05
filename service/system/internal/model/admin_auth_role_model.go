@@ -28,7 +28,8 @@ type AdminAuthRoleModel struct {
 }
 
 func GetRoleList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetRoleListRequest) (ga.Map, error) {
-	user_role_ids := svcCtx.DB.Model("admin_auth_role_access").Where("uid = ?", req.UserId).Column(ctx, "role_id")
+	var user_role_ids []uint64
+	svcCtx.DB.Model("admin_auth_role_access").Where("uid = ?", req.UserId).Column(ctx, "role_id", &user_role_ids)
 	var allRoleModel []*AdminAuthRoleModel
 	allRole := svcCtx.DB.Model("admin_auth_role").All(ctx, &allRoleModel)
 	if allRole.GetError() != nil {
@@ -41,34 +42,18 @@ func GetRoleList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.Ge
 			"pid": ga.Uint64(v.Pid),
 		})
 	}
-	//转换为uint64
-	userRoleIds := make([]uint64, 0)
-	if strSlice, ok := user_role_ids.GetData().([]string); ok {
-		for _, v := range strSlice {
-			userRoleIds = append(userRoleIds, ga.Uint64(v))
-		}
-	} else if uint64Slice, ok := user_role_ids.GetData().([]uint64); ok {
-		userRoleIds = uint64Slice
-	}
-	role_chil_ids := ga.FindAllChildrenIDs(allRoleMap, userRoleIds) //批量获取子节点id
-	all_role_id := append(userRoleIds, role_chil_ids...)
+	role_chil_ids := ga.FindAllChildrenIDs(allRoleMap, user_role_ids) //批量获取子节点id
+	all_role_id := append(user_role_ids, role_chil_ids...)
 	whereMap := gmap.New()
 	if len(all_role_id) > 0 {
 		whereMap.Set("id IN(?)", all_role_id) //in 查询
 	}
-	account_id, _ := getDataAuthor(ctx, svcCtx, req.UserId, req.RequestUrl)
+	account_id, _ := GetDataAuthor(ctx, svcCtx, req.UserId, req.RequestUrl)
 	account_id = append(account_id, 0)
-	my_role_account_id := svcCtx.DB.Model("admin_auth_role").WhereIn("id", user_role_ids.GetData()).Column(ctx, "account_id")
-	myRoleIds := make([]interface{}, 0)
-	if myStrSlice, ok := my_role_account_id.GetData().([]string); ok {
-		for _, v := range myStrSlice {
-			myRoleIds = append(myRoleIds, ga.Uint64(v))
-		}
-	} else if uint64Slice, ok := my_role_account_id.GetData().([]interface{}); ok {
-		myRoleIds = uint64Slice
-	}
+	var my_role_account_id []uint64
+	svcCtx.DB.Model("admin_auth_role").WhereIn("id", user_role_ids).Column(ctx, "account_id", &my_role_account_id)
 	//合并account_id和myRoleIds
-	account_ids := ga.MergeArrUint64(account_id, myRoleIds)
+	account_ids := append(account_id, my_role_account_id...)
 	whereMap.Set("account_id IN(?)", account_ids)
 	if req.Name != "" {
 		whereMap.Set("name LIKE ?", "%"+req.Name+"%")
@@ -112,20 +97,25 @@ func GetRoleList(ctx context.Context, svcCtx *svc.ServiceContext, req *system.Ge
 	return ga.Map{"list": roleListTree, "max_pid": max_role_id.GetData()}, nil
 }
 
-func getDataAuthor(ctx context.Context, svcCtx *svc.ServiceContext, userId uint64, requestUrl string) (ga.Slice, bool) {
+func GetDataAuthor(ctx context.Context, svcCtx *svc.ServiceContext, userId uint64, requestUrl string) ([]uint64, bool) {
 	user_id := userId
-	table_str := ""
-	var acount_id = ga.Slice{user_id}
+	table_str := "admin"
+	var acount_id = []uint64{user_id}
 	if strings.HasPrefix(requestUrl, "/super-admin/") {
 		table_str = "superadmin"
 	} else if strings.HasPrefix(requestUrl, "/admin/") {
 		table_str = "admin"
 	}
 	if table_str != "" {
-		role_ids := svcCtx.DB.Model(table_str+"_auth_role_access").Where("uid", user_id).Column(ctx, "role_id")
-		data_access := svcCtx.DB.Model(table_str+"_auth_role").WhereIn("id", role_ids.GetData().([]interface{})).Column(ctx, "data_access")
-		data_access_info := data_access.GetData().([]*gvar.Var)
-		if ga.IntInVarArray(1, data_access_info) { //数据权限0=自己1=自己及子权限，2=全部
+		role_ids := svcCtx.DB.Model(table_str+"_auth_role_access").Where("uid", user_id).Column(ctx, "role_id", &[]uint64{})
+		var data_access []int64
+		svcCtx.DB.Model(table_str+"_auth_role").WhereIn("id", role_ids.GetData()).Column(ctx, "data_access", &data_access)
+		var data_access_infos []*gvar.Var
+
+		for _, data_access_info_one := range data_access {
+			data_access_infos = append(data_access_infos, gvar.New(data_access_info_one)) //
+		}
+		if ga.IntInVarArray(1, data_access_infos) { //数据权限0=自己1=自己及子权限，2=全部
 			var allRuleModel []*AdminAuthRoleModel
 			allRule := svcCtx.DB.Model(table_str+"_auth_rule").All(ctx, &allRuleModel)
 			if allRule.GetError() != nil {
@@ -143,12 +133,12 @@ func getDataAuthor(ctx context.Context, svcCtx *svc.ServiceContext, userId uint6
 			for i, id := range chri_role_ids {
 				roleIdsInterface[i] = id
 			}
-			uid_ids := svcCtx.DB.Model(table_str+"_auth_role_access").WhereIn("role_id", roleIdsInterface).Column(ctx, "uid")
+			uid_ids := svcCtx.DB.Model(table_str+"_auth_role_access").WhereIn("role_id", roleIdsInterface).Column(ctx, "uid", &[]uint64{})
 			for _, val := range uid_ids.GetData().([]uint64) {
 				acount_id = append(acount_id, val)
 			}
 			return acount_id, true //自己及子权限
-		} else if ga.IntInVarArray(0, data_access_info) {
+		} else if ga.IntInVarArray(0, data_access_infos) {
 			return acount_id, true //自己
 		}
 	}
@@ -156,7 +146,8 @@ func getDataAuthor(ctx context.Context, svcCtx *svc.ServiceContext, userId uint6
 }
 
 func GetRoleParent(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetRoleParentRequest) (ga.List, error) {
-	user_role_ids := svcCtx.DB.Model("admin_auth_role_access").Where("uid = ?", req.UserId).Column(ctx, "role_id")
+	var user_role_ids []uint64
+	svcCtx.DB.Model("admin_auth_role_access").Where("uid = ?", req.UserId).Column(ctx, "role_id", &user_role_ids)
 	var allRoleModel []*AdminAuthRoleModel
 	allRole := svcCtx.DB.Model("admin_auth_role").All(ctx, &allRoleModel)
 	if allRole.GetError() != nil {
@@ -169,32 +160,15 @@ func GetRoleParent(ctx context.Context, svcCtx *svc.ServiceContext, req *system.
 			"pid": ga.Uint64(v.Pid),
 		})
 	}
-	//转换为uint64
-	userRoleIds := make([]uint64, 0)
-	if strSlice, ok := user_role_ids.GetData().([]string); ok {
-		for _, v := range strSlice {
-			userRoleIds = append(userRoleIds, ga.Uint64(v))
-		}
-	} else if uint64Slice, ok := user_role_ids.GetData().([]uint64); ok {
-		userRoleIds = uint64Slice
-	}
-	role_chil_ids := ga.FindAllChildrenIDs(allRoleMap, userRoleIds) //批量获取子节点id
-	all_role_id := append(userRoleIds, role_chil_ids...)
+	role_chil_ids := ga.FindAllChildrenIDs(allRoleMap, user_role_ids) //批量获取子节点id
+	all_role_id := append(user_role_ids, role_chil_ids...)
 	whereMap := gmap.New()
 	whereMap.Set("id IN(?)", all_role_id) //in 查询
-	account_id, _ := getDataAuthor(ctx, svcCtx, req.UserId, req.RequestUrl)
+	account_id, _ := GetDataAuthor(ctx, svcCtx, req.UserId, req.RequestUrl)
 	account_id = append(account_id, 0)
-	my_role_account_id := svcCtx.DB.Model("admin_auth_role").WhereIn("id", user_role_ids.GetData()).Column(ctx, "account_id")
-	myRoleIds := make([]interface{}, 0)
-	if myStrSlice, ok := my_role_account_id.GetData().([]string); ok {
-		for _, v := range myStrSlice {
-			myRoleIds = append(myRoleIds, ga.Uint64(v))
-		}
-	} else if uint64Slice, ok := my_role_account_id.GetData().([]interface{}); ok {
-		myRoleIds = uint64Slice
-	}
-	//合并account_id和myRoleIds
-	account_ids := ga.MergeArrUint64(account_id, myRoleIds)
+	var my_role_account_id []uint64
+	svcCtx.DB.Model("admin_auth_role").WhereIn("id", user_role_ids).Column(ctx, "account_id", &my_role_account_id)
+	account_ids := append(account_id, my_role_account_id...)
 	whereMap.Set("account_id IN(?)", account_ids)
 	whereMap.Set("id != ?", req.Id) //id 查询
 
@@ -234,12 +208,16 @@ func GetRoleMenuList(ctx context.Context, svcCtx *svc.ServiceContext, req *syste
 	var rule_ids []interface{}
 	MDB := svcCtx.DB.Model("admin_auth_rule").Where("status", 1).WhereIn("type", []interface{}{0, 1})
 	if req.Pid == 0 {
-		role_id := svcCtx.DB.Model("admin_auth_role_access").Where("uid", req.UserId).Column(ctx, "role_id")
-		menu_id := svcCtx.DB.Model("admin_auth_role").WhereIn("id", role_id.GetData()).Column(ctx, "rules")
+		role_ids := svcCtx.DB.Model("admin_auth_role_access").Where("uid", req.UserId).Column(ctx, "role_id", &[]uint64{})
+		menu_id := svcCtx.DB.Model("admin_auth_role").WhereIn("id", role_ids.GetData()).Column(ctx, "rules", &[]uint64{})
 		//获取超级角色
-		super_role := svcCtx.DB.Model("admin_auth_role").WhereIn("id", role_id).Where("rules", "*").Value(ctx, "id")
+		super_role := svcCtx.DB.Model("admin_auth_role").WhereIn("id", role_ids.GetData()).Where("rules", "*").Value(ctx, "id")
 		if super_role.GetData() == nil { //不是超级权限-过滤菜单权限
-			getmenus := ga.ArrayMerge(menu_id.GetData().([]*gvar.Var))
+			var menu_id_gar []*gvar.Var
+			for _, u := range menu_id.GetData().([]uint64) {
+				menu_id_gar = append(menu_id_gar, gvar.New(u))
+			}
+			getmenus := ga.ArrayMerge(menu_id_gar)
 			MDB = MDB.WhereIn("id", getmenus)
 			rule_ids = getmenus
 		}
@@ -306,18 +284,19 @@ func GetRoleMenuList(ctx context.Context, svcCtx *svc.ServiceContext, req *syste
 			val["btnids"] = gvar.New(btnids)
 		} else if val["pid"] == 0 {
 			//一级菜单获取子级菜单按钮
-			sub_rule_ids := svcCtx.DB.Model("admin_auth_rule").Where("pid", val["id"]).Where("status", 1).Where("type !=", 2).Column(ctx, "id")
-			btn_rule_ids := svcCtx.DB.Model("admin_auth_rule").Where("status", 1).Where("type", 2).WhereIn("pid", sub_rule_ids.GetData()).Column(ctx, "id")
+			sub_rule_ids := svcCtx.DB.Model("admin_auth_rule").Where("pid", val["id"]).Where("status", 1).Where("type !=", 2).Column(ctx, "id", &[]uint64{})
+			btn_rule_ids := svcCtx.DB.Model("admin_auth_rule").Where("status", 1).Where("type", 2).WhereIn("pid", sub_rule_ids.GetData().([]uint64)).Column(ctx, "id", &[]uint64{})
 			val["btnids"] = gvar.New(btn_rule_ids.GetData())
 		}
 		val["checkable"] = gvar.New(true)
 	}
 	menuTreeList := ga.GetMenuChildrenArray(menuListMap, 0, "pid")
 	if rule_ids != nil {
-		btn_idsdata := svcCtx.DB.Model("admin_auth_rule").Where("status", 1).Where("type", 2).WhereIn("id", rule_ids).Column(ctx, "id")
+
+		btn_idsdata := svcCtx.DB.Model("admin_auth_rule").Where("status", 1).Where("type", 2).WhereIn("id", rule_ids).Column(ctx, "id", &[]uint64{})
 		return ga.Map{"list": menuTreeList, "btn_rule_ids": btn_idsdata.GetData()}, nil
 	} else {
-		btn_idsdata := svcCtx.DB.Model("admin_auth_rule").Where("status", 1).Where("type", 2).Column(ctx, "id")
+		btn_idsdata := svcCtx.DB.Model("admin_auth_rule").Where("status", 1).Where("type", 2).Column(ctx, "id", &[]uint64{})
 		return ga.Map{"list": menuTreeList, "btn_rule_ids": btn_idsdata.GetData()}, nil
 	}
 

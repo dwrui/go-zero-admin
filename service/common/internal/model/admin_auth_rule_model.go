@@ -4,6 +4,7 @@ import (
 	"common/internal/svc"
 	"context"
 	"database/sql"
+
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 )
 
@@ -111,19 +112,19 @@ func GetMenuArray(ctx context.Context, svg *svc.ServiceContext, pdata []AdminAut
 			}
 			//11.按钮权限
 			if len(roles) == 0 { //超级权限
-				permission := svg.DB.Model("admin_auth_rule").Where("status", 0).Where("type", 2).Where("pid", v.Id).WhereNotNull("permission").Column(ctx, "permission")
-				if permission.IsNotEmpty() && len(permission.GetData().([]string)) > 0 {
-					meta["btnroles"] = permission.GetData().([]string)
+				permission := svg.DB.Model("admin_auth_rule").Where("status", 0).Where("type", 2).Where("pid", v.Id).WhereNotNull("permission").Column(ctx, "permission", &[]string{})
+				if len(permission.GetData().([]string)) > 0 {
+					meta["btnroles"] = permission
 				} else {
 					meta["btnroles"] = [1]string{"*"}
 				}
 			} else { //选择路由
-				permission := svg.DB.Model("admin_auth_rule").Where("status", 0).Where("type", 2).Where("pid", v.Id).WhereIn("id", roles).WhereNotNull("permission").Column(ctx, "permission")
-				if permission.IsNotEmpty() && len(permission.GetData().([]string)) > 0 {
-					meta["btnroles"] = permission.GetData().([]string)
+				permission := svg.DB.Model("admin_auth_rule").Where("status", 0).Where("type", 2).Where("pid", v.Id).WhereIn("id", roles).WhereNotNull("permission").Column(ctx, "permission", &[]string{})
+				if len(permission.GetData().([]uint64)) > 0 {
+					meta["btnroles"] = permission
 				} else {
-					hasepermission := svg.DB.Model("admin_auth_rule").Where("status", 0).Where("type", 2).Where("pid", v.Id).WhereNotNull("permission").Column(ctx, "permission")
-					if hasepermission.IsEmpty() {
+					hasepermission := svg.DB.Model("admin_auth_rule").Where("status", 0).Where("type", 2).Where("pid", v.Id).WhereNotNull("permission").Column(ctx, "permission", &[]string{})
+					if len(hasepermission.GetData().([]string)) == 0 {
 						meta["btnroles"] = make([]interface{}, 0)
 					} else {
 						meta["btnroles"] = [1]string{"*"}

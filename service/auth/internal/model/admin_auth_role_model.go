@@ -4,6 +4,7 @@ import (
 	"auth/internal/svc"
 	"context"
 	"errors"
+
 	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
 	"github.com/dwrui/go-zero-admin/pkg/utils/tools/json"
 )
@@ -43,7 +44,7 @@ func SetUserPermission(ctx context.Context, svg *svc.ServiceContext, userId uint
 	}
 	permissions["roles"] = ga.String(AdminAuthRole.Rules)
 	if AdminAuthRole.Rules != "*" {
-		roles := svg.DB.Model("admin_auth_rule").WhereIn("id", ga.Axplode(AdminAuthRole.Rules)).Where("api_auth != ?", "").Where("type != ?", 0).Column(ctx, "api_auth")
+		roles := svg.DB.Model("admin_auth_rule").WhereIn("id", ga.Axplode(AdminAuthRole.Rules)).Where("api_auth != ?", "").Where("type != ?", 0).Column(ctx, "api_auth", &[]string{})
 		if roles.GetError() != nil || roles.IsEmpty() {
 			return nil, errors.New("用户角色暂无权限")
 		}

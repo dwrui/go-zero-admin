@@ -14,6 +14,7 @@ import (
 )
 
 type (
+	AccountData                = system.AccountData
 	DelAccountRequest          = system.DelAccountRequest
 	DelAccountResponse         = system.DelAccountResponse
 	DelDeptRequest             = system.DelDeptRequest
@@ -81,7 +82,7 @@ type (
 	UserInfo                   = system.UserInfo
 
 	AccountService interface {
-		GetList(ctx context.Context, in *GetRoleListRequest, opts ...grpc.CallOption) (*GetRoleListResponse, error)
+		GetList(ctx context.Context, in *GetAccountListRequest, opts ...grpc.CallOption) (*GetAccountListResponse, error)
 		Save(ctx context.Context, in *SaveAccountRequest, opts ...grpc.CallOption) (*SaveAccountResponse, error)
 		UpState(ctx context.Context, in *UpStatusAccountRequest, opts ...grpc.CallOption) (*UpStatusAccountResponse, error)
 		Del(ctx context.Context, in *DelAccountRequest, opts ...grpc.CallOption) (*DelAccountResponse, error)
@@ -100,7 +101,7 @@ func NewAccountService(cli zrpc.Client) AccountService {
 	}
 }
 
-func (m *defaultAccountService) GetList(ctx context.Context, in *GetRoleListRequest, opts ...grpc.CallOption) (*GetRoleListResponse, error) {
+func (m *defaultAccountService) GetList(ctx context.Context, in *GetAccountListRequest, opts ...grpc.CallOption) (*GetAccountListResponse, error) {
 	client := system.NewAccountServiceClient(m.cli.Conn())
 	return client.GetList(ctx, in, opts...)
 }

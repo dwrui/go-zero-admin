@@ -2,6 +2,7 @@ package accountservicelogic
 
 import (
 	"context"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -24,7 +25,9 @@ func NewIsaccountexistLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Is
 }
 
 func (l *IsaccountexistLogic) Isaccountexist(in *system.IsAccountExistRequest) (*system.IsAccountExistResponse, error) {
-	// todo: add your logic here and delete this line
-
+	err := model.Isaccountexist(l.ctx, l.svcCtx, in.Id, in.Username)
+	if err != nil {
+		return nil, err
+	}
 	return &system.IsAccountExistResponse{}, nil
 }

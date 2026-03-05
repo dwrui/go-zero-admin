@@ -38,6 +38,9 @@ func (l *GetOperationDetailLogic) GetOperationDetail(in *system.GetOperationDeta
 		Type:        resp.Type,
 		Method:      resp.Method,
 		Path:        resp.Path,
+		Ip:          resp.IP,
+		Address:     resp.Address,
+		Description: resp.Description,
 		ReqHeaders:  resp.ReqHeaders,
 		ReqBody:     resp.ReqBody,
 		RespHeaders: resp.RespHeaders,
@@ -45,6 +48,6 @@ func (l *GetOperationDetailLogic) GetOperationDetail(in *system.GetOperationDeta
 		Status:      resp.Status,
 		Duration:    resp.Duration,
 		CreateTime:  resp.CreateTime.Time.Format("2006-01-02 15:04:05"),
-		Username:    resp.UserName,
+		Username:    resp.UserName.String,
 	}, nil
 }

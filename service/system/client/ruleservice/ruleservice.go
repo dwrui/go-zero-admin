@@ -14,6 +14,7 @@ import (
 )
 
 type (
+	AccountData                = system.AccountData
 	DelAccountRequest          = system.DelAccountRequest
 	DelAccountResponse         = system.DelAccountResponse
 	DelDeptRequest             = system.DelDeptRequest

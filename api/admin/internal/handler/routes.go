@@ -183,9 +183,29 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodPost,
+				Path:    "/log/delLastLogin",
+				Handler: log.DelLastLoginHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/log/delLastOperation",
+				Handler: log.DelLastOperationHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/log/getLogin",
 				Handler: log.GetLoginHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/log/getOperation",
+				Handler: log.GetOperationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/log/getOperationDetail",
+				Handler: log.GetOperationDetailHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

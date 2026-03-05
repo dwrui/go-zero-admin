@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"system/internal/svc"
 	"system/system"
 
@@ -52,6 +53,9 @@ func GetRuleOne(ctx context.Context, svcCtx *svc.ServiceContext, field string, i
 	if resp.GetError() != nil {
 		return AdminAuthRuleModel{}, resp.GetError()
 	}
+	if resp.IsEmpty() {
+		return AdminAuthRuleModel{}, errors.New("数据不存在")
+	}
 	return rule, nil
 }
 
@@ -93,12 +97,11 @@ func GetParentAll(ctx context.Context, svcCtx *svc.ServiceContext, whereIn ga.Sl
 	return rule, nil
 }
 
-func GetRoutesAll(ctx context.Context, svcCtx *svc.ServiceContext) ([]string, error) {
-	var paths []string
-	resp := svcCtx.DB.Model("admin_auth_rule").Where("path != ?", "").Column(ctx, "path")
+func GetRoutesAll(ctx context.Context, svcCtx *svc.ServiceContext) ([]*string, error) {
+	var paths []*string
+	resp := svcCtx.DB.Model("admin_auth_rule").Where("path != ?", "").Column(ctx, "path", &paths)
 	if resp.GetError() != nil {
 		return nil, resp.GetError()
 	}
-
 	return paths, nil
 }

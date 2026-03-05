@@ -1,8 +1,15 @@
 package model
 
 import (
+	"context"
 	"database/sql"
+	"errors"
+	"system/internal/svc"
+	"system/system"
 	"time"
+
+	"github.com/dwrui/go-zero-admin/pkg/utils/ga"
+	"github.com/dwrui/go-zero-admin/pkg/utils/tools/gmap"
 )
 
 type AdminAccountModel struct {
@@ -38,12 +45,145 @@ type AdminAccountModel struct {
 	DeleteTime    sql.NullTime `db:"delete_time"`     // 删除时间
 	PwdResetTime  sql.NullTime `db:"pwd_reset_time"`  // 修改密码时间
 }
+type AdminAccountModelResponse struct {
+	*AdminAccountModel
+	RoleId   []uint64 `db:"-" json:"role_id"`   // 角色id
+	RoleName []string `db:"-" json:"role_name"` // 角色名称
+	DeptName string   `db:"-" json:"dept_name"` // 部门名称
+}
 
-//func GetLoginLog(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetLogListRequest) ([]*AdminAccountModel, error) {
-//	var loginLogs []*AdminAccountModel
-//	resp := svcCtx.DB.Model("business_login_log").Where("account_id", req.AccountId).OrderDesc("id").Find(ctx, &loginLogs)
-//	if resp.GetError() != nil {
-//		return nil, resp.GetError()
-//	}
-//	return loginLogs, nil
-//}
+func GetAccountList(ctx context.Context, svcCtx *svc.ServiceContext, whereMap *gmap.Map, page, size uint64) (ga.Map, error) {
+	var list []*AdminAccountModelResponse
+	resp := svcCtx.DB.Model("common_sys_admin_account").Alias("c").Fields("c.id,c.status,c.name,c.username,c.avatar,c.tel,c.mobile,c.email,c.dept_id,c.remark,c.city,c.address,c.company,c.create_time,d.name as dept_name").LeftJoin("admin_auth_dept", "d", "c.dept_id = d.id").Where(whereMap).Order("id", "desc").Paginate(ctx, ga.Int(page), ga.Int(size), &list)
+	if resp.Error != nil {
+		return nil, resp.Error
+	}
+	for _, v := range list {
+		roleid := svcCtx.DB.Model("business_auth_role_access").Where("uid", v.Id).Column(ctx, "role_id", &[]uint64{})
+		roleName := svcCtx.DB.Model("business_auth_role").Where("id in (?)", roleid).Column(ctx, "name", &[]string{})
+		v.RoleId = roleid.GetData().([]uint64)
+		v.RoleName = roleName.GetData().([]string)
+	}
+	return ga.Map{
+		"list":  list,
+		"page":  resp.Page,
+		"size":  resp.Size,
+		"total": resp.Total,
+	}, nil
+}
+
+func SaveAccount(ctx context.Context, svcCtx *svc.ServiceContext, data ga.Map) (uint64, error) {
+	resp := svcCtx.DB.Model("common_sys_admin_account").Save(ctx, data)
+	if resp.GetError() != nil {
+		return 0, resp.GetError()
+	}
+	return ga.Uint64(resp.GetLastId()), nil
+}
+
+func AppRoleAccess(ctx context.Context, svg *svc.ServiceContext, roleids []uint64, uid interface{}) {
+	//批量提交
+	svg.DB.Model("business_auth_role_access").Where("uid", uid).Delete(ctx)
+	save_arr := ga.List{}
+	for _, val := range roleids {
+		marr := map[string]interface{}{"uid": uid, "role_id": val}
+		save_arr = append(save_arr, marr)
+	}
+	svg.DB.Model("business_auth_role_access").Data(save_arr).Save(ctx)
+}
+func UpStatusAccount(ctx context.Context, svg *svc.ServiceContext, id uint64, status uint64) error {
+	resp := svg.DB.Model("common_sys_admin_account").Where("id", id).Update(ctx, ga.Map{"status": status})
+	if resp.GetError() != nil {
+		return resp.GetError()
+	}
+	return nil
+}
+
+func DelAccount(ctx context.Context, svg *svc.ServiceContext, id uint64) error {
+	resp := svg.DB.Model("common_sys_admin_account").Where("id", id).Delete(ctx)
+	if resp.GetError() != nil {
+		return resp.GetError()
+	}
+	return nil
+}
+
+// 获取所有子级ID（包含自身）
+func GetRole(ctx context.Context, svcCtx *svc.ServiceContext, req *system.GetAccountRoleRequest) (ga.List, error) {
+	var user_role_ids []uint64
+	svcCtx.DB.Model("admin_auth_role_access").Where("uid = ?", req.UserId).Column(ctx, "role_id", &user_role_ids)
+	var allRoleModel []*AdminAuthRoleModel
+	allRole := svcCtx.DB.Model("admin_auth_role").All(ctx, &allRoleModel)
+	if allRole.GetError() != nil {
+		return nil, allRole.GetError()
+	}
+	allRoleMap := make([]map[string]uint64, 0)
+	for _, v := range allRoleModel {
+		allRoleMap = append(allRoleMap, map[string]uint64{
+			"id":  v.Id,
+			"pid": ga.Uint64(v.Pid),
+		})
+	}
+	role_chil_ids := ga.FindAllChildrenIDs(allRoleMap, user_role_ids) //批量获取子节点id
+	all_role_id := append(user_role_ids, role_chil_ids...)
+	whereMap := gmap.New()
+	if len(all_role_id) > 0 {
+		whereMap.Set("id IN(?)", all_role_id) //in 查询
+	}
+	account_id, _ := GetDataAuthor(ctx, svcCtx, req.UserId, "")
+	account_id = append(account_id, 0)
+	var my_role_account_id []uint64
+	svcCtx.DB.Model("admin_auth_role").WhereIn("id", user_role_ids).Column(ctx, "account_id", &my_role_account_id)
+	//合并account_id和myRoleIds
+	account_ids := append(account_id, my_role_account_id...)
+	whereMap.Set("account_id IN(?)", account_ids)
+	var roleList []*AdminAuthRoleModel
+	roleListData := svcCtx.DB.Model("admin_auth_role").Where(whereMap).OrderBy("weigh").Select(ctx, &roleList)
+	if roleListData.GetError() != nil {
+		return nil, roleListData.GetError()
+	}
+	//获取最大一级的pid
+	max_role_id := svcCtx.DB.Model("admin_auth_role").Where(whereMap).OrderBy("id").Value(ctx, "pid")
+	roleListMap := make([]map[string]interface{}, 0)
+	for _, val := range roleList {
+		roleListMap = append(roleListMap, ga.Map{
+			"id":          val.Id,
+			"pid":         val.Pid,
+			"name":        val.Name,
+			"rules":       val.Rules,
+			"menu":        val.Menu,
+			"btns":        val.Btns,
+			"status":      val.Status,
+			"data_access": val.DataAccess,
+			"remark":      val.Remark,
+			"weigh":       val.Weigh,
+			"business_id": val.BusinessId,
+			"account_id":  val.AccountId,
+		})
+	}
+
+	roleListTree := ga.GetTreeArray(roleListMap, ga.Int64(max_role_id.GetData()), "")
+	if roleListTree == nil {
+		roleListTree = make([]map[string]interface{}, 0)
+	}
+	return roleListTree, nil
+}
+
+func Isaccountexist(ctx context.Context, svcCtx *svc.ServiceContext, id uint64, username string) error {
+	if id == 0 {
+		resp := svcCtx.DB.Model("admin_account").Where("username = ?", username).Value(ctx, "id")
+		if resp.GetError() != nil {
+			return resp.GetError()
+		}
+		if resp.IsNotEmpty() {
+			return errors.New("用户名已存在")
+		}
+	} else {
+		resp := svcCtx.DB.Model("admin_account").Where("username = ?", username).Where("id = ?", id).Value(ctx, "id")
+		if resp.GetError() != nil {
+			return resp.GetError()
+		}
+		if resp.IsNotEmpty() {
+			return errors.New("用户名已存在")
+		}
+	}
+	return nil
+}

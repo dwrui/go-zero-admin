@@ -31,16 +31,16 @@ type CommonSysOperationLogMpdel struct {
 }
 type LogOperationWithUserInfo struct {
 	*CommonSysOperationLogMpdel
-	Name         string `db:"name"`
-	UserName     string `db:"user_name"`
-	UserNickname string `db:"user_nickname"`
-	Avatar       string `db:"avatar"`
+	Name         sql.NullString `db:"name"`
+	UserName     sql.NullString `db:"user_name"`
+	UserNickname sql.NullString `db:"user_nickname"`
+	Avatar       sql.NullString `db:"avatar"`
 }
 
 // GetOperationLogList 获取操作日志列表
 func GetOperationLogList(ctx context.Context, svcCtx *svc.ServiceContext, whereMap *gmap.Map, page, pageSize uint64) (ga.Map, error) {
 	var list []*LogOperationWithUserInfo
-	resp := svcCtx.DB.Model("common_sys_operation_log").Alias("log").LeftJoin("admin_account", "u", "log.account_id = u.id").Where(whereMap).OrderBy("id desc").Paginate(ctx, int(page), int(pageSize), &list)
+	resp := svcCtx.DB.Model("common_sys_operation_log").Alias("log").Fields("log.id,log.user_id,log.type,log.method,log.ip,log.path,log.address,log.description,log.duration,log.status,log.create_time,u.name,u.avatar,u.nickname as user_nickname").LeftJoin("admin_account", "u", "log.account_id = u.id").Where(whereMap).OrderByDesc("log.id").Paginate(ctx, int(page), int(pageSize), &list)
 	if resp.Error != nil {
 		return nil, resp.Error
 	}
@@ -53,18 +53,18 @@ func GetOperationLogList(ctx context.Context, svcCtx *svc.ServiceContext, whereM
 }
 
 // GetOperatuinDetail 获取操作日志详情
-func GetOperatuinDetail(ctx context.Context, svcCtx *svc.ServiceContext, id uint64) (*LogOperationWithUserInfo, error) {
-	var log *LogOperationWithUserInfo
-	resp := svcCtx.DB.Model("common_sys_operation_log").Alias("log").LeftJoin("admin_account", "u", "log.account_id = u.id").Where("log.id = ?", id).Find(ctx, &log)
+func GetOperatuinDetail(ctx context.Context, svcCtx *svc.ServiceContext, id uint64) (LogOperationWithUserInfo, error) {
+	var log LogOperationWithUserInfo
+	resp := svcCtx.DB.Model("common_sys_operation_log").Alias("log").LeftJoin("admin_account", "u", "log.account_id = u.id").Fields("log.*,u.name as user_name").Where("log.id = ?", id).Find(ctx, &log)
 	if resp.GetError() != nil {
-		return nil, resp.GetError()
+		return LogOperationWithUserInfo{}, resp.GetError()
 	}
 	return log, nil
 }
 
 // DeleteOperationLog 删除1个月前的操作日志
 func DeleteOperationLog(ctx context.Context, svcCtx *svc.ServiceContext) error {
-	res := svcCtx.DB.Model("common_sys_operation_log").Where("createtime <", gtime.Now().AddDate(0, -1, 0).Format("Y-m-d H:i:s")).Delete(ctx)
+	res := svcCtx.DB.Model("common_sys_operation_log").Where("create_time < ?", gtime.Now().AddDate(0, -1, 0).Format("Y-m-d H:i:s")).Delete(ctx)
 	if res.GetError() != nil {
 		return res.GetError()
 	}

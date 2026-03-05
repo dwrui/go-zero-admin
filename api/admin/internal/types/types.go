@@ -70,6 +70,18 @@ type DelDeptReq struct {
 type DelDeptResp struct {
 }
 
+type DelLastLoginReq struct {
+}
+
+type DelLastLoginResp struct {
+}
+
+type DelLastOperationReq struct {
+}
+
+type DelLastOperationResp struct {
+}
+
 type DelRoleReq struct {
 	Id uint64 `json:"id" validate:"required"`
 }
@@ -114,7 +126,7 @@ type DeptParentData struct {
 }
 
 type GetCaptchaReq struct {
-	CaptchaType string `json:"type" validate:"required"`
+	CaptchaType string `form:"type" validate:"required"`
 }
 
 type GetCategoryDetailReq struct {
@@ -210,9 +222,52 @@ type GetMenuReq struct {
 	RouteId uint64 `json:"route_id"`
 }
 
+type GetOperationDetailReq struct {
+	Id uint64 `form:"id" validate:"required"`
+}
+
+type GetOperationDetailResp struct {
+	Id             uint64  `json:"id"`
+	User_id        uint64  `json:"user_id"`
+	Account_id     uint64  `json:"account_id"`
+	Business_id    uint64  `json:"business_id"`
+	Operation_type string  `json:"type"`
+	Method         string  `json:"method"`
+	Path           string  `json:"path"`
+	Ip             string  `json:"ip"`
+	Address        string  `json:"address"`
+	Description    string  `json:"description"`
+	Req_headers    string  `json:"req_headers"`
+	Req_body       string  `json:"req_body"`
+	Resp_headers   string  `json:"resp_headers"`
+	Resp_body      string  `json:"resp_body"`
+	Status         uint32  `json:"status"`
+	Duration       float64 `json:"duration"`
+	Create_time    string  `json:"create_time"`
+	Username       string  `json:"username"`
+}
+
+type GetOperationReq struct {
+	User_name   string `form:"user_name,optional"`
+	Ip          string `form:"ip,optional"`
+	Status      uint32 `form:"status,optional,default=1"`
+	Create_time string `form:"create_time,optional"`
+	Page        uint64 `form:"page,optional,default=1"`
+	Size        uint64 `form:"size,optional,default=10"`
+	User_id     uint64 `form:"user_id,optional"`
+	Business_id uint64 `form:"business_id,optional"`
+}
+
+type GetOperationResp struct {
+	Items    []OperationLogData `json:"items"`
+	Page     uint64             `json:"page"`
+	PageSize uint64             `json:"pageSize"`
+	Total    uint64             `json:"total"`
+}
+
 type GetRoleListReq struct {
 	Name       string `form:"name,optional"`
-	Status     uint64 `form:"status,optional"`
+	Status     uint64 `form:"status,optional,default=1"`
 	CreateTime string `form:"create_time,optional"`
 }
 
@@ -283,6 +338,27 @@ type LoginReq struct {
 	Password string `json:"password" validate:"required"`
 	Codeid   string `json:"codeid" validate:"required"`
 	Captcha  string `json:"captcha" validate:"required"`
+}
+
+type OperationLogData struct {
+	Id             uint64   `json:"id"`
+	User_id        uint64   `json:"user_id"`
+	Account_id     uint64   `json:"account_id"`
+	Business_id    uint64   `json:"business_id"`
+	Operation_type string   `json:"type"`
+	Method         string   `json:"method"`
+	Path           string   `json:"path"`
+	Ip             string   `json:"ip"`
+	Address        string   `json:"address"`
+	Description    string   `json:"description"`
+	Req_headers    string   `json:"req_headers"`
+	Req_body       string   `json:"req_body"`
+	Resp_headers   string   `json:"resp_headers"`
+	Resp_body      string   `json:"resp_body"`
+	Status         uint32   `json:"status"`
+	Duration       float64  `json:"duration"`
+	Create_time    string   `json:"create_time"`
+	User           UserInfo `json:"user"`
 }
 
 type RoleData struct {
@@ -446,13 +522,20 @@ type UpdateConfigStatusReq struct {
 	Status int32  `json:"status" validate:"required"`
 }
 
+type UserInfo struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Avatar   string `json:"avatar"`
+	Nickname string `json:"nickname"`
+}
+
 type GetLoginReq struct {
-	Page        uint64 `form:"page,optional"`
-	PageSize    uint64 `form:"pageSize,optional"`
+	Page        uint64 `form:"page,optional,default=1"`
+	PageSize    uint64 `form:"pageSize,optional,default=10"`
 	User        string `form:"user,optional"`
 	Ip          string `form:"ip,optional"`
 	Create_time string `form:"create_time,optional"`
-	Status      uint64 `form:"status,optional"`
+	Status      uint64 `form:"status,optional,default=1"`
 }
 
 type GetLoginResp struct {

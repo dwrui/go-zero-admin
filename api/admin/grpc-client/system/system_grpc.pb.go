@@ -925,7 +925,7 @@ const (
 //
 // 定义服务
 type AccountServiceClient interface {
-	GetList(ctx context.Context, in *GetRoleListRequest, opts ...grpc.CallOption) (*GetRoleListResponse, error)
+	GetList(ctx context.Context, in *GetAccountListRequest, opts ...grpc.CallOption) (*GetAccountListResponse, error)
 	Save(ctx context.Context, in *SaveAccountRequest, opts ...grpc.CallOption) (*SaveAccountResponse, error)
 	UpState(ctx context.Context, in *UpStatusAccountRequest, opts ...grpc.CallOption) (*UpStatusAccountResponse, error)
 	Del(ctx context.Context, in *DelAccountRequest, opts ...grpc.CallOption) (*DelAccountResponse, error)
@@ -941,9 +941,9 @@ func NewAccountServiceClient(cc grpc.ClientConnInterface) AccountServiceClient {
 	return &accountServiceClient{cc}
 }
 
-func (c *accountServiceClient) GetList(ctx context.Context, in *GetRoleListRequest, opts ...grpc.CallOption) (*GetRoleListResponse, error) {
+func (c *accountServiceClient) GetList(ctx context.Context, in *GetAccountListRequest, opts ...grpc.CallOption) (*GetAccountListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetRoleListResponse)
+	out := new(GetAccountListResponse)
 	err := c.cc.Invoke(ctx, AccountService_GetList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -1007,7 +1007,7 @@ func (c *accountServiceClient) Isaccountexist(ctx context.Context, in *IsAccount
 //
 // 定义服务
 type AccountServiceServer interface {
-	GetList(context.Context, *GetRoleListRequest) (*GetRoleListResponse, error)
+	GetList(context.Context, *GetAccountListRequest) (*GetAccountListResponse, error)
 	Save(context.Context, *SaveAccountRequest) (*SaveAccountResponse, error)
 	UpState(context.Context, *UpStatusAccountRequest) (*UpStatusAccountResponse, error)
 	Del(context.Context, *DelAccountRequest) (*DelAccountResponse, error)
@@ -1023,7 +1023,7 @@ type AccountServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAccountServiceServer struct{}
 
-func (UnimplementedAccountServiceServer) GetList(context.Context, *GetRoleListRequest) (*GetRoleListResponse, error) {
+func (UnimplementedAccountServiceServer) GetList(context.Context, *GetAccountListRequest) (*GetAccountListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetList not implemented")
 }
 func (UnimplementedAccountServiceServer) Save(context.Context, *SaveAccountRequest) (*SaveAccountResponse, error) {
@@ -1063,7 +1063,7 @@ func RegisterAccountServiceServer(s grpc.ServiceRegistrar, srv AccountServiceSer
 }
 
 func _AccountService_GetList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRoleListRequest)
+	in := new(GetAccountListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1075,7 +1075,7 @@ func _AccountService_GetList_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: AccountService_GetList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountServiceServer).GetList(ctx, req.(*GetRoleListRequest))
+		return srv.(AccountServiceServer).GetList(ctx, req.(*GetAccountListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

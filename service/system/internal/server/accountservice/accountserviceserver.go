@@ -23,7 +23,7 @@ func NewAccountServiceServer(svcCtx *svc.ServiceContext) *AccountServiceServer {
 	}
 }
 
-func (s *AccountServiceServer) GetList(ctx context.Context, in *system.GetRoleListRequest) (*system.GetRoleListResponse, error) {
+func (s *AccountServiceServer) GetList(ctx context.Context, in *system.GetAccountListRequest) (*system.GetAccountListResponse, error) {
 	l := accountservicelogic.NewGetListLogic(ctx, s.svcCtx)
 	return l.GetList(in)
 }

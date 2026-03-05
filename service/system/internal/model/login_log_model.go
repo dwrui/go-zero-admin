@@ -42,7 +42,7 @@ func GetLoginLogList(ctx context.Context, svcCtx *svc.ServiceContext, req *syste
 	whereMap.Set("log.business_id", req.BusinessId)
 
 	if req.User != "" {
-		userids := svcCtx.DB.Model("admin_account").Where("name like ?", "%"+ga.String(req.User)+"%").Column(ctx, "id")
+		userids := svcCtx.DB.Model("admin_account").Where("name like ?", "%"+ga.String(req.User)+"%").Column(ctx, "id", &[]string{})
 		whereMap.Set("log.uid IN(?)", userids.GetData())
 	}
 	if req.Ip != "" {
@@ -83,7 +83,7 @@ func GetLoginLogList(ctx context.Context, svcCtx *svc.ServiceContext, req *syste
 
 // DeleteLoginLog 删除1个月前的登录日志
 func DeleteLoginLog(ctx context.Context, svcCtx *svc.ServiceContext) error {
-	res := svcCtx.DB.Model("common_sys_login_log").Where("type !=?", "admin").Where("createtime <", gtime.Now().AddDate(0, -1, 0).Format("Y-m-d H:i:s")).Delete(ctx)
+	res := svcCtx.DB.Model("common_sys_login_log").Where("type !=?", "admin").Where("create_time < ?", gtime.Now().AddDate(0, -1, 0).Format("Y-m-d H:i:s")).Delete(ctx)
 	if res.GetError() != nil {
 		return res.GetError()
 	}

@@ -88,7 +88,7 @@ func (l *CustomLogger) Middleware(next http.HandlerFunc) http.HandlerFunc {
 		// 包装响应写入器以捕获响应数据
 		wrappedWriter := &responseWriter{
 			ResponseWriter: w,
-			statusCode:     http.StatusOK,
+			statusCode:     1,
 			body:           make([]byte, 0),
 		}
 
@@ -121,7 +121,7 @@ func (l *CustomLogger) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			defer func() {
 				if err := recover(); err != nil {
 					fmt.Sprintf("panic: %v", err)
-					wrappedWriter.statusCode = http.StatusInternalServerError
+					wrappedWriter.statusCode = 0
 				}
 			}()
 			next(wrappedWriter, r)
@@ -187,7 +187,11 @@ func (l *CustomLogger) Middleware(next http.HandlerFunc) http.HandlerFunc {
 				w.Header().Add(key, value)
 			}
 		}
-		w.WriteHeader(wrappedWriter.statusCode)
+		if wrappedWriter.statusCode == 0 {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
 		if len(wrappedWriter.body) > 0 {
 			w.Write(wrappedWriter.body)
 		}

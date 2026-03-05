@@ -786,6 +786,10 @@ func (qb *Model) Find(ctx context.Context, dest interface{}) *QueryResult {
 	}
 
 	err := qb.db.QueryRow(ctx, dest, query, args...)
+	if err != nil && err == sql.ErrNoRows {
+		err = nil
+		dest = nil
+	}
 	return &QueryResult{
 		data:  dest,
 		err:   err,
@@ -809,6 +813,10 @@ func (qb *Model) Select(ctx context.Context, dest interface{}) *QueryResult {
 		}
 	}
 	err := qb.db.Query(ctx, dest, query, args...)
+	if err != nil && err == sql.ErrNoRows {
+		err = nil
+		dest = nil
+	}
 	return &QueryResult{
 		data:  dest,
 		err:   err,
@@ -1019,7 +1027,7 @@ func (qb *Model) Value(ctx context.Context, field string) *QueryResult {
 }
 
 // Column 获取单一字段的所有值 - 使用QueryRows处理多行数据
-func (qb *Model) Column(ctx context.Context, field string) *QueryResult {
+func (qb *Model) Column(ctx context.Context, field string, dest interface{}) *QueryResult {
 	qb.fields = []string{field}
 	query, args := qb.buildQuery()
 
@@ -1034,8 +1042,72 @@ func (qb *Model) Column(ctx context.Context, field string) *QueryResult {
 			args:  args,
 		}
 	}
-	var result []string
-	err := qb.db.QueryRows(ctx, &result, query, args...)
+	var result interface{}
+	var err error
+
+	switch d := dest.(type) {
+	case *[]string:
+		var stringResult []string
+		err = qb.db.QueryRows(ctx, &stringResult, query, args...)
+		if err == nil {
+			*d = stringResult
+			result = stringResult
+		}
+	case *[]int:
+		var intResult []int
+		err = qb.db.QueryRows(ctx, &intResult, query, args...)
+		if err == nil {
+			*d = intResult
+			result = intResult
+		}
+	case *[]int64:
+		var int64Result []int64
+		err = qb.db.QueryRows(ctx, &int64Result, query, args...)
+		if err == nil {
+			*d = int64Result
+			result = int64Result
+		}
+	case *[]uint:
+		var intResult []uint
+		err = qb.db.QueryRows(ctx, &intResult, query, args...)
+		if err == nil {
+			*d = intResult
+			result = intResult
+		}
+	case *[]uint64:
+		var int64Result []uint64
+		err = qb.db.QueryRows(ctx, &int64Result, query, args...)
+		if err == nil {
+			*d = int64Result
+			result = int64Result
+		}
+	case *[]float64:
+		var float64Result []float64
+		err = qb.db.QueryRows(ctx, &float64Result, query, args...)
+		if err == nil {
+			*d = float64Result
+			result = float64Result
+		}
+	case *[]bool:
+		var boolResult []bool
+		err = qb.db.QueryRows(ctx, &boolResult, query, args...)
+		if err == nil {
+			*d = boolResult
+			result = boolResult
+		}
+	case *[]interface{}:
+		var interfaceResult []interface{}
+		err = qb.db.QueryRows(ctx, &interfaceResult, query, args...)
+		if err == nil {
+			*d = interfaceResult
+			result = interfaceResult
+		}
+	default:
+		// 默认情况下，使用[]string类型
+		var stringResult []string
+		err = qb.db.QueryRows(ctx, &stringResult, query, args...)
+		result = stringResult
+	}
 	// 如果查询出错，返回空结果
 	if err != nil {
 		return &QueryResult{
@@ -1957,6 +2029,14 @@ func convertToInterfaceSlice(values interface{}) []interface{} {
 			result[i] = val
 		}
 		return result
+	case []*uint64:
+		result := make([]interface{}, len(v))
+		for i, val := range v {
+			if val != nil {
+				result[i] = *val
+			}
+		}
+		return result
 	case []*gvar.Var:
 		result := make([]interface{}, len(v))
 		for i, val := range v {
@@ -1976,12 +2056,26 @@ func reflectConvertToInterfaceSlice(values interface{}) []interface{} {
 		return []interface{}{values}
 	}
 
-	result := make([]interface{}, v.Len())
+	// 先使用临时切片存储结果
+	var tempResult []interface{}
 	for i := 0; i < v.Len(); i++ {
-		result[i] = v.Index(i).Interface()
+		// 检查是否为指针类型
+		elem := v.Index(i)
+		if elem.Kind() == reflect.Ptr {
+			// 是指针，解引用
+			if elem.IsNil() {
+				// 指针为nil，跳过
+				continue
+			}
+			tempResult = append(tempResult, elem.Elem().Interface())
+
+		} else {
+			// 不是指针，直接使用
+			tempResult = append(tempResult, elem.Interface())
+		}
 	}
 
-	return result
+	return tempResult
 }
 
 // getConditionArgs 处理条件值，转换为[]interface{}

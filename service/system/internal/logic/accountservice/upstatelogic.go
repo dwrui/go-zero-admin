@@ -2,6 +2,7 @@ package accountservicelogic
 
 import (
 	"context"
+	"system/internal/model"
 
 	"system/internal/svc"
 	"system/system"
@@ -24,7 +25,9 @@ func NewUpStateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpStateLo
 }
 
 func (l *UpStateLogic) UpState(in *system.UpStatusAccountRequest) (*system.UpStatusAccountResponse, error) {
-	// todo: add your logic here and delete this line
-
+	err := model.UpStatusAccount(l.ctx, l.svcCtx, in.Id, in.Status)
+	if err != nil {
+		return nil, err
+	}
 	return &system.UpStatusAccountResponse{}, nil
 }

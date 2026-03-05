@@ -16,20 +16,20 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func GetLoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+func GetOperationDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.GetLoginReq
+		var req types.GetOperationDetailReq
 		if err := ga.ResData(r, &req); err != nil {
 			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(err.Error()))
 			return
 		}
-		if msg := validate.GetLoginValidate(req); msg != "" {
+		if msg := validate.GetOperationDetailValidate(req); msg != "" {
 			httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(msg))
 			return
 		}
 
-		l := log.NewGetLoginLogic(r.Context(), svcCtx)
-		resp, err := l.GetLogin(&req)
+		l := log.NewGetOperationDetailLogic(r.Context(), svcCtx)
+		resp, err := l.GetOperationDetail(&req)
 		if err != nil {
 			if st, ok := status.FromError(err); ok {
 				httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, ga.Failed().SetMsg(st.Message()))

@@ -40,8 +40,8 @@ func (l *GetOperationLogic) GetOperation(in *system.GetOperationRequest) (*syste
 		whereMap.Set("pageSize", 10)
 	}
 	if in.UserName != "" {
-		userids := l.svcCtx.DB.Model("admin_account").Where("name like ?", "%"+ga.String(in.UserName)+"%").Column(l.ctx, "id")
-		whereMap.Set("log.uid IN(?)", userids.GetData())
+		userids := l.svcCtx.DB.Model("admin_account").Where("name like ?", "%"+ga.String(in.UserName)+"%").Column(l.ctx, "id", &[]uint64{})
+		whereMap.Set("log.uid IN(?)", userids.GetData().([]string))
 	}
 	if in.Ip != "" {
 		address := net.ParseIP(ga.String(in.Ip))
@@ -76,17 +76,18 @@ func (l *GetOperationLogic) GetOperation(in *system.GetOperationRequest) (*syste
 			Status:      i.Status,
 			Address:     i.Address,
 			Description: i.Description,
-			Ip:          i.Path,
+			Path:        i.Path,
+			Ip:          i.IP,
 			ReqHeaders:  i.ReqHeaders,
 			ReqBody:     i.ReqBody,
 			RespHeaders: i.RespHeaders,
 			RespBody:    i.RespBody,
 			Duration:    i.Duration,
 			User: &system.UserInfo{
-				Name:     i.Name,
-				Username: i.UserName,
-				Avatar:   i.Avatar,
-				Nickname: i.UserNickname,
+				Name:     i.Name.String,
+				Username: i.UserName.String,
+				Avatar:   i.Avatar.String,
+				Nickname: i.UserNickname.String,
 			},
 			CreateTime: i.CreateTime.Time.Format("2006-01-02 15:04:05"),
 		})
