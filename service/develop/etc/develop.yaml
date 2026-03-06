@@ -1,0 +1,26 @@
+Name: develop.rpc
+ListenOn: 0.0.0.0:8080
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: develop.rpc
+mysql:
+  Host: 127.0.0.1
+  Port: 3306
+  Database: go_zero_admin
+  Username: go_zero_admin
+  Password: go_zero_admin
+  Charset: utf8mb4
+  TablePrefix: ga_
+Log:
+  ServiceName: develop-service
+  Mode: file
+  Path: ../../logs/develop
+  Level: info
+  KeepDays: 7
+  Compress: false
+admin:
+  # 配置代码生成时-前端代码根目录位置(开发必改)
+  vueobjroot: E:/phpproject/gofly_admin/resource/webbusiness
+  #管理端目录名称 默认admin，如果您改成其他请修改成定义目录名称
+  adminDirName: admin

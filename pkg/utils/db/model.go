@@ -976,6 +976,74 @@ func (qb *Model) Exists(ctx context.Context) *QueryResult {
 	}
 }
 
+// Raw 执行原生SQL查询
+func (qb *Model) Raw(ctx context.Context, dest interface{}, query string, args ...interface{}) *QueryResult {
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  dest,
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	err := qb.db.Query(ctx, dest, query, args...)
+	if err != nil && err == sql.ErrNoRows {
+		err = nil
+		dest = nil
+	}
+
+	return &QueryResult{
+		data:  dest,
+		err:   err,
+		query: query,
+		args:  args,
+	}
+}
+
+// RawExec 执行原生SQL执行语句
+func (qb *Model) RawExec(ctx context.Context, query string, args ...interface{}) *QueryResult {
+	// 如果设置了SQLFetch，只输出SQL不执行查询
+	if qb.sqlFetch {
+		completeSQL := buildCompleteSQL(query, args)
+		fmt.Printf("完整SQL: %s\n原始SQL: %s\n参数: %v\n", completeSQL, query, args)
+		return &QueryResult{
+			data:  nil,
+			err:   nil,
+			query: query,
+			args:  args,
+		}
+	}
+
+	result, err := qb.db.Exec(ctx, query, args...)
+	if err != nil {
+		return &QueryResult{
+			data:  nil,
+			err:   err,
+			query: query,
+			args:  args,
+		}
+	}
+
+	// 获取最后插入的ID
+	lastId, err := result.LastInsertId()
+	lastIdStr := ""
+	if err == nil {
+		lastIdStr = strconv.FormatInt(lastId, 10)
+	}
+
+	return &QueryResult{
+		data:   result,
+		err:    nil,
+		query:  query,
+		args:   args,
+		lastId: lastIdStr,
+	}
+}
+
 // Sum 查询指定字段的合计数
 func (qb *Model) Sum(ctx context.Context, field string) *QueryResult {
 	qb.fields = []string{fmt.Sprintf("SUM(%s)", field)}
